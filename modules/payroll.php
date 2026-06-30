@@ -227,67 +227,212 @@ $netPay = $income - $deduction;
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
 
     <style>
-        .payroll-item {
-            border-bottom: 1px dashed #e5e7eb;
-            padding: .45rem 0;
+        :root {
+            --pr-bg: #f7f8fa;
+            --pr-surface: #ffffff;
+            --pr-border: #e8eaee;
+            --pr-text: #1f2430;
+            --pr-text-muted: #767e8c;
+            --pr-primary: #7cb9ff;
+            --pr-primary-soft: #eaf3ff;
+            --pr-income: #1f9d55;
+            --pr-income-bg: #e4f7ea;
+            --pr-deduction: #c0392b;
+            --pr-deduction-bg: #fbe9e7;
+            --pr-radius: 12px;
+            --pr-shadow: 0 1px 2px rgba(20,20,43,.04), 0 8px 24px -12px rgba(20,20,43,.10);
         }
 
-        .section-title {
-            font-size: .75rem;
+        .pr-wrap { font-family: inherit; color: var(--pr-text); }
+
+        /* ── Summary header ───────────────────────────────────────────── */
+        .pr-header-card {
+            background: linear-gradient(135deg, var(--pr-primary) 0%, #4e96f0 100%);
+            border-radius: var(--pr-radius);
+            padding: 22px 26px;
+            color: #fff;
+            margin-bottom: 18px;
+            box-shadow: var(--pr-shadow);
+        }
+        .pr-header-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 18px;
+            align-items: center;
+        }
+        .pr-header-eyebrow {
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .6px;
             text-transform: uppercase;
-            color: #6c757d;
-            margin-bottom: .5rem;
+            opacity: .75;
+            margin-bottom: 4px;
         }
-
-        .net-pay {
-            font-size: 1.4rem;
+        .pr-header-value {
+            font-size: 16px;
             font-weight: 700;
         }
-
-        .payroll-period {
-            padding: 14px 16px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #e5e7eb;
-            background: #fff;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            transition: all .2s ease;
+        .pr-header-grid > div:last-child { text-align: right; }
+        @media (max-width: 700px) {
+            .pr-header-grid > div:last-child { text-align: left; }
         }
 
-        .payroll-period:hover {
-            background: #f8f9fb;
+        /* ── Cards ─────────────────────────────────────────────────────── */
+        .pr-card {
+            background: var(--pr-surface);
+            border: 1px solid var(--pr-border);
+            border-radius: var(--pr-radius);
+            box-shadow: var(--pr-shadow);
+            overflow: hidden;
         }
-
-        .active-period {
-            background: #e7f1ff;
-            border-left: 4px solid #0270ff;
-            font-weight: 600;
+        .pr-card-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--pr-border);
+            font-weight: 700;
+            font-size: 14.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        .pr-card-head svg { width: 16px; height: 16px; color: var(--pr-text-muted); }
+        .pr-card-body { padding: 18px 20px; }
 
-        .payroll-period-list {
+        /* ── Period list ───────────────────────────────────────────────── */
+        .pr-period-list {
             max-height: 580px;
             overflow-y: auto;
-            padding-right: 6px;
+            padding-right: 4px;
         }
+        .pr-period-list::-webkit-scrollbar { width: 6px; }
+        .pr-period-list::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 6px; }
 
-        .payroll-period-list::-webkit-scrollbar {
-            width: 6px;
+        .pr-period {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 13px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1.5px solid var(--pr-border);
+            background: var(--pr-surface);
+            text-decoration: none;
+            color: inherit;
+            transition: border-color .12s ease, background .12s ease, transform .12s ease;
         }
-
-        .payroll-period-list::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 6px;
+        .pr-period:hover { border-color: var(--pr-primary); background: var(--pr-primary-soft); transform: translateX(2px); }
+        .pr-period.is-active {
+            background: var(--pr-primary-soft);
+            border-color: var(--pr-primary);
         }
-        /* Custom Payroll Colors */
-.income-color {
-    color: #00811c;   /* Blue (example) */
-}
+        .pr-period-icon {
+            width: 34px; height: 34px; border-radius: 9px;
+            background: var(--pr-bg);
+            color: var(--pr-text-muted);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .pr-period.is-active .pr-period-icon { background: var(--pr-primary); color: #fff; }
+        .pr-period-icon svg { width: 16px; height: 16px; }
+        .pr-period-text { flex: 1; min-width: 0; }
+        .pr-period-range { font-size: 13px; font-weight: 700; color: var(--pr-text); }
+        .pr-period-days { font-size: 11.5px; color: var(--pr-text-muted); margin-top: 1px; }
+        .pr-period-check { width: 16px; height: 16px; color: var(--pr-primary); flex-shrink: 0; }
 
-.deduction-color {
-    color: #B91C1C;   /* Dark Red (example) */
-}
+        .pr-empty-periods { text-align: center; padding: 30px 10px; color: var(--pr-text-muted); font-size: 13px; }
+
+        /* ── Payslip sections ─────────────────────────────────────────── */
+        .pr-section { margin-bottom: 22px; }
+        .pr-section-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--pr-text-muted);
+            margin-bottom: 10px;
+        }
+        .pr-section-title svg { width: 14px; height: 14px; }
+        .pr-section-title.is-income svg { color: var(--pr-income); }
+        .pr-section-title.is-deduction svg { color: var(--pr-deduction); }
+
+        .pr-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            padding: 9px 0;
+            border-bottom: 1px dashed var(--pr-border);
+            font-size: 13.5px;
+        }
+        .pr-line:last-of-type { border-bottom: none; }
+        .pr-line-label { color: var(--pr-text); }
+        .pr-line-amount { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .pr-line-amount.is-income { color: var(--pr-income); }
+        .pr-line-amount.is-deduction { color: var(--pr-deduction); }
+
+        .pr-section-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10px;
+            margin-top: 4px;
+            border-top: 1.5px solid var(--pr-border);
+            font-weight: 700;
+            font-size: 13.5px;
+        }
+        .pr-section-total.is-income { color: var(--pr-income); }
+        .pr-section-total.is-deduction { color: var(--pr-deduction); }
+
+        .pr-no-lines { font-size: 12.5px; color: var(--pr-text-muted); padding: 6px 0; }
+
+        /* ── Net pay ───────────────────────────────────────────────────── */
+        .pr-netpay {
+            background: linear-gradient(135deg, var(--pr-primary) 0%, #4e96f0 100%);
+            border-radius: 12px;
+            padding: 18px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            margin-top: 6px;
+        }
+        .pr-netpay-label {
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            font-weight: 700;
+            opacity: .8;
+            margin-bottom: 3px;
+        }
+        .pr-netpay-amount { font-size: 26px; font-weight: 800; letter-spacing: -.3px; }
+
+        /* ── Print button ──────────────────────────────────────────────── */
+        .pr-print-row { text-align: right; margin-top: 16px; }
+        .pr-btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--pr-primary);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            font-size: 13.5px;
+            padding: 10px 18px;
+            border-radius: 9px;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 4px 10px -4px rgba(124,185,255,.55);
+            transition: background .12s ease, transform .12s ease;
+        }
+        .pr-btn-print:hover { background: #4e96f0; color: #fff; transform: translateY(-1px); }
+        .pr-btn-print:disabled, .pr-btn-print.is-disabled {
+            background: #d3d6dc;
+            color: #8c919c;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .pr-btn-print svg { width: 15px; height: 15px; }
     </style>
 
 </head>
@@ -306,32 +451,27 @@ switch ($normalizedRole) {
 ?>
 
 <div class="container-xxl container-p-y">
+<div class="pr-wrap">
 
     <!-- HEADER -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-
-                <div class="col-md-4">
-                    <small class="text-muted">Employee ID</small><br>
-                    <strong><?= htmlspecialchars($empID) ?></strong>
+    <div class="pr-header-card">
+        <div class="pr-header-grid">
+            <div>
+                <div class="pr-header-eyebrow">Employee ID</div>
+                <div class="pr-header-value">#<?= htmlspecialchars($empID) ?></div>
+            </div>
+            <div>
+                <div class="pr-header-eyebrow">Department</div>
+                <div class="pr-header-value"><?= htmlspecialchars($department ?: '—') ?></div>
+            </div>
+            <div>
+                <div class="pr-header-eyebrow">Payroll Period</div>
+                <div class="pr-header-value">
+                    <?= $currentPayrollFrom && $currentPayrollTo
+                        ? date('M d, Y', strtotime($currentPayrollFrom)) . ' – ' . date('M d, Y', strtotime($currentPayrollTo))
+                        : 'N/A'
+                    ?>
                 </div>
-
-                <div class="col-md-4">
-                    <small class="text-muted">Department</small><br>
-                    <strong><?= htmlspecialchars($department) ?></strong>
-                </div>
-
-                <div class="col-md-4 text-md-end">
-                    <small class="text-muted">Payroll Period</small><br>
-                    <strong>
-                        <?= $currentPayrollFrom && $currentPayrollTo
-                            ? date('M d, Y', strtotime($currentPayrollFrom)) . ' – ' . date('M d, Y', strtotime($currentPayrollTo))
-                            : 'N/A'
-                        ?>
-                    </strong>
-                </div>
-
             </div>
         </div>
     </div>
@@ -340,26 +480,40 @@ switch ($normalizedRole) {
 
         <!-- LEFT: PERIOD LIST -->
         <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h6 class="mb-3">Payroll Period</h6>
+            <div class="pr-card h-100">
+                <div class="pr-card-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                    Payroll Periods
+                </div>
+                <div class="pr-card-body">
+                    <div class="pr-period-list">
+                        <?php if (empty($batches)): ?>
+                            <div class="pr-empty-periods">No payroll periods found yet.</div>
+                        <?php endif; ?>
 
-                    <div class="payroll-period-list">
                         <?php foreach ($batches as $b): ?>
                             <?php $active = ((string)$b['batch_id'] === (string)$selectedBatch); ?>
                             <a href="?batch=<?= urlencode($b['batch_id']) ?>"
-                               class="payroll-period <?= $active ? 'active-period' : '' ?>"
+                               class="pr-period <?= $active ? 'is-active' : '' ?>"
                                <?= $active ? 'id="active-period-item"' : '' ?>>
-                                <strong>
-                                    <?= date('M d, Y', strtotime($b['payroll_from'])) ?>
-                                    –
-                                    <?= date('M d, Y', strtotime($b['payroll_to'])) ?>
-                                </strong><br>
-                                <small class="text-muted">
-                                    <?= date('l', strtotime($b['payroll_from'])) ?>
-                                    to
-                                    <?= date('l', strtotime($b['payroll_to'])) ?>
-                                </small>
+                                <div class="pr-period-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                                </div>
+                                <div class="pr-period-text">
+                                    <div class="pr-period-range">
+                                        <?= date('M d, Y', strtotime($b['payroll_from'])) ?>
+                                        –
+                                        <?= date('M d, Y', strtotime($b['payroll_to'])) ?>
+                                    </div>
+                                    <div class="pr-period-days">
+                                        <?= date('l', strtotime($b['payroll_from'])) ?>
+                                        to
+                                        <?= date('l', strtotime($b['payroll_to'])) ?>
+                                    </div>
+                                </div>
+                                <?php if ($active): ?>
+                                    <svg class="pr-period-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                                <?php endif; ?>
                             </a>
                         <?php endforeach; ?>
                     </div>
@@ -369,99 +523,102 @@ switch ($normalizedRole) {
 
         <!-- RIGHT: PAYSLIP -->
         <div class="col-md-8">
-            <div class="card h-100">
-                <div class="card-body">
+            <div class="pr-card h-100">
+                <div class="pr-card-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6M9 16h6M9 8h6M5 4h14v16l-3-2-3 2-3-2-3 2V4z"/></svg>
+                    Payslip Breakdown
+                </div>
+                <div class="pr-card-body">
 
                     <!-- INCOME -->
-                    <div class="mb-4">
-                        <div class="section-title">Income</div>
-                        <?php $totalIncome = 0; ?>
+                    <div class="pr-section">
+                        <div class="pr-section-title is-income">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                            Income
+                        </div>
 
-                                            <?php foreach ($details as $d): ?>
+                        <?php $totalIncome = 0; $hasIncome = false; ?>
+                        <?php foreach ($details as $d): ?>
                             <?php if ($d['account_type'] === 'INCOME'): ?>
-                                <?php $totalIncome += $d['amount']; ?>
-
                                 <?php
+                                $hasIncome = true;
+                                $totalIncome += $d['amount'];
                                 $formattedRemarks = formatRemarks($d['code'], $d['remarks']);
                                 ?>
-
-                                <div class="d-flex justify-content-between payroll-item">
-                                    
-                                    <span>
-                                        <?= htmlspecialchars($d['name'] . $formattedRemarks) ?>
-                                    </span>
-
-                                    <span class="income-color fw-semibold">
-                                        ₱<?= number_format($d['amount'], 2) ?>
-                                    </span>
-
+                                <div class="pr-line">
+                                    <span class="pr-line-label"><?= htmlspecialchars($d['name'] . $formattedRemarks) ?></span>
+                                    <span class="pr-line-amount is-income">₱<?= number_format($d['amount'], 2) ?></span>
                                 </div>
-
                             <?php endif; ?>
                         <?php endforeach; ?>
 
-                        <div class="d-flex justify-content-between pt-2 fw-bold">
+                        <?php if (!$hasIncome): ?>
+                            <div class="pr-no-lines">No income entries for this period.</div>
+                        <?php endif; ?>
+
+                        <div class="pr-section-total is-income">
                             <span>Total Earnings</span>
-                            <span class="income-color">₱<?= number_format($totalIncome, 2) ?></span>
+                            <span>₱<?= number_format($totalIncome, 2) ?></span>
                         </div>
                     </div>
 
                     <!-- DEDUCTIONS -->
-                    <div class="mb-4">
-                        <div class="section-title">Deductions</div>
-                        <?php $totalDeduction = 0; ?>
+                    <div class="pr-section">
+                        <div class="pr-section-title is-deduction">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                            Deductions
+                        </div>
 
-                       <?php foreach ($details as $d): ?>
+                        <?php $totalDeduction = 0; $hasDeduction = false; ?>
+                        <?php foreach ($details as $d): ?>
                             <?php if ($d['account_type'] === 'DEDUCTIONS'): ?>
                                 <?php
-                                    $amt = abs($d['amount']);
-                                    $totalDeduction += $amt;
-
-                                    $formattedRemarks = formatRemarks($d['code'], $d['remarks']);
+                                $hasDeduction = true;
+                                $amt = abs($d['amount']);
+                                $totalDeduction += $amt;
+                                $formattedRemarks = formatRemarks($d['code'], $d['remarks']);
                                 ?>
-
-                                <div class="d-flex justify-content-between payroll-item">
-
-                                    <span>
-                                        <?= htmlspecialchars($d['name'] . $formattedRemarks) ?>
-                                    </span>
-
-                                    <span class="deduction-color fw-semibold">
-                                        - ₱<?= number_format($amt, 2) ?>
-                                    </span>
-
+                                <div class="pr-line">
+                                    <span class="pr-line-label"><?= htmlspecialchars($d['name'] . $formattedRemarks) ?></span>
+                                    <span class="pr-line-amount is-deduction">- ₱<?= number_format($amt, 2) ?></span>
                                 </div>
-
                             <?php endif; ?>
                         <?php endforeach; ?>
 
-                        <div class="d-flex justify-content-between pt-2 fw-bold">
+                        <?php if (!$hasDeduction): ?>
+                            <div class="pr-no-lines">No deductions for this period.</div>
+                        <?php endif; ?>
+
+                        <div class="pr-section-total is-deduction">
                             <span>Total Deductions</span>
-                            <span class="deduction-color">₱<?= number_format($totalDeduction, 2) ?></span>
+                            <span>₱<?= number_format($totalDeduction, 2) ?></span>
                         </div>
                     </div>
 
                     <!-- NET PAY -->
-                    <div class="pt-3 border-top d-flex justify-content-between">
-                        <strong>Net Pay</strong>
-                        <span class="net-pay text-primary">
-                            ₱<?= number_format($netPay, 2) ?>
-                        </span>
+                    <div class="pr-netpay">
+                        <div>
+                            <div class="pr-netpay-label">Net Pay</div>
+                            <div class="pr-netpay-amount">₱<?= number_format($netPay, 2) ?></div>
+                        </div>
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.6" opacity="0.7"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M6 6V4h12v2"/></svg>
                     </div>
 
                     <!-- PRINT -->
-                    <div class="text-end mt-3">
+                    <div class="pr-print-row">
                         <?php if ($selectedBatch && $netPay > 0): ?>
                             <a href="print_payslip.php?batch=<?= urlencode($selectedBatch) ?>
                                 &payroll_from=<?= urlencode($currentPayrollFrom) ?>
                                 &payroll_to=<?= urlencode($currentPayrollTo) ?>"
                                target="_blank"
-                               class="btn btn-sm btn-primary">
-                                <i class="fa fa-print me-1"></i> Print Payslip
+                               class="pr-btn-print">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                Print Payslip
                             </a>
                         <?php else: ?>
-                            <button class="btn btn-sm btn-secondary" disabled>
-                                <i class="fa fa-print me-1"></i> Print Payslip
+                            <button class="pr-btn-print is-disabled" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                Print Payslip
                             </button>
                         <?php endif; ?>
                     </div>
@@ -472,12 +629,7 @@ switch ($normalizedRole) {
 
     </div>
 </div>
-
-<style>
-.payroll-item span {
-    display: inline-block;
-}
-</style>
+</div>
 
 <!-- JS -->
 <script src="../assets/vendor/libs/jquery/jquery.js"></script>
@@ -496,4 +648,3 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </body>
 </html>
-

@@ -17,6 +17,145 @@ $unverifiedCount = $unverifiedCountQuery->fetch_assoc()['total'] ?? 0;
 
 ?>
 
+<style>
+  :root {
+    --tk-primary: #7cb9ff;
+    --tk-primary-dark: #4e96f0;
+    --tk-primary-soft: #eaf3ff;
+    --tk-sidebar-bg: #ffffff;
+    --tk-sidebar-border: #eceef2;
+    --tk-text: #1f2430;
+    --tk-text-muted: #767e8c;
+    --tk-danger: #c0392b;
+    --tk-danger-bg: #fbe9e7;
+  }
+
+  /* ── Sidebar shell ─────────────────────────────────────────────── */
+  #layout-menu.layout-menu {
+    background: var(--tk-sidebar-bg) !important;
+    border-right: 1px solid var(--tk-sidebar-border);
+  }
+
+  #layout-menu .app-brand.demo {
+    padding: 18px 20px 14px;
+  }
+  #layout-menu .app-brand-text {
+    color: var(--tk-text) !important;
+    font-size: 15.5px !important;
+    letter-spacing: .1px;
+  }
+
+  /* ── Menu items ────────────────────────────────────────────────── */
+  #layout-menu .menu-inner { padding: 8px 12px !important; }
+
+  #layout-menu .menu-item { margin-bottom: 3px; }
+
+  #layout-menu .menu-link {
+    border-radius: 9px !important;
+    color: var(--tk-text-muted) !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    padding: 9px 12px !important;
+    transition: background .12s ease, color .12s ease;
+  }
+  #layout-menu .menu-link .menu-icon {
+    color: var(--tk-text-muted) !important;
+    font-size: 18px !important;
+    margin-right: 10px;
+    transition: color .12s ease;
+  }
+  #layout-menu .menu-link:hover {
+    background: var(--tk-primary-soft) !important;
+    color: #2563a8 !important;
+  }
+  #layout-menu .menu-link:hover .menu-icon { color: #2563a8 !important; }
+
+  #layout-menu .menu-item.active > .menu-link {
+    background: var(--tk-primary) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px -4px rgba(124,185,255,.6);
+  }
+  #layout-menu .menu-item.active > .menu-link .menu-icon { color: #fff !important; }
+
+  /* Submenu */
+  #layout-menu .menu-sub {
+    padding-left: 6px;
+  }
+  #layout-menu .menu-sub .menu-link {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 7px 12px 7px 38px !important;
+  }
+  #layout-menu .menu-sub .menu-item.active > .menu-link {
+    background: var(--tk-primary-soft) !important;
+    color: #2563a8 !important;
+    font-weight: 700 !important;
+    box-shadow: none;
+  }
+  #layout-menu .menu-toggle::after { opacity: .55; }
+
+  /* Section label for Admin Panel toggle */
+  #layout-menu .menu-item.open > .menu-toggle {
+    background: var(--tk-primary-soft) !important;
+    color: #2563a8 !important;
+  }
+  #layout-menu .menu-item.open > .menu-toggle .menu-icon { color: #2563a8 !important; }
+
+  /* Count pills inside menu labels e.g. "Ticket Approval (3)" */
+  #layout-menu .menu-sub .menu-link div[data-i18n] { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* ── Navbar ────────────────────────────────────────────────────── */
+  #layout-navbar.layout-navbar {
+    background: #ffffff !important;
+    border-bottom: 1px solid var(--tk-sidebar-border);
+    box-shadow: none !important;
+  }
+
+  /* Notification bell */
+  #layout-navbar .nav-link.dropdown-toggle {
+    position: relative;
+    color: var(--tk-text-muted) !important;
+  }
+  #layout-navbar .nav-link.dropdown-toggle:hover { color: var(--tk-primary-dark) !important; }
+  #notifBadge {
+    background: var(--tk-danger) !important;
+    font-size: 10px !important;
+    min-width: 17px;
+    height: 17px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px !important;
+  }
+
+  .dropdown-menu {
+    border: 1px solid var(--tk-sidebar-border) !important;
+    box-shadow: 0 16px 40px -16px rgba(20,20,43,.25) !important;
+  }
+  .dropdown-menu li.bg-primary {
+    background: linear-gradient(135deg, var(--tk-primary) 0%, var(--tk-primary-dark) 100%) !important;
+  }
+  #notifList .dropdown-item {
+    transition: background .1s ease;
+  }
+  #notifList .dropdown-item:hover { background: var(--tk-primary-soft) !important; }
+  #notifList .avatar-initial.bg-primary {
+    background: var(--tk-primary) !important;
+  }
+
+  /* User chip + dropdown */
+  #layout-navbar .nav-item.lh-1 div {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--tk-text);
+  }
+  .avatar.avatar-online::after {
+    background-color: #1f9d55 !important;
+  }
+  .dropdown-user .dropdown-item:hover { background: var(--tk-primary-soft) !important; }
+  .dropdown-user .dropdown-item i { color: var(--tk-text-muted); }
+</style>
+
 <!-- Layout wrapper -->
 <div class="layout-wrapper layout-content-navbar">
   <div class="layout-container">
@@ -162,7 +301,12 @@ $unverifiedCount = $unverifiedCountQuery->fetch_assoc()['total'] ?? 0;
             </li>
             <li class="menu-item <?= ($currentPage == 'approveTicket.php') ? 'active' : '' ?>">
               <a href="../super_admin/approveTicket.php" class="menu-link">
-                <div data-i18n="Calendar">Ticket Approval (<?= $approveCount ?>)</div>
+                <div data-i18n="Calendar">
+                  Ticket Approval
+                  <?php if ($approveCount > 0): ?>
+                    <span class="badge rounded-pill" style="background:#7cb9ff; font-size:10.5px; padding:3px 7px;"><?= $approveCount ?></span>
+                  <?php endif; ?>
+                </div>
               </a>
             </li>
             <li class="menu-item <?= ($currentPage == 'addAnnouncement.php') ? 'active' : '' ?>">
@@ -179,7 +323,10 @@ $unverifiedCount = $unverifiedCountQuery->fetch_assoc()['total'] ?? 0;
             <li class="menu-item <?= ($currentPage == 'approveRoom.php') ? 'active' : '' ?>">
               <a href="../super_admin/approveRoom.php" class="menu-link">
                 <div data-i18n="Room Reservation">
-                  Room Reservation Requests<?= $reservationCount > 0 ? " ({$reservationCount})" : "" ?>
+                  Room Reservation Requests
+                  <?php if ($reservationCount > 0): ?>
+                    <span class="badge rounded-pill" style="background:#7cb9ff; font-size:10.5px; padding:3px 7px;"><?= $reservationCount ?></span>
+                  <?php endif; ?>
                 </div>
               </a>
             </li>
@@ -193,7 +340,10 @@ $unverifiedCount = $unverifiedCountQuery->fetch_assoc()['total'] ?? 0;
             <li class="menu-item <?= ($currentPage == 'accountManagement.php') ? 'active' : '' ?>">
               <a href="../super_admin/accountManagement.php" class="menu-link">
                 <div data-i18n="Account Management">
-                  Account Management<?= $unverifiedCount > 0 ? " ({$unverifiedCount})" : "" ?>
+                  Account Management
+                  <?php if ($unverifiedCount > 0): ?>
+                    <span class="badge rounded-pill" style="background:#c0392b; font-size:10.5px; padding:3px 7px;"><?= $unverifiedCount ?></span>
+                  <?php endif; ?>
                 </div>
               </a>
             </li>

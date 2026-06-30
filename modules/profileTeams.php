@@ -259,16 +259,157 @@ $result = $stmt->get_result();
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <!-- Calendar CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
     <!-- Helpers -->
     <script src="../assets/vendor/js/helpers.js"></script>
     <script src="../assets/js/config.js"></script>
+
+    <style>
+        :root {
+            --tk-bg: #f7f8fa;
+            --tk-surface: #ffffff;
+            --tk-border: #e8eaee;
+            --tk-text: #1f2430;
+            --tk-text-muted: #767e8c;
+            --tk-primary: #7cb9ff;
+            --tk-primary-soft: #eaf3ff;
+            --tk-radius: 12px;
+            --tk-shadow: 0 1px 2px rgba(20,20,43,.04), 0 8px 24px -12px rgba(20,20,43,.10);
+        }
+
+        .pf-wrap { font-family: inherit; color: var(--tk-text); }
+
+        /* ── Profile header (shared w/ profile.php) ───────────────────── */
+        .pf-card {
+            background: var(--tk-surface);
+            border: 1px solid var(--tk-border);
+            border-radius: var(--tk-radius);
+            box-shadow: var(--tk-shadow);
+            overflow: hidden;
+        }
+        .user-profile-info { line-height: 1.4; }
+        .user-name { font-size: 1.75rem; }
+        @media (max-width: 576px) { .user-name { font-size: 1.4rem; } }
+
+        .pf-emp-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--tk-primary-soft);
+            color: #2563a8;
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 999px;
+        }
+        .pf-emp-badge svg { width: 13px; height: 13px; }
+
+        .pf-visit-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--tk-primary);
+            color: #fff;
+            font-weight: 600;
+            font-size: 13.5px;
+            padding: 9px 16px;
+            border-radius: 9px;
+            text-decoration: none;
+            box-shadow: 0 4px 10px -4px rgba(124,185,255,.6);
+            transition: background .12s ease, transform .12s ease;
+        }
+        .pf-visit-btn:hover { background: #4e96f0; color: #fff; transform: translateY(-1px); }
+
+        /* ── Team section ──────────────────────────────────────────── */
+        .pf-card-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--tk-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pf-card-head svg { width: 16px; height: 16px; color: var(--tk-primary); flex-shrink: 0; }
+        .pf-team-title { font-weight: 700; font-size: 15px; }
+        .pf-team-dept { font-size: 13px; color: var(--tk-text-muted); margin-top: 1px; }
+        .pf-team-count {
+            margin-left: auto;
+            font-size: 12px;
+            font-weight: 700;
+            color: #2563a8;
+            background: var(--tk-primary-soft);
+            padding: 4px 11px;
+            border-radius: 999px;
+        }
+
+        .pf-member-card {
+            background: var(--tk-bg);
+            border: 1px solid var(--tk-border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            height: 100%;
+            transition: border-color .12s ease, transform .12s ease, box-shadow .12s ease, background .12s ease;
+        }
+        .pf-member-card:hover {
+            border-color: var(--tk-primary);
+            background: var(--tk-surface);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px -8px rgba(20,20,43,.18);
+        }
+        .pf-member-avatar {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid var(--tk-surface);
+            box-shadow: 0 0 0 1.5px var(--tk-border);
+        }
+        .pf-member-info { min-width: 0; }
+        .pf-member-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--tk-text);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pf-member-position {
+            font-size: 12px;
+            color: var(--tk-text-muted);
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pf-member-email {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #2563a8;
+            background: var(--tk-primary-soft);
+            padding: 3px 9px;
+            border-radius: 999px;
+            text-decoration: none;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pf-member-email svg { width: 11px; height: 11px; flex-shrink: 0; }
+
+        .pf-empty-team {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--tk-text-muted);
+        }
+        .pf-empty-team svg { width: 38px; height: 38px; opacity: .35; margin-bottom: 10px; }
+        .pf-empty-team p { margin: 0; font-size: 14px; font-weight: 600; color: var(--tk-text); }
+        .pf-empty-team span { font-size: 12.5px; }
+    </style>
 
 </head>
 
@@ -302,238 +443,213 @@ $result = $stmt->get_result();
     <div class="content-wrapper">
         <!-- Content -->
         <div class="container-xxl flex-grow-1 container-p-y">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card mb-6">
-                        <div class="user-profile-header-banner">
-                            <div class="cover-photo-container"
-                                style="height: 300px; overflow: hidden; position: relative;">
-                                <!-- Bootstrap Carousel -->
-                                <div id="coverCarousel" class="carousel slide" data-bs-ride="carousel"
-                                    data-bs-interval="10000" style="height: 100%;">
+            <div class="pf-wrap">
 
-                                    <!-- Indicators -->
-                                    <div class="carousel-indicators">
-                                        <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="0"
-                                            class="active" aria-current="true" aria-label="Slide 1"></button>
-                                        <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="1"
-                                            aria-label="Slide 2"></button>
-                                        <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="2"
-                                            aria-label="Slide 3"></button>
-                                        <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="3"
-                                            aria-label="Slide 4"></button>
-                                        <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="4"
-                                            aria-label="Slide 5"></button>
-                                        <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="5"
-                                            aria-label="Slide 6"></button>
-                                        <!-- <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="6"
-                                            aria-label="Slide 7"></button>
-                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="7"
-                                            aria-label="Slide 8"></button> -->
-                                    </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="pf-card mb-6">
+                            <div class="user-profile-header-banner">
+                                <div class="cover-photo-container"
+                                    style="height: 300px; overflow: hidden; position: relative;">
+                                    <!-- Bootstrap Carousel -->
+                                    <div id="coverCarousel" class="carousel slide" data-bs-ride="carousel"
+                                        data-bs-interval="10000" style="height: 100%;">
 
-                                    <!-- Carousel Items -->
-                                    <div class="carousel-inner" style="height: 100%;">
-
-                                        <div class="carousel-item active" style="height: 100%;">
-                                            <img src="../assets/img/carousel/new-web.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 1">
+                                        <!-- Indicators -->
+                                        <div class="carousel-indicators">
+                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="0"
+                                                class="active" aria-current="true" aria-label="Slide 1"></button>
+                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="1"
+                                                aria-label="Slide 2"></button>
+                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="2"
+                                                aria-label="Slide 3"></button>
+                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="3"
+                                                aria-label="Slide 4"></button>
+                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="4"
+                                                aria-label="Slide 5"></button>
+                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="5"
+                                                aria-label="Slide 6"></button>
                                         </div>
 
-                                        <div class="carousel-item " style="height: 100%;">
-                                            <img src="../assets/img/carousel/tell2.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 1">
+                                        <!-- Carousel Items -->
+                                        <div class="carousel-inner" style="height: 100%;">
+
+                                            <div class="carousel-item active" style="height: 100%;">
+                                                <img src="../assets/img/carousel/new-web.png" class="d-block w-100 h-100"
+                                                    style="object-fit: cover;" alt="Cover 1">
+                                            </div>
+
+                                            <div class="carousel-item " style="height: 100%;">
+                                                <img src="../assets/img/carousel/tell2.png" class="d-block w-100 h-100"
+                                                    style="object-fit: cover;" alt="Cover 1">
+                                            </div>
+
+                                            <div class="carousel-item " style="height: 100%;">
+                                                <img src="../assets/img/carousel/gm.png" class="d-block w-100 h-100"
+                                                    style="object-fit: cover;" alt="Cover 1">
+                                            </div>
+                                            <div class="carousel-item" style="height: 100%;">
+                                                <img src="../assets/img/carousel/6.png" class="d-block w-100 h-100"
+                                                    style="object-fit: cover;" alt="Cover 3">
+                                            </div>
+                                            <div class="carousel-item" style="height: 100%;">
+                                                <img src="../assets/img/carousel/1.png" class="d-block w-100 h-100"
+                                                    style="object-fit: cover;" alt="Cover 3">
+                                            </div>
+                                            <div class="carousel-item" style="height: 100%;">
+                                                <img src="../assets/img/carousel/3.png" class="d-block w-100 h-100"
+                                                    style="object-fit: cover;" alt="Cover 3">
+                                            </div>
                                         </div>
-
-                                        <div class="carousel-item " style="height: 100%;">
-                                            <img src="../assets/img/carousel/gm.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 1">
-                                        </div>
-                                        <div class="carousel-item" style="height: 100%;">
-                                            <img src="../assets/img/carousel/6.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 3">
-                                        </div>
-                                        <div class="carousel-item" style="height: 100%;">
-                                            <img src="../assets/img/carousel/1.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 3">
-                                        </div>
-                                        <!-- <div class="carousel-item" style="height: 100%;">
-                                            <img src="../assets/img/carousel/2.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 2">
-                                        </div> -->
-                                        <div class="carousel-item" style="height: 100%;">
-                                            <img src="../assets/img/carousel/3.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 3">
-                                        </div>
-                                        <!-- <div class="carousel-item" style="height: 100%;">
-                                            <img src="../assets/img/carousel/4.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 3">
-                                        </div>
-                                        <div class="carousel-item" style="height: 100%;">
-                                            <img src="../assets/img/carousel/5.png" class="d-block w-100 h-100"
-                                                style="object-fit: cover;" alt="Cover 3">
-                                        </div> -->
-                                    </div>
-                                    <!-- Carousel Controls -->
-                                    <button class="carousel-control-prev" type="button" data-bs-target="#coverCarousel"
-                                        data-bs-slide="prev">
-                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Previous</span>
-                                    </button>
-                                    <button class="carousel-control-next" type="button" data-bs-target="#coverCarousel"
-                                        data-bs-slide="next">
-                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Next</span>
-                                    </button>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <!-- Profile Picture -->
-                        <div class="user-profile-header d-flex flex-column flex-lg-row text-sm-start text-center mb-8">
-                            <div class="flex-shrink-0 mt-1 mx-sm-0 mx-auto">
-                                <img src="<?php echo !empty($_SESSION['profile_picture']) ? $_SESSION['profile_picture'] : '../assets/img/avatars/default_dp.jpg'; ?>"
-                                    alt="user-avatar" class="d-block h-80 ms-0 ms-sm-6 rounded-5 profile-img"
-                                    id="uploadedAvatar">
-                            </div>
-
-                            <!-- User Info -->
-                            <div class="flex-grow-1 mt-3 mt-lg-5">
-                                <div
-                                    class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4 mt-2 ms-3">
-                                    <!-- User Info -->
-                                    <style>
-                                        .user-profile-info {
-                                            line-height: 1.4;
-                                        }
-
-                                        .user-name {
-                                            font-size: 1.75rem;
-                                        }
-
-                                        @media (max-width: 576px) {
-                                            .user-name {
-                                                font-size: 1.4rem;
-                                            }
-                                        }
-                                    </style>
-                                    <div class="user-profile-info">
-                                        <h2 class="fw-bold mb-1 user-name">
-                                            <?php echo htmlspecialchars("$firstname $middlename $lastname"); ?>
-                                        </h2>
-
-                                        <p class="text-muted mb-2">
-                                            <?php echo htmlspecialchars($position); ?>
-                                            <span class="mx-1">•</span>
-                                            <strong><?php echo htmlspecialchars($department); ?></strong>
-                                        </p>
-
-                                        <span class="badge bg-label-primary">
-                                            Emp No: <?php echo htmlspecialchars($emp_id); ?>
-                                        </span>
-                                    </div>
-
-                                    <div class="d-flex flex-column align-items-md-end align-items-center gap-2">
-
-                                        <a href="https://cwd.com.ph/" target="_blank"
-                                            class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-                                            <i class="bx bx-globe"></i>
-                                            <span>Visit Our New Website</span>
-                                        </a>
-
-                                        <div id="success-message" style="display: none; 
-                                             color: green; 
-                                             padding: 10px; 
-                                             background-color: #e7f7e7; 
-                                             border: 1px solid green; 
-                                             position: relative; 
-                                             top: -300px; 
-                                             right: 90px; 
-                                             transition: opacity 0.5s ease-in-out; ">
-                                            The Cover Photo has been successfully changed.
-                                        </div>
+                                        <!-- Carousel Controls -->
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#coverCarousel"
+                                            data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Previous</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#coverCarousel"
+                                            data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Next</span>
+                                        </button>
                                     </div>
 
                                 </div>
                             </div>
+
+                            <!-- Profile Picture -->
+                            <div class="user-profile-header d-flex flex-column flex-lg-row text-sm-start text-center mb-8">
+                                <div class="flex-shrink-0 mt-1 mx-sm-0 mx-auto">
+                                    <img src="<?php echo !empty($_SESSION['profile_picture']) ? $_SESSION['profile_picture'] : '../assets/img/avatars/default_dp.jpg'; ?>"
+                                        alt="user-avatar" class="d-block h-80 ms-0 ms-sm-6 rounded-5 profile-img"
+                                        id="uploadedAvatar">
+                                </div>
+
+                                <!-- User Info -->
+                                <div class="flex-grow-1 mt-3 mt-lg-5">
+                                    <div
+                                        class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4 mt-2 ms-3">
+                                        <div class="user-profile-info">
+                                            <h2 class="fw-bold mb-1 user-name">
+                                                <?php echo htmlspecialchars("$firstname $middlename $lastname"); ?>
+                                            </h2>
+
+                                            <p class="text-muted mb-2">
+                                                <?php echo htmlspecialchars($position); ?>
+                                                <span class="mx-1">•</span>
+                                                <strong><?php echo htmlspecialchars($department); ?></strong>
+                                            </p>
+
+                                            <span class="pf-emp-badge">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                                                Emp No: <?php echo htmlspecialchars($emp_id); ?>
+                                            </span>
+                                        </div>
+
+                                        <div class="d-flex flex-column align-items-md-end align-items-center gap-2">
+
+                                            <a href="https://cwd.com.ph/" target="_blank" class="pf-visit-btn">
+                                                <i class="bx bx-globe"></i>
+                                                <span>Visit Our New Website</span>
+                                            </a>
+
+                                            <div id="success-message" style="display: none; 
+                                                 color: green; 
+                                                 padding: 10px; 
+                                                 background-color: #e7f7e7; 
+                                                 border: 1px solid green; 
+                                                 position: relative; 
+                                                 top: -300px; 
+                                                 right: 90px; 
+                                                 transition: opacity 0.5s ease-in-out; ">
+                                                The Cover Photo has been successfully changed.
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
-
                     </div>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="mb-3 mt-lg-4 mt-3 ms-2 nav-align-top">
-                        <ul class="nav nav-pills flex-column flex-sm-row mb-6 gap-sm-0 gap-2">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3 mt-lg-4 mt-3 ms-2 nav-align-top">
+                            <ul class="nav nav-pills flex-column flex-sm-row mb-6 gap-sm-0 gap-2">
 
-                            <li class="nav-item">
-                                <a class="nav-link" href="profile.php"><i
-                                        class="icon-base bx bx-user icon-sm me-1_5"></i> Profile</a>
-                            </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="profile.php"><i
+                                            class="icon-base bx bx-user icon-sm me-1_5"></i> Profile</a>
+                                </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link active " href="profileTeams.php"><i
-                                        class="icon-base bx bx-group icon-sm me-1_5"></i> Teams</a>
-                            </li>
+                                <li class="nav-item">
+                                    <a class="nav-link active " href="profileTeams.php"><i
+                                            class="icon-base bx bx-group icon-sm me-1_5"></i> Teams</a>
+                                </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link " href="tell.php"><i
-                                        class="icon-base bx bx-phone icon-sm me-1_5"></i> Local Directory</a>
-                            </li>
+                                <li class="nav-item">
+                                    <a class="nav-link " href="tell.php"><i
+                                            class="icon-base bx bx-phone icon-sm me-1_5"></i> Local Directory</a>
+                                </li>
 
-                        </ul>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
 
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        (<?php echo htmlspecialchars($department); ?>)</h5>
-                </div>
-                <div class="card-body">
-                    <?php if (!empty($same_department_users)): ?>
-                        <div class="row">
-                            <?php foreach ($same_department_users as $user): ?>
-                                <div class="col-md-4 mb-3">
-                                    <div class="card h-100 shadow-sm">
-                                        <div class="card-body d-flex align-items-center">
+                <div class="pf-card mt-3">
+                    <div class="pf-card-head">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <div>
+                            <div class="pf-team-title">Team Members</div>
+                            <div class="pf-team-dept"><?php echo htmlspecialchars($department); ?></div>
+                        </div>
+                        <span class="pf-team-count"><?php echo count($same_department_users); ?> member<?php echo count($same_department_users) === 1 ? '' : 's'; ?></span>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($same_department_users)): ?>
+                            <div class="row g-3">
+                                <?php foreach ($same_department_users as $user): ?>
+                                    <div class="col-md-4">
+                                        <div class="pf-member-card">
                                             <img src="<?php
-                                            // Check if the profile picture exists and prepend the directory path
                                             echo !empty($user['profile_picture']) && file_exists($user['profile_picture'])
                                                 ? htmlspecialchars($user['profile_picture'])
                                                 : '../assets/img/avatars/default_dp.jpg'; ?>" alt="Profile"
-                                                class="rounded-circle me-3"
-                                                style="width: 60px; height: 60px; object-fit: cover;">
-                                            <div>
-                                                <h6 class="mb-0">
-                                                    <?php echo htmlspecialchars($user['firstname'] . ' ' . $user['middlename'] . ' ' . $user['lastname']); ?>
-                                                </h6>
-                                                <small><?php echo htmlspecialchars($user['email']); ?></small>
-                                                <p class="text-muted"><?php echo htmlspecialchars($user['position']); ?></p>
-                                                <!-- Display position -->
+                                                class="pf-member-avatar">
+                                            <div class="pf-member-info">
+                                                <div class="pf-member-name">
+                                                    <?php echo htmlspecialchars(trim($user['firstname'] . ' ' . $user['middlename'] . ' ' . $user['lastname'])); ?>
+                                                </div>
+                                                <div class="pf-member-position">
+                                                    <?php echo htmlspecialchars($user['position'] ?: 'No position set'); ?>
+                                                </div>
+                                                <a href="mailto:<?php echo htmlspecialchars($user['email']); ?>" class="pf-member-email">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+                                                    <?php echo htmlspecialchars($user['email']); ?>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php else: ?>
-                        <p class="text-muted">No other users found in your department.</p>
-                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="pf-empty-team">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <p>No other team members found</p>
+                                <span>You're the only one listed in <?php echo htmlspecialchars($department); ?> right now.</span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="content-backdrop fade"></div>
-    </div>
-    </div>
-    </div>
     <div class="layout-overlay layout-menu-toggle"></div>
-    </div>
 
     <script src="../assets/vendor/js/bootstrap.js"></script>
     <script src="../assets/vendor/js/menu.js"></script>
@@ -541,206 +657,6 @@ $result = $stmt->get_result();
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/dashboards-analytics.js"></script>
     <script async defer src="https://buttons.github.io/buttons.js"></script>
-
-    <script>
-        $(document).ready(function () {
-            function updateMonthDisplay() {
-                let currentMonth = $('#calendar').fullCalendar('getDate').format('MMMM YYYY');
-                $("#monthButtonText").text(currentMonth);
-                $("#eventMonthTitle").text(currentMonth);
-                displayEventsForMonth(currentMonth);
-            }
-
-            function displayEventsForMonth(selectedMonth) {
-                let eventListHTML = "";
-                let filteredEvents = events.filter(event => moment(event.start).format('MMMM YYYY') === selectedMonth);
-
-                if (filteredEvents.length === 0) {
-                    eventListHTML = "<p>No events this month.</p>";
-                } else {
-                    filteredEvents.forEach(event => {
-                        eventListHTML += `
-                    <div class="card mb-2 p-3" style="background-color:${event.color || '#f8f9fa'};">
-                        <h6 class="fw-bold">${event.title}</h6>
-                        <p><strong>Department:</strong> ${event.department}</p>
-                        <p><strong>Date:</strong> ${moment(event.start).format('MMMM D, YYYY')} - ${moment(event.end).format('MMMM D, YYYY')}</p>
-                        <p><strong>Time:</strong> ${moment(event.start).format('h:mm A')} - ${moment(event.end).format('h:mm A')}</p>
-                        <p><strong>Location:</strong> ${event.event_location}</p>
-                        <p><strong>URL:</strong> <a href="${event.event_url}" target="_blank">${event.event_url}</a></p>
-                        <p><strong>Description:</strong> ${event.description}</p>
-                    </div>
-                `;
-                    });
-                }
-
-                $("#eventList").html(eventListHTML);
-            }
-
-            $('#calendar').fullCalendar({
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'month,agendaWeek,agendaDay'
-                },
-                customButtons: {
-                    prev: {
-                        text: '‹', // Unicode left arrow
-                        click: function () {
-                            $('#calendar').fullCalendar('prev');
-                        }
-                    },
-                    next: {
-                        text: '›', // Unicode right arrow
-                        click: function () {
-                            $('#calendar').fullCalendar('next');
-                        }
-                    }
-                },
-                events: <?php echo json_encode($events); ?>,
-                viewRender: function (view) {
-                    setTimeout(updateMonthDisplay, 100); // Ensures update happens after view changes
-                },
-                height: 'auto',
-                aspectRatio: 2,
-                contentHeight: 600,
-                scrollTime: '08:00:00'
-            });
-
-            // Month Navigation
-            $("#prevMonth").on("click", function () {
-                $('#calendar').fullCalendar('prev');
-            });
-
-            $("#nextMonth").on("click", function () {
-                $('#calendar').fullCalendar('next');
-            });
-
-            updateMonthDisplay(); // Initial load
-        });
-
-
-    </script>
-
-    <script>
-        function previewImage(event) {
-            const coverPhoto = document.getElementById("coverPreview");
-            const saveBtn = document.querySelector(".save-btn");
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    coverPhoto.src = e.target.result;  // Update preview immediately
-                    coverPhoto.style.display = "block"; // Make sure it's visible
-                    coverPhoto.style.left = "0px";
-                    coverPhoto.style.top = "0px";
-                    coverPhoto.style.width = "100%";
-                    coverPhoto.style.height = "100%";
-                    const preview = document.getElementById('coverPreview');
-                    preview.src = reader.result;
-
-
-                    // Show the save button
-                    saveBtn.classList.add("show"); // Add show class to display the button
-                };
-                reader.readAsDataURL(event.target.files[0]);
-            }
-        }
-
-    </script>
-    <script>
-        // Preview the image before uploading
-        function previewImage(event) {
-            const coverPhoto = document.getElementById("coverPreview");
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    coverPhoto.src = e.target.result;  // Update preview immediately
-                    coverPhoto.style.display = "block"; // Make sure it's visible
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-    </script>
-    <script>
-        let coverPhoto = document.querySelector('.cover-photo');
-        let coverPhotoContainer = document.querySelector('.cover-photo-container');
-        let saveBtn = document.querySelector('.save-btn');
-
-        // Ensure that the cover photo is visible when the image is uploaded
-        document.addEventListener("DOMContentLoaded", () => {
-            if (coverPhoto) {
-                coverPhoto.style.display = 'block';  // Show cover photo
-            }
-        });
-
-        // Variables for dragging functionality
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        coverPhoto.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - coverPhoto.getBoundingClientRect().left;
-            offsetY = e.clientY - coverPhoto.getBoundingClientRect().top;
-            coverPhoto.classList.add('dragging');  // Add dragging effect
-            document.body.style.cursor = 'grabbing';  // Change cursor style
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                let x = e.clientX - offsetX;
-                let y = e.clientY - offsetY;
-
-                // Keep the image within the container bounds
-                let maxX = coverPhotoContainer.offsetWidth - coverPhoto.offsetWidth;
-                let maxY = coverPhotoContainer.offsetHeight - coverPhoto.offsetHeight;
-
-                // Set position of the image within the container
-                x = Math.max(0, Math.min(x, maxX));
-                y = Math.max(0, Math.min(y, maxY));
-
-                coverPhoto.style.left = `${x}px`;
-                coverPhoto.style.top = `${y}px`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            coverPhoto.classList.remove('dragging');  // Remove dragging effect
-            document.body.style.cursor = 'grab';  // Change cursor back to normal
-            saveBtn.style.display = 'block';  // Show save button after drag
-        });
-
-        // Handle save button click
-        saveBtn.addEventListener('click', () => {
-            // You can implement a function to save the new position in the database here
-            alert('Cover photo position saved!');
-            // Hide the save button after save
-            saveBtn.style.display = 'none';
-        });
-
-    </script>
-    <script>
-        document.getElementById("cover-form").addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent the form from submitting immediately
-
-            // Show success message with fade-in effect
-            const successMessage = document.getElementById("success-message");
-            successMessage.style.display = "block"; // Make sure it's visible
-            setTimeout(function () {
-                successMessage.style.opacity = 1; // Fade in the message
-            }, 0);
-
-            // Simulate form submission (use AJAX or redirect as needed)
-            setTimeout(function () {
-                // After a short time, fade out the message and submit the form
-                successMessage.style.opacity = 0; // Fade out the message
-                setTimeout(function () {
-                    document.getElementById("cover-form").submit(); // Submit the form
-                }, 500); // Wait for the fade-out effect to complete
-            }, 2000); // Wait for 2 seconds before fading out and submitting the form
-        });
-    </script>
 
 </body>
 
