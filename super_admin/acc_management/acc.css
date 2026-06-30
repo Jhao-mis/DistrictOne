@@ -1,0 +1,539 @@
+
+.app-brand-text {
+  font-size: 20px !important;
+  font-weight: bold;
+  margin-left: 5px;
+  margin-top: 10px;
+}
+.logo {
+    margin-left: -30px;
+    margin-top: 5px;
+}
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .profile-container {
+        position: relative;
+        height: 130px;
+        left:50px;
+        bottom:170px;
+        display: flex;
+        align-items: center; /* Align profile picture vertically */
+        justify-content: flex-start; /* Place profile picture near the cover photo */
+    }
+
+
+    .profile-img {
+        border: 4px solid #fff; /* White border around the profile picture */
+        background-color: white;
+        border-radius: 50%; /* Circular border */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: add a shadow for better visibility */
+        margin-left: 10px; /* Adjust this value to position the image properly */
+        width: 150px; /* Increase size (adjust as needed) */
+        height: 150px; /* Ensure it remains a circle */
+    }
+/* Profile Card Styling */
+.profile-card {
+    width: 1370px;
+    border-radius: 10px;
+    margin-bottom: -50px;
+    max-width: 100%;
+    margin-top: 30px;
+    margin-left: 25px;
+    background: #ffffff; /* Ensure white background */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding-bottom: 150px; /* Ensure padding at the bottom */
+    min-height: 200px; /* Add height to accommodate profile container */
+}
+
+/* Cover Photo Styling */
+.cover-photo-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+
+.cover-img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+}
+
+/* Edit Cover Button */
+.edit-cover-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #fff;
+    padding: 5px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Profile Picture */
+
+
+.profile-img {
+    width: 150px;
+    height: 150px;
+    margin-top: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* User Info */
+.user-info {
+    margin-left: 20px;
+    margin-top: 140px;
+}
+
+.user-name {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.user-details {
+    font-size: 20px;
+    color: gray;
+}
+.edit-cover-container {
+        position: absolute;
+        bottom: 10px;
+        left: 87%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        opacity: 0; /* Initially hidden */
+        transition: opacity 0.3s ease-in-out; /* Fade-in effect */
+        z-index: 1;
+    }
+
+    .save-btn {
+        position: absolute;
+        bottom: 10px;
+        left: 95%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        opacity: 0; /* Initially hidden */
+        transition: opacity 0.3s ease-in-out; /* Fade-in effect */
+        z-index: 1;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+    /* Show buttons when the cover photo is hovered */
+    .cover-photo-container:hover .save-btn,
+    .cover-photo-container:hover .edit-cover-container {
+        display: inline-block;
+        opacity: 1;
+    }
+
+        .save-btn.show {
+            display: inline-block; /* Show when the image is selected */
+        }
+        #calendar {
+    max-width: 1000px;
+    margin: auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+}
+.fc-daygrid-day {
+    border: 1px solid #e8e8e8; /* Light border */
+}
+
+.fc-daygrid-day-top {
+    font-size: 14px;
+    font-weight: bold;
+    color: #666;
+}
+
+.fc-event {
+    border-radius: 5px;
+    font-size: 12px;
+    padding: 4px;
+    border: none;
+}
+
+.fc-event-title {
+    font-weight: 600;
+}
+
+.fc-toolbar-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+}
+
+.fc-button {
+    background-color: #f5f5f5;
+    color: #333;
+    border: none;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 5px;
+}
+
+.fc-button-active {
+    background-color: #ddd;
+}
+        .fc-toolbar {
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .fc-prev-button:hover,
+.fc-next-button:hover,
+.fc-today-button:hover,
+.fc-month-button:hover,
+.fc-agendaWeek-button:hover,
+.fc-agendaDay-button:hover {
+    background-color: lightgray !important;
+    border-color: lightgray !important;
+    color: black !important;
+}
+/* Calendar Sidebar Styling */
+.col {
+    width: 10px;
+    background-color: #fff;
+    padding: 20px;
+    border-right: 1px solid #ddd;
+}
+
+/* Button Styling */
+.btn-toggle-sidebar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #7367F0;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+}
+
+.btn-toggle-sidebar i {
+    font-size: 18px;
+}
+
+/* Calendar Section */
+.p-6 {
+    padding: 20px !important;
+}
+
+/* Event Filters Section */
+h5 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-check-label {
+    cursor: pointer;
+}
+
+/* Adjust spacing */
+.mb-5 {
+    margin-bottom: 12px !important;
+}
+
+.ms-2 {
+    margin-left: 5px !important;
+}
+.fc-scroller {
+    max-height: 600px; /* Adjust this to fit your layout */
+    overflow-y: auto; /* Enable scrolling */
+}
+.fc-prev-button, .fc-next-button {
+    font-size: 18px !important;
+    background: none !important;
+    border: none !important;
+    color: #333 !important; /* Dark color for visibility */
+}
+/* All Departments */
+#Alldepartment:checked {
+    background-color: #969593 !important;
+    border-color: #969593 !important;
+}
+
+/* Office of the General Manager */
+#GMdepartment:checked {
+    background-color: #b0f5f5 !important;
+    border-color: #b0f5f5 !important;
+}
+
+/* Management Information Services Section */
+#MISdepartment:checked {
+    background-color: #fcc6c0 !important;
+    border-color: #fcc6c0 !important;
+}
+
+/* Administrative Department */
+#ADdepartment:checked {
+    background-color: #cff799 !important;
+    border-color: #cff799 !important;
+}
+
+/* Finance Department */
+#FDdepartment:checked {
+    background-color: #3cc74a !important;
+    border-color: #3cc74a !important;
+}
+
+/* Commercial Department */
+#COMdepartment:checked {
+    background-color: #f8fc9d !important;
+    border-color: #f8fc9d !important;
+}
+
+/* Technical Services Department */
+#TSdepartment:checked {
+    background-color: #cba5f2 !important;
+    border-color: #cba5f2 !important;
+}
+
+/* Operations Department */
+#OPdepartment:checked {
+    background-color: #fab07a !important;
+    border-color: #fab07a !important;
+}
+
+/* General styling for all checked checkboxes */
+.form-check-input:checked {
+    box-shadow: none !important;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="%23FFF" d="M13.485 1.929a1.5 1.5 0 0 1 0 2.121L6.363 11.172 2.515 7.323a1.5 1.5 0 1 1 2.121-2.122l2.121 2.122 5.657-5.657a1.5 1.5 0 0 1 2.121 0z"/></svg>') !important;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 80%;
+}
+
+  /* Scrollable event list */
+  #eventListContainer {
+        max-height: 600px; /* Adjust height as needed */
+        overflow-y: auto;
+        padding-right: 10px; /* Avoid content cutting off */
+    }
+
+    /* Optional: Customize scrollbar */
+    #eventListContainer::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #eventListContainer::-webkit-scrollbar-thumb {
+        background-color: #888;
+        border-radius: 4px;
+    }
+
+    #eventListContainer::-webkit-scrollbar-thumb:hover {
+        background-color: #555;
+    }
+      /* Event item styling */
+      .event-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd; /* Line between events */
+    }
+
+    /* Color dot for department */
+    .event-dot {
+        height: 10px;
+        width: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .event-title {
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+    }
+
+    .event-date {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .event-time {
+        font-size: 0.9rem;
+        color: #666;
+    }
+/* Assuming your cover photo is already positioned and sized */
+.cover-upload-container {
+    position: absolute;  /* Position it absolutely relative to the parent container */
+    top: 50%;  /* Adjust top value to place the form where you want */
+    left: 50%;  /* Center horizontally */
+    transform: translate(-50%, -50%);  /* Adjust to truly center the form */
+    z-index: 10;  /* Ensure this stays above the cover photo */
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8);  /* Optional background to make the form readable */
+    border-radius: 8px;
+}
+
+/* For the profile header or cover photo */
+.user-profile-header {
+    position: relative;  /* Make sure it's a positioned container */
+    top: -50px;  /* Adjust top value to place the form where you want */
+    left: 20px;  /* Center horizontally */
+
+}
+
+/* Optional: Styling for the cover photo */
+.cover-photo {
+    width: 100%;
+    height: auto;
+    position: relative;
+    z-index: 1;
+}
+.user-profile-info{
+    top: 20px;  /* Adjust top value to place the form where you want */
+}
+.bg-menu-theme .menu-inner > .menu-item.active > .menu-link {
+  color: #fff;
+  background-color: rgba(47, 144, 255, 0.63) !important;
+}
+.nav-pills .nav-link.active, .nav-pills .nav-link.active:hover, .nav-pills .nav-link.active:focus {
+  background-color: #2793eb;
+  color: #fff;
+  box-shadow: 0 2px 4px 0 rgba(39, 147, 235);
+}
+.bg-menu-theme .menu-inner > .menu-item.active:before {
+  background-color: #2793eb;
+}
+    .table-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .table-card h5 {
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .profile-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .status {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .verified {
+        background-color: #dff5e1;
+        color: #4CAF50;
+    }
+
+    .unverified {
+        background-color: #ffe9e9;
+        color: #e53935;
+    }
+
+    .button-container a {
+        margin: 0 3px;
+        font-size: 0.75rem;
+        padding: 5px 8px;
+        border-radius: 5px;
+        text-decoration: none;
+        color: white;
+    }
+
+    .button.edit {
+        background-color: #1976d2;
+    }
+
+    .button.deactivate {
+        background-color: #fbc02d;
+    }
+
+    .button.delete {
+        background-color: #e53935;
+    }
+
+    .search-bar {
+        margin-bottom: 20px;
+    }
+
+    .search-bar input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+
+    thead {
+        font-weight: bold;
+        color: #555;
+    }
+
+    td, th {
+        padding: 10px;
+        background: #fff;
+        text-align: left;
+    }
+
+    tbody tr {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        border-radius: 10px;
+    }
+
+    td:first-child, th:first-child {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    td:last-child, th:last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }

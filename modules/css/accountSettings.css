@@ -1,0 +1,66 @@
+.app-brand-text {
+    font-family: 'Arial', sans-serif;
+    font-size: 20px !important;
+    font-weight: bold;
+    margin-left: 5px;
+    margin-top: 10px;
+}
+
+.logo {
+    margin-left: -30px;
+    margin-top: 5px;
+}
+
+.btn-primary {
+    background-color: #007bff !important;
+    /* Bootstrap Blue */
+    border-color: #007bff !important;
+    color: white !important;
+}
+
+.nav-link.active {
+    background-color: #007bff !important;
+    /* Bootstrap blue */
+    color: white !important;
+    border-radius: 5px;
+    /* Optional: adds rounded corners */
+    padding: 8px 12px;
+    /* Optional: adjusts padding */
+    display: inline-block;
+}
+
+.nav-link:hover {
+    background-color: white !important;
+    /* Bootstrap blue */
+    color: #007bff !important;
+    border-radius: 5px;
+    /* Optional: adds rounded corners */
+    padding: 8px 12px;
+    /* Optional: adjusts padding */
+    display: inline-block;
+}
+
+/* Ensure the checkmark is visible */
+.form-check-input:checked {
+    background-color: #007bff;
+    border: 2px solid #007bff;
+}
+
+/* Add the inner circle */
+.bg-menu-theme .menu-inner>.menu-item.active>.menu-link {
+    color: #fff;
+    background-color: rgba(47, 144, 255, 0.63) !important;
+}
+
+.bg-menu-theme .menu-sub>.menu-item.active>.menu-link:not(.menu-toggle):before {
+    background-color: #2793eb !important;
+    border: 3px solid #e7e7ff !important;
+}
+
+.bg-menu-theme .menu-inner>.menu-item.active:before {
+    background-color: #2793eb;
+}
+
+.swal2-container {
+    z-index: 99999 !important;
+}

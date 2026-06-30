@@ -1,0 +1,58 @@
+ body {
+     background-image: url('../assets/img/backgrounds/jan.jpg');
+     background-attachment: fixed;
+     /* Makes background image fixed */
+     background-size: cover;
+     /* Ensures the background image covers the entire screen */
+     background-position: center center;
+     /* Center the background image */
+     background-repeat: no-repeat;
+     /* Prevents the image from repeating */
+ }
+
+ .app-brand-text {
+     font-size: 20px !important;
+     font-weight: bold;
+ }
+
+ .logo {
+     margin-left: -30px;
+     margin-top: 5px;
+ }
+
+ .small-text {
+     font-size: 10px !important;
+     /* Ensures the font size is enforced */
+     display: block;
+     margin-top: 35px;
+     margin-left: -128px;
+ }
+
+ .btn .btn-primary .d-grid .w-100P {
+     background-color: blue;
+ }
+
+ /* For all input fields (text, password, and dropdowns) */
+ input:focus,
+ select:focus,
+ .form-control:focus {
+     border-color: #568df5 !important;
+     /* Blue border */
+ }
+
+ /* For the sign-up button */
+ .btn-primary {
+     border-color: #568df5 !important;
+     background-color: #568df5 !important;
+ }
+
+ .btn-primary:hover {
+     background-color: #3b7ed5 !important;
+     /* Slightly darker blue on hover */
+ }
+
+ .form-check-input:checked {
+     background-color: #0d6efd;
+     /* Bootstrap primary blue */
+     border-color: #0d6efd;
+ }

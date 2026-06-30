@@ -1,0 +1,98 @@
+    .app-brand-text {
+        font-size: 20px !important;
+        font-weight: bold;
+        margin-left: 5px;
+        margin-top: 10px;
+    }
+
+    .logo {
+        margin-left: -30px;
+        margin-top: 5px;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .profile-container {
+        position: relative;
+        height: 130px;
+        left: 50px;
+        bottom: 170px;
+        display: flex;
+        align-items: center;
+        /* Align profile picture vertically */
+        justify-content: flex-start;
+        /* Place profile picture near the cover photo */
+    }
+
+    /* Scrollable table wrapper when rows exceed 5 */
+    .table-scroll {
+        max-height: 300px;
+        /* adjust height for scrolling */
+        overflow-y: auto;
+        display: block;
+    }
+
+    /* Compact table style */
+    .table-smaller th,
+    .table-smaller td {
+        padding: 0.1rem 0.1rem;
+        /* reduce padding */
+        font-size: 0.85rem;
+        /* smaller font */
+        white-space: nowrap;
+        /* prevent wrapping */
+        vertical-align: middle;
+    }
+
+    /* Truncate long text */
+    .table-smaller td.subject-col {
+        max-width: 100px;
+        /* adjust as needed */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .table-scroll {
+        max-height: 525px;
+        overflow-y: auto;
+    }
+
+    .table-smaller th,
+    .table-smaller td {
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .subject-col {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+
+    .sortable::after {
+        content: '⇅';
+        font-size: 0.7rem;
+        margin-left: 5px;
+        color: #999;
+    }
+
+    .sortable.asc::after {
+        content: '▲';
+        color: #333;
+    }
+
+    .sortable.desc::after {
+        content: '▼';
+        color: #333;
+    }

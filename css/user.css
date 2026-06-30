@@ -1,0 +1,157 @@
+/* General Page Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Container */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Sticky Header */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 10px;
+    z-index: 10;
+    text-align: center;
+    border-bottom: 2px solid #ddd;
+}
+
+/* Table Container (Scrollable) */
+.table-container {
+    width: 100%;
+    max-height: 300px; /* Adjust height based on row size */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+
+/* Table Styling */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Fix table header */
+.styled-table thead {
+    position: sticky;
+    top: 0;
+    background: #007BFF;
+    color: white;
+    z-index: 2;
+}
+
+/* Set max height for tbody to enable scrolling */
+.styled-table tbody {
+    display: block;
+    max-height: 200px; /* Show max 5 rows before scrolling */
+    overflow-y: auto;
+    width: 100%;
+}
+
+/* Ensure table rows and headers align correctly */
+.styled-table thead tr, 
+.styled-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Ensure table remains full width */
+.styled-table thead, 
+.styled-table tbody {
+    width: 100%;
+    display: block;
+}
+
+/* Table row styles */
+.styled-table th, .styled-table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.styled-table tbody tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+/* Status Badge */
+.status-pending {
+    background-color: #FFA500;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.status-in-progress {
+    background-color: #007BFF;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.status-resolved {
+    background-color: #28a745;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    width: 100%;
+    max-width: 200px;
+    text-align: center;
+    display: inline-block;
+    margin: 5px;
+    font-size: 16px;
+}
+
+/* Button Colors */
+.btn-view {
+    background-color: #007BFF;
+    color: white;
+}
+
+.btn-submit {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-logout {
+    background-color: #dc3545;
+    color: white;
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 5px;
+    margin: 20px auto;
+    max-width: 220px;
+    font-size: 16px;
+}
+
+/* Button Hover Effects */
+.btn:hover {
+    opacity: 0.8;
+}

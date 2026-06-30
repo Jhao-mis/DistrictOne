@@ -1,0 +1,182 @@
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 20px;
+        height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f8fc;
+        color: #333;
+        overflow: hidden;
+    }
+
+    .main-container {
+        display: flex;
+        gap: 20px;
+        height: calc(100vh - 100px);
+        max-width: 1300px;
+        margin: auto;
+        overflow: hidden;
+    }
+
+    .column {
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .column h3 {
+        font-size: 22px;
+        color: #1c4e80;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 1;
+    }
+
+    .ticket-detail p {
+        margin: 12px 0;
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+        display: inline-block;
+        text-transform: uppercase;
+    }
+
+    .badge-pending {
+        background-color: #ffc107;
+        color: white;
+    }
+
+    .badge-in-progress {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .badge-resolved {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-cancelled {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-mis {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    label {
+        margin-top: 15px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px;
+        margin-top: 5px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    textarea {
+        resize: none;
+        /* Disable resizing */
+        height: 230px;
+        /* Set a fixed height for the description textarea */
+        font-size: 16px;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 15px;
+        box-sizing: border-box;
+        overflow-y: auto;
+        /* Enable vertical scroll when content overflows */
+    }
+
+    textarea:focus {
+        border-color: #007bff;
+        /* Focused border color */
+        outline: none;
+        background-color: #fff;
+        /* Slightly different background when focused */
+    }
+
+    .btn-submit {
+        padding: 14px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+        width: 100%;
+    }
+
+    .btn-submit:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-back {
+        margin-top: 25px;
+        padding: 12px;
+        background-color: #6c757d;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        display: inline-block;
+        width: 100%;
+    }
+
+    /* History Logs */
+    .history-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        overflow-y: auto;
+        flex-grow: 1;
+        max-height: 100%;
+        padding-right: 10px;
+    }
+
+    .history-list li {
+        border-left: 4px solid #1c4e80;
+        padding-left: 12px;
+        margin-bottom: 15px;
+        background-color: #f1f7fd;
+        padding: 12px 18px;
+        border-radius: 6px;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .history-list li:last-child {
+        margin-bottom: 0;
+    }

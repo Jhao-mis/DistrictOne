@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Redirect login.php → /login
+RewriteRule ^login$ login.php [L]
+
+# Optional: remove .php from all files
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^/]+)$ $1.php [L]

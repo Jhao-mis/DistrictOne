@@ -1,0 +1,778 @@
+/* Custom CSS for Workforce Analytics Dashboard */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image: url('Pictures/WEB_BG.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Hero Section Styles */
+.hero-section {
+    position: relative;
+    background: #1a1a1a;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%);
+    z-index: 1;
+}
+
+/* Hero Background Image - Responsive */
+.hero-bg-image {
+    background-image: url('Pictures/vertical.jpg');
+}
+
+@media (min-width: 768px) {
+    .hero-bg-image {
+        background-image: url('Pictures/Hero Photo.jpg');
+    }
+}
+
+/* Hero Stats Animation */
+.hero-stat {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+.hero-stat:nth-child(1) { animation-delay: 0.2s; }
+.hero-stat:nth-child(2) { animation-delay: 0.4s; }
+.hero-stat:nth-child(3) { animation-delay: 0.6s; }
+.hero-stat:nth-child(4) { animation-delay: 0.8s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hero Navigation Buttons */
+.hero-nav-btn {
+    transition: all 0.3s ease;
+}
+
+.hero-nav-btn:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.hero-nav-btn:active {
+    transform: scale(0.95);
+}
+
+/* Scroll Indicator */
+.scroll-indicator {
+    width: 30px;
+    height: 50px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 25px;
+    position: relative;
+    animation: bounce 2s infinite;
+}
+
+.scroll-dot {
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: scrollDot 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(10px);
+    }
+}
+
+@keyframes scrollDot {
+    0% {
+        opacity: 1;
+        top: 8px;
+    }
+    100% {
+        opacity: 0;
+        top: 30px;
+    }
+}
+
+/* Hero Title Animation */
+.hero-section h1 {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 1s ease forwards;
+    animation-delay: 0.3s;
+}
+
+.hero-section p {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 1s ease forwards;
+    animation-delay: 0.5s;
+}
+
+/* Parallax Effect on Scroll */
+.hero-section .absolute.inset-0 {
+    transition: transform 0.5s ease-out;
+}
+
+/* Chart Bar Animation */
+.chart-bar {
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-bar:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Hover Effects */
+.bg-white {
+    transition: all 0.3s ease;
+}
+
+.bg-white:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Department Card Styles */
+.department-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.department-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.department-card:hover::before {
+    left: 100%;
+}
+
+.department-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Age Distribution Bars */
+.age-bar {
+    transition: all 0.3s ease;
+}
+
+.age-bar:hover {
+    opacity: 0.8;
+    transform: scaleY(1.05);
+}
+
+/* Gender Split Bar */
+.gender-bar {
+    transition: all 0.3s ease;
+}
+
+.gender-bar:hover {
+    filter: brightness(1.1);
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Readability + bigger insight/explanation containers */
+.story-box {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+}
+
+.story-box p {
+    font-size: 1rem;          /* overrides text-sm in insight boxes */
+    line-height: 1.75;
+    letter-spacing: 0.01em;
+}
+
+.story-box #orgStoryTitle,
+.story-box #chartDescriptionTitle {
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .story-box p {
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+}
+
+/* Department Breakdown: vertical scroll + intersection animation (React demo equivalent) */
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(60px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutSlideDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(60px);
+    }
+}
+
+.dept-animate {
+    opacity: 0;
+    transform: translateY(60px);
+    transition: transform 700ms, opacity 700ms;
+    will-change: transform, opacity;
+}
+
+.dept-animate.is-visible {
+    animation: fadeInSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dept-animate:not(.is-visible) {
+    animation: fadeOutSlideDown 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Department Breakdown viewport: show ~3 cards at a time */
+:root {
+    --dept-card-min-h: 240px;
+    --dept-cards-gap: 1.5rem; /* matches space-y-6 */
+}
+
+.department-card {
+    min-height: var(--dept-card-min-h);
+}
+
+.dept-cards-viewport {
+    max-height: calc((3 * var(--dept-card-min-h)) + (2 * var(--dept-cards-gap)));
+    overflow-y: auto;
+    padding-right: 6px; /* space for scrollbar */
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+}
+
+.dept-cards-viewport .department-card {
+    scroll-snap-align: start;
+}
+
+@media (max-width: 640px) {
+    .dept-cards-viewport {
+        max-height: none;
+        padding-right: 0;
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+    body {
+        background-attachment: scroll;
+    }
+
+    .hero-section {
+        padding-top: 4rem;
+        padding-bottom: 4rem;
+    }
+
+    .hero-section h1 {
+        font-size: clamp(2rem, 7vw, 2.75rem);
+        line-height: 1.1;
+    }
+
+    .hero-section p {
+        font-size: 1rem;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.25rem;
+    }
+    
+    h3 {
+        font-size: 1rem;
+    }
+}
+
+/* Button Hover Effects */
+button, .cursor-pointer {
+    transition: all 0.3s ease;
+}
+
+button:hover, .cursor-pointer:hover {
+    transform: scale(1.05);
+}
+
+/* Gradient Text Animation */
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.gradient-animate {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+}
+
+/* Card Shadow Variations */
+.shadow-card {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-card-hover:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Loading Animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.loading {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Chart Y-axis Labels */
+.chart-y-label {
+    position: absolute;
+    left: 0;
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+/* Tooltip Styles */
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.tooltip.show {
+    opacity: 1;
+}
+
+/* Department Card Click Effect */
+.department-card:active {
+    transform: translateY(-2px) scale(0.98);
+}
+
+/* Focus Styles for Accessibility */
+*:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+button:focus, a:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white;
+    }
+    
+    .bg-gradient-to-br {
+        background: white;
+    }
+    
+    .shadow-lg {
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+    }
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+/* Stagger Animation for Cards */
+.department-card:nth-child(1) { animation-delay: 0.1s; }
+.department-card:nth-child(2) { animation-delay: 0.2s; }
+.department-card:nth-child(3) { animation-delay: 0.3s; }
+.department-card:nth-child(4) { animation-delay: 0.4s; }
+.department-card:nth-child(5) { animation-delay: 0.5s; }
+.department-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Mini chart styles for storytelling guide */
+.mini-chart {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    align-items: end;
+    gap: 8px;
+}
+
+.mini-bar {
+    width: 100%;
+    border-radius: 12px 12px 4px 4px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.mini-bar:hover {
+    transform: translateY(-4px);
+    opacity: 0.9;
+}
+
+.mini-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #4b5563;
+}
+
+.mini-stacked {
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* Organizational Composition Chart - Pyramid Chart Styles */
+#orgCompositionChart {
+    min-width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pyramid-chart {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+}
+
+.pyramid-level {
+    transition: transform 0.3s ease;
+    transform-origin: center;
+}
+
+.pyramid-level:hover {
+    transform: scale(1.05);
+}
+
+.pyramid-segment {
+    cursor: pointer;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transform-origin: center;
+}
+
+.pyramid-segment:hover {
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+    transform: scale(1.05);
+}
+
+.pyramid-text {
+    pointer-events: none;
+    user-select: none;
+}
+
+.pyramid-count {
+    pointer-events: none;
+    user-select: none;
+}
+
+.pyramid-tooltip {
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+.pyramid-tooltip:not(.hidden) {
+    animation: fadeInTooltip 0.2s ease;
+}
+
+@keyframes fadeInTooltip {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile-specific styles for pyramid chart */
+@media (max-width: 768px) {
+    #orgCompositionChart {
+        padding: 1rem 0;
+    }
+    
+    .pyramid-chart {
+        width: 100%;
+        height: auto;
+        max-width: 320px;
+    }
+    
+    .pyramid-tooltip {
+        max-width: 90%;
+        font-size: 11px;
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .pyramid-tooltip {
+        max-width: 85%;
+        font-size: 10px;
+        padding: 0.5rem;
+    }
+}
+
+/* Card Tooltip Styles */
+.group:hover .group-hover\:opacity-100 {
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Mobile tooltip positioning - show below card on mobile */
+@media (max-width: 768px) {
+    #avgTenureCard .absolute.bottom-full,
+    #atRiskCard .absolute.bottom-full {
+        bottom: auto;
+        top: 100%;
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+        width: calc(100vw - 2rem);
+        max-width: 280px;
+    }
+    
+    #avgTenureCard .absolute.bottom-full .absolute.top-full,
+    #atRiskCard .absolute.bottom-full .absolute.top-full {
+        top: auto;
+        bottom: 100%;
+        margin-top: 0;
+        margin-bottom: -0.25rem;
+    }
+}
+
+/* Editable Content Styles - Visual feedback for contenteditable elements */
+.editable-active,
+[contenteditable="true"] {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    cursor: text;
+    min-height: 1.5em;
+}
+
+.editable-active:hover,
+[contenteditable="true"]:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    outline: 1px dashed rgba(59, 130, 246, 0.3);
+}
+
+.editable-active:focus,
+[contenteditable="true"]:focus {
+    background-color: rgba(59, 130, 246, 0.15);
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+}
+
+/* Prevent hover effect on spans within editable divs when not directly hovering */
+.editable-active:focus span,
+[contenteditable="true"]:focus span {
+    outline: none;
+}
+
+/* Special styling for editable bullet points */
+.editable-active p,
+[contenteditable="true"] p {
+    margin: 0.25rem 0;
+    padding: 0.25rem;
+    border-radius: 2px;
+}
+
+.editable-active p:hover,
+[contenteditable="true"] p:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Workforce Slideshow Styles */
+.workforce-slideshow-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #f3f4f6;
+    overflow: hidden;
+}
+
+.workforce-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    z-index: 1;
+    /* Image quality improvements for photos */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: opacity;
+    /* Ensure proper scaling and prevent distortion */
+    min-width: 100%;
+    min-height: 100%;
+    max-width: none;
+    max-height: none;
+    /* Better image quality */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.workforce-slide.active {
+    opacity: 1;
+    z-index: 2;
+}
+
+/* Slide Indicators */
+.slide-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.slide-indicator:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.2);
+}
+
+.slide-indicator.active {
+    background: white;
+    border-color: white;
+    width: 24px;
+    border-radius: 5px;
+}
+
+@keyframes slideFade {
+    0% {
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Responsive adjustments for slideshow */
+@media (max-width: 768px) {
+    .slide-indicator {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .slide-indicator.active {
+        width: 20px;
+    }
+}

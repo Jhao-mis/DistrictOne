@@ -1,0 +1,357 @@
+  /* ===========================
+   Global Reset & Base Styles
+=========================== */
+  * {
+      box-sizing: border-box;
+  }
+
+  body {
+      margin: 0;
+      padding: 20px;
+      height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f8fc;
+      color: #333;
+      overflow: hidden;
+  }
+
+  /* ===========================
+   Branding & Logo
+=========================== */
+  .app-brand-text {
+      font-size: 20px !important;
+      font-weight: bold;
+      margin-left: 5px;
+      margin-top: 10px;
+  }
+
+  .logo {
+      margin-left: -30px;
+      margin-top: 5px;
+  }
+
+  /* ===========================
+   Main Layout
+=========================== */
+  .main-container {
+      display: flex;
+      gap: 20px;
+      height: 700px;
+      /* fixed height */
+      max-width: 1300px;
+      margin: auto;
+      overflow: auto;
+      /* scroll if content overflows */
+  }
+
+
+  .column {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+  }
+
+  .column h3 {
+      font-size: 22px;
+      color: #1c4e80;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 10px;
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1;
+  }
+
+  /* ===========================
+   Ticket Details
+=========================== */
+  .ticket-detail p {
+      margin: 12px 0;
+      font-size: 16px;
+      line-height: 1.6;
+  }
+
+  /* ===========================
+   Badges
+=========================== */
+  .badge {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      display: inline-block;
+      text-transform: uppercase;
+  }
+
+  .badge-pending {
+      background-color: #ffc107;
+      color: #fff;
+  }
+
+  .badge-in-progress {
+      background-color: #17a2b8;
+      color: #fff;
+  }
+
+  .badge-resolved {
+      background-color: #28a745;
+      color: #fff;
+  }
+
+  .badge-cancelled {
+      background-color: #dc3545;
+      color: #fff;
+  }
+
+  .badge-mis {
+      background-color: #6c757d;
+      color: #fff;
+  }
+
+  /* ===========================
+   Form Elements
+=========================== */
+  label {
+      margin-top: 15px;
+      font-weight: 600;
+      font-size: 16px;
+  }
+
+  select,
+  textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+  }
+
+  textarea {
+      resize: none;
+      height: 260px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f9f9f9;
+      padding: 15px;
+      overflow-y: auto;
+  }
+
+  textarea:focus {
+      border-color: #007bff;
+      outline: none;
+      background-color: #fff;
+  }
+
+  /* ===========================
+   Buttons
+=========================== */
+  .btn-submit {
+      padding: 14px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+  }
+
+  .btn-submit:hover {
+      background-color: #0056b3;
+  }
+
+  .btn-back {
+      margin-top: 25px;
+      padding: 12px;
+      background-color: #6c757d;
+      color: #fff;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      display: inline-block;
+      width: 100%;
+  }
+
+  /* ===========================
+   History Logs
+=========================== */
+  .history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+      flex-grow: 1;
+      max-height: 100%;
+      padding-right: 10px;
+  }
+
+  .history-list li {
+      border-left: 4px solid #1c4e80;
+      margin-bottom: 15px;
+      background-color: #f1f7fd;
+      padding: 12px 18px;
+      border-radius: 6px;
+      font-size: 15px;
+      line-height: 1.6;
+  }
+
+  .history-list li:last-child {
+      margin-bottom: 0;
+  }
+
+  /* ===========================
+   Calendar Section
+=========================== */
+  #calendar {
+      max-width: 1000px;
+      margin: auto;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+  }
+
+  .fc-daygrid-day {
+      border: 1px solid #e8e8e8;
+  }
+
+  .fc-daygrid-day-top {
+      font-size: 14px;
+      font-weight: bold;
+      color: #666;
+  }
+
+  .fc-event {
+      border-radius: 5px;
+      font-size: 12px;
+      padding: 4px;
+      border: none;
+  }
+
+  .fc-event-title {
+      font-weight: 600;
+  }
+
+  .fc-toolbar-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+  }
+
+  .fc-button {
+      background-color: #f5f5f5;
+      color: #333;
+      border: none;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 5px;
+  }
+
+  .fc-button-active {
+      background-color: #ddd;
+  }
+
+  .fc-scroller {
+      max-height: 600px;
+      overflow-y: auto;
+  }
+
+  /* ===========================
+   Event List
+=========================== */
+  #eventListContainer {
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 10px;
+  }
+
+  #eventListContainer::-webkit-scrollbar {
+      width: 8px;
+  }
+
+  #eventListContainer::-webkit-scrollbar-thumb {
+      background-color: #888;
+      border-radius: 4px;
+  }
+
+  #eventListContainer::-webkit-scrollbar-thumb:hover {
+      background-color: #555;
+  }
+
+  .event-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #ddd;
+  }
+
+  .event-dot {
+      height: 10px;
+      width: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+  }
+
+  .event-title {
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+  }
+
+  .event-date {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+  }
+
+  .event-time {
+      font-size: 0.9rem;
+      color: #666;
+  }
+
+  /* ===========================
+   Navigation & Misc
+=========================== */
+  .btn-primary {
+      background-color: #007bff !important;
+      border-color: #007bff !important;
+      color: white !important;
+  }
+
+  .nav-link.active {
+      background-color: #007bff !important;
+      color: #fff !important;
+      border-radius: 5px;
+      padding: 8px 12px;
+  }
+
+  .nav-link:hover {
+      background-color: #fff !important;
+      color: #007bff !important;
+      border-radius: 5px;
+      padding: 8px 12px;
+  }
+
+  .bg-menu-theme .menu-inner>.menu-item.active>.menu-link {
+      color: #fff;
+      background-color: rgba(47, 144, 255, 0.63) !important;
+  }
+
+  .bg-menu-theme .menu-inner>.menu-item.active:before {
+      background-color: #2793eb;
+  }
+
+  .swal2-container {
+      z-index: 99999 !important;
+  }

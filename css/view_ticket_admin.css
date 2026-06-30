@@ -1,0 +1,188 @@
+/* General Styling */
+body {
+    background: #f0f2f5;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Container */
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Titles */
+.title {
+    text-align: center;
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.update-title {
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+/* Ticket Card */
+.ticket-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    border-left: 5px solid #007BFF;
+}
+
+.ticket-title {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* Status Badges */
+.badge {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    display: inline-block;
+    text-transform: uppercase;
+}
+
+.badge-pending {
+    background-color: #FFA500;
+    color: white;
+}
+
+.badge-in-progress {
+    background-color: #007BFF;
+    color: white;
+}
+
+.badge-resolved {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Assigned MIS Badge */
+.badge-mis {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Update Section */
+.update-section {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Select Box & Textarea */
+.select-box, .feedback-box {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.feedback-box {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.btn-submit {
+    background-color: #28a745;
+    color: white;
+    width: 100%;
+    max-width: 250px;
+    margin-top: 10px;
+    display: block;
+}
+
+.btn-back {
+    background-color: #6c757d;
+    color: white;
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 250px;
+}
+
+.btn:hover {
+    opacity: 0.85;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+        padding: 20px;
+    }
+
+
+
+
+
+/* History Logs Section */
+.history-section {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    border-left: 5px solid #6c757d;
+}
+
+.history-title {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.history-list {
+    list-style: none;
+    padding: 0;
+}
+
+.history-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+    color: #555;
+}
+
+.history-list li:last-child {
+    border-bottom: none;
+}
+
+
+
+
+
+
+
+}

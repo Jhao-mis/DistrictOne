@@ -1,0 +1,393 @@
+      .app-brand-text {
+            font-size: 20px !important;
+            font-weight: bold;
+            margin-left: 5px;
+            margin-top: 10px;
+            }
+            .logo {
+            margin-left: -30px;
+             margin-top: 5px;
+            }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        #calendar {
+    max-width: 1000px;
+    margin: auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+}
+.fc-daygrid-day {
+    border: 1px solid #e8e8e8; /* Light border */
+}
+
+.fc-daygrid-day-top {
+    font-size: 14px;
+    font-weight: bold;
+    color: #666;
+}
+
+.fc-event {
+    border-radius: 5px;
+    font-size: 12px;
+    padding: 4px;
+    border: none;
+}
+
+.fc-event-title {
+    font-weight: 600;
+}
+
+.fc-toolbar-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+}
+
+.fc-button {
+    background-color: #f5f5f5;
+    color: #333;
+    border: none;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 5px;
+}
+
+.fc-button-active {
+    background-color: #ddd;
+}
+        .fc-toolbar {
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .fc-prev-button:hover,
+.fc-next-button:hover,
+.fc-today-button:hover,
+.fc-month-button:hover,
+.fc-agendaWeek-button:hover,
+.fc-agendaDay-button:hover {
+    background-color: lightgray !important;
+    border-color: lightgray !important;
+    color: black !important;
+}
+/* Calendar Sidebar Styling */
+.col {
+    width: 10px;
+    background-color: #fff;
+    padding: 20px;
+    border-right: 1px solid #ddd;
+}
+
+/* Button Styling */
+.btn-toggle-sidebar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #7367F0;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+}
+
+.btn-toggle-sidebar i {
+    font-size: 18px;
+}
+
+/* Calendar Section */
+.p-6 {
+    padding: 20px !important;
+}
+
+/* Event Filters Section */
+h5 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-check-label {
+    cursor: pointer;
+}
+
+/* Adjust spacing */
+.mb-5 {
+    margin-bottom: 12px !important;
+}
+
+.ms-2 {
+    margin-left: 5px !important;
+}
+.fc-scroller {
+    max-height: 600px; /* Adjust this to fit your layout */
+    overflow-y: auto; /* Enable scrolling */
+}
+.fc-prev-button, .fc-next-button {
+    font-size: 18px !important;
+    background: none !important;
+    border: none !important;
+    color: #333 !important; /* Dark color for visibility */
+}
+/* All Departments */
+#Alldepartment:checked {
+    background-color: #969593 !important;
+    border-color: #969593 !important;
+}
+
+/* Office of the General Manager */
+#GMdepartment:checked {
+    background-color: #b0f5f5 !important;
+    border-color: #b0f5f5 !important;
+}
+
+/* Management Information Services Section */
+#MISdepartment:checked {
+    background-color: #fcc6c0 !important;
+    border-color: #fcc6c0 !important;
+}
+
+/* Administrative Department */
+#ADdepartment:checked {
+    background-color: #cff799 !important;
+    border-color: #cff799 !important;
+}
+
+/* Finance Department */
+#FDdepartment:checked {
+    background-color: #3cc74a !important;
+    border-color: #3cc74a !important;
+}
+
+/* Commercial Department */
+#COMdepartment:checked {
+    background-color: #f8fc9d !important;
+    border-color: #f8fc9d !important;
+}
+
+/* Technical Services Department */
+#TSdepartment:checked {
+    background-color: #cba5f2 !important;
+    border-color: #cba5f2 !important;
+}
+
+/* Operations Department */
+#OPdepartment:checked {
+    background-color: #fab07a !important;
+    border-color: #fab07a !important;
+}
+
+/* General styling for all checked checkboxes */
+.form-check-input:checked {
+    box-shadow: none !important;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="%23FFF" d="M13.485 1.929a1.5 1.5 0 0 1 0 2.121L6.363 11.172 2.515 7.323a1.5 1.5 0 1 1 2.121-2.122l2.121 2.122 5.657-5.657a1.5 1.5 0 0 1 2.121 0z"/></svg>') !important;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 80%;
+}
+
+  /* Scrollable event list */
+  #eventListContainer {
+        max-height: 600px; /* Adjust height as needed */
+        overflow-y: auto;
+        padding-right: 10px; /* Avoid content cutting off */
+    }
+
+    /* Optional: Customize scrollbar */
+    #eventListContainer::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #eventListContainer::-webkit-scrollbar-thumb {
+        background-color: #888;
+        border-radius: 4px;
+    }
+
+    #eventListContainer::-webkit-scrollbar-thumb:hover {
+        background-color: #555;
+    }
+      /* Event item styling */
+      .event-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd; /* Line between events */
+    }
+
+    /* Color dot for department */
+    .event-dot {
+        height: 10px;
+        width: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .event-title {
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+    }
+
+    .event-date {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .event-time {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    .btn-primary {
+        background-color: #007bff !important; /* Bootstrap Blue */
+        border-color: #007bff !important;
+        color: white !important;
+    }
+    .nav-link.active {
+        background-color: #007bff !important; /* Bootstrap blue */
+        color: white !important;
+        border-radius: 5px; /* Optional: adds rounded corners */
+        padding: 8px 12px; /* Optional: adjusts padding */
+        display: inline-block;
+    }
+    .nav-link:hover {
+        background-color: white !important; /* Bootstrap blue */
+        color: #007bff !important;
+        border-radius: 5px; /* Optional: adds rounded corners */
+        padding: 8px 12px; /* Optional: adjusts padding */
+        display: inline-block;
+    }
+    .custom-outline-blue {
+    background-color: white;
+    color: #007bff; /* Blue text */
+    border: 2px solid #007bff; /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto; /* Centers button */
+    text-align: center;
+}
+
+.custom-outline-blue:hover {
+    background-color: #007bff; /* Blue background on hover */
+    color: white; /* White text on hover */
+}
+
+.form-check-inline {
+    display: inline-flex !important;
+    align-items: center;
+}
+
+.custom-outline-blue {
+    background-color: white;
+    color: #007bff; /* Blue text */
+    border: 2px solid #007bff; /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto; /* Centers button */
+    text-align: center;
+}
+
+.custom-outline-blue:hover {
+    background-color: #007bff; /* Blue background on hover */
+    color: white; /* White text on hover */
+}
+
+.form-check-inline {
+    display: inline-flex !important;
+    align-items: center;
+}
+
+            /* Ensure the checkmark is visible */
+            .form-check-input:checked {
+                background-color: #007bff;
+                border: 2px solid #007bff;
+            }
+
+                /* Add the inner circle */
+                .bg-menu-theme .menu-inner > .menu-item.active > .menu-link {
+  color: #fff;
+  background-color: rgba(47, 144, 255, 0.63) !important;
+}
+.bg-menu-theme .menu-sub > .menu-item.active > .menu-link:not(.menu-toggle):before {
+  background-color: #2793eb !important;
+  border: 3px solid #e7e7ff !important;
+}
+
+.bg-menu-theme .menu-inner > .menu-item.active:before {
+  background-color: #2793eb;
+}
+
+.table-scroll {
+  max-height: 580px;
+  overflow-y: auto;
+  display: block;
+}
+
+/* Compact table style */
+.table-smaller th,
+.table-smaller td {
+  padding: 0.1rem 0.1rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Truncate long text */
+.table-smaller td.subject-col {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Search + Filter Row */
+.table-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem 0 1.25rem;
+}
+
+/* Sortable headers */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+.sortable::after {
+  content: '⇅';
+  font-size: 0.7rem;
+  margin-left: 5px;
+  color: #999;
+}
+.sortable.asc::after { content: '▲'; color: #333; }
+.sortable.desc::after { content: '▼'; color: #333; }

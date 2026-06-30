@@ -1,0 +1,221 @@
+/* General Page Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main Container */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+h2, h3 {
+    text-align: center;
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* Sticky Header */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 10px;
+    z-index: 10;
+    text-align: center;
+    border-bottom: 2px solid #ddd;
+}
+
+/* Table Container - Allows Scrolling if More Than 5 Rows */
+.table-container {
+    width: 100%;
+    max-height: 300px; /* Fixed height */
+    overflow-y: auto; /* Scroll if more than 5 rows */
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+
+/* Table Styling */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 10px;
+    table-layout: fixed; /* Fix shifting issue */
+}
+
+/* Table Header */
+.styled-table thead {
+    position: sticky;
+    top: 0;
+    background: #007BFF;
+    color: white;
+    z-index: 2;
+}
+
+/* Table Column Alignment & Padding */
+.styled-table th, .styled-table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    white-space: nowrap; /* Prevents wrapping */
+    vertical-align: middle;
+}
+
+/* Set Fixed Column Widths */
+.styled-table th,
+.styled-table td {
+    width: auto;
+    min-width: 150px; /* Adjust as needed */
+}
+
+/* Ensure Buttons Are Centered in Table */
+.styled-table td .btn-view {
+    display: inline-block;
+    text-align: center;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 5px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Zebra Striping */
+.styled-table tbody tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+.styled-table tr:hover {
+    background-color: #e6f2ff;
+}
+
+/* Status Labels - Fixed Width */
+.status-pending, .status-in-progress, .status-resolved, .status-cancelled {
+    display: inline-block;
+    min-width: 100px;
+    text-align: center;
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Status Colors */
+.status-pending {
+    background-color: #FFA500;
+    color: white;
+}
+
+.status-in-progress {
+    background-color: #007BFF;
+    color: white;
+}
+
+.status-resolved {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-cancelled {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Select Dropdown & Textarea */
+.select-box, .feedback-box {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.feedback-box {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Buttons */
+.btn {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    width: 100%;
+    max-width: 200px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+/* Button Colors */
+.btn-view {
+    background-color: #007BFF;
+    color: white;
+}
+
+.btn-submit {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-back {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-logout {
+    display: block;
+    text-align: center;
+    background-color: #dc3545;
+    color: white;
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 5px;
+    margin: 20px auto;
+    max-width: 220px;
+    font-size: 16px;
+}
+
+/* Button Hover Effects */
+.btn:hover {
+    opacity: 0.8;
+}
+
+/* Align Buttons */
+.button-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .styled-table th, .styled-table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .btn {
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+}

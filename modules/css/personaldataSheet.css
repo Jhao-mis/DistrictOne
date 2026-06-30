@@ -1,0 +1,213 @@
+.app-brand-text {
+    font-family: 'Arial', sans-serif;
+    font-size: 20px !important;
+    font-weight: bold;
+    margin-left: 5px;
+    margin-top: 10px;
+}
+
+.logo {
+    margin-left: -30px;
+    margin-top: 5px;
+}
+
+.custom-outline-blue {
+    background-color: white;
+    color: #007bff;
+    /* Blue text */
+    border: 2px solid #007bff;
+    /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+    /* Centers button */
+    text-align: center;
+}
+
+.custom-outline-blue:hover {
+    background-color: #007bff;
+    /* Blue background on hover */
+    color: white;
+    /* White text on hover */
+}
+
+.custom-outline-blue2 {
+    background-color: white;
+    color: #007bff;
+    /* Blue text */
+    border: 2px solid #007bff;
+    /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+    /* Centers button */
+    margin-top: 10px;
+    text-align: center;
+}
+
+.custom-outline-blue2:hover {
+    background-color: #007bff;
+    /* Blue background on hover */
+    color: white;
+    /* White text on hover */
+}
+
+.custom-outline-blue3 {
+    background-color: white;
+    color: #007bff;
+    /* Blue text */
+    border: 2px solid #007bff;
+    /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+    /* Centers button */
+    margin-top: 10px;
+    text-align: center;
+}
+
+.custom-outline-blue3:hover {
+    background-color: #007bff;
+    /* Blue background on hover */
+    color: white;
+    /* White text on hover */
+}
+
+.custom-outline-blue4 {
+    background-color: white;
+    color: #007bff;
+    /* Blue text */
+    border: 2px solid #007bff;
+    /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+    /* Centers button */
+    margin-top: 10px;
+    text-align: center;
+}
+
+.custom-outline-blue4:hover {
+    background-color: #007bff;
+    /* Blue background on hover */
+    color: white;
+    /* White text on hover */
+}
+
+.custom-outline-blue5 {
+    background-color: white;
+    color: #007bff;
+    /* Blue text */
+    border: 2px solid #007bff;
+    /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+    /* Centers button */
+    margin-top: 10px;
+    text-align: center;
+}
+
+.custom-outline-blue5:hover {
+    background-color: #007bff;
+    /* Blue background on hover */
+    color: white;
+    /* White text on hover */
+}
+
+.custom-outline-blue6 {
+    background-color: white;
+    color: #007bff;
+    /* Blue text */
+    border: 2px solid #007bff;
+    /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+    /* Centers button */
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.custom-outline-blue6:hover {
+    background-color: #007bff;
+    /* Blue background on hover */
+    color: white;
+    /* White text on hover */
+}
+
+.custom-outline-blue7 {
+    background-color: white;
+    color: #007bff;
+    /* Blue text */
+    border: 2px solid #007bff;
+    /* Blue border */
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+    max-width: 200px;
+    display: block;
+    margin: 0 auto;
+    /* Centers button */
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.custom-outline-blue7:hover {
+    background-color: #007bff;
+    /* Blue background on hover */
+    color: white;
+    /* White text on hover */
+}
+
+/* Ensure the checkmark is visible */
+.form-check-input:checked {
+    background-color: #007bff;
+    border: 2px solid #007bff;
+}
+
+/* Add the inner circle */
+.bg-menu-theme .menu-inner>.menu-item.active>.menu-link {
+    color: #fff;
+    background-color: rgba(47, 144, 255, 0.63) !important;
+}
+
+.bg-menu-theme .menu-sub>.menu-item.active>.menu-link:not(.menu-toggle):before {
+    background-color: #2793eb !important;
+    border: 3px solid #e7e7ff !important;
+}
+
+.bg-menu-theme .menu-inner>.menu-item.active:before {
+    background-color: #2793eb;
+}
+
+.swal2-container {
+    z-index: 99999 !important;
+}
