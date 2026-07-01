@@ -24,9 +24,7 @@ $updateActivity->bind_param("ss", $now, $username);
 $updateActivity->execute();
 $updateActivity->close();
 
-$sql = "SELECT * FROM announcements ORDER BY created_at DESC";
-$result = $conn->query($sql);
-$client_department = $department; // This is fetched from the logged-in user
+$client_department = $department;
 
 if ($client_department == "All Departments") {
   $sql = "SELECT a.id, a.title, a.message, a.file_path, a.department, a.user_id, a.created_at, 
@@ -58,14 +56,6 @@ $result = $stmt->get_result();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Announcements</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css" />
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
-  <meta name="description" content="" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="../assets/img/favicon/districtone.png" />
@@ -73,11 +63,9 @@ $result = $stmt->get_result();
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
 
-  <!-- Icons. Uncomment required icon fonts -->
+  <!-- Icons -->
   <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
 
   <!-- Core CSS -->
@@ -92,6 +80,223 @@ $result = $stmt->get_result();
   <script src="../assets/vendor/js/helpers.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/config.js"></script>
+
+  <style>
+    :root {
+      --tk-bg: #f7f8fa;
+      --tk-surface: #ffffff;
+      --tk-border: #e8eaee;
+      --tk-text: #1f2430;
+      --tk-text-muted: #767e8c;
+      --tk-primary: #7cb9ff;
+      --tk-primary-soft: #eaf3ff;
+      --tk-primary-dark: #4e96f0;
+      --tk-radius: 12px;
+      --tk-shadow: 0 1px 2px rgba(20,20,43,.04), 0 8px 24px -12px rgba(20,20,43,.10);
+    }
+
+    .ann-wrap { font-family: inherit; color: var(--tk-text); }
+
+    /* ── Page header ───────────────────────────────────────────── */
+    .ann-page-header {
+      background: linear-gradient(135deg, var(--tk-primary) 0%, var(--tk-primary-dark) 100%);
+      border-radius: var(--tk-radius);
+      padding: 22px 26px;
+      color: #fff;
+      margin-bottom: 22px;
+      box-shadow: var(--tk-shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .ann-page-header .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      opacity: .8;
+      margin-bottom: 3px;
+    }
+    .ann-page-header h4 { font-size: 19px; font-weight: 700; margin: 0; color: #fff; }
+    .ann-page-header p { font-size: 13px; opacity: .85; margin: 4px 0 0; }
+
+    /* ── Search ────────────────────────────────────────────────── */
+    .ann-search { position: relative; margin-bottom: 22px; }
+    .ann-search svg {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      width: 17px; height: 17px; color: var(--tk-text-muted); pointer-events: none;
+    }
+    .ann-search input {
+      width: 100%;
+      padding: 12px 16px 12px 46px;
+      border: 1.5px solid var(--tk-border);
+      border-radius: 999px;
+      font-size: 14px;
+      background: var(--tk-bg);
+      outline: none;
+      transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+    .ann-search input:focus {
+      border-color: var(--tk-primary);
+      background: var(--tk-surface);
+      box-shadow: 0 0 0 4px var(--tk-primary-soft);
+    }
+
+    /* ── Announcement card ─────────────────────────────────────── */
+    .ann-card {
+      background: var(--tk-surface);
+      border: 1px solid var(--tk-border);
+      border-radius: var(--tk-radius);
+      box-shadow: var(--tk-shadow);
+      padding: 22px 24px;
+      margin-bottom: 16px;
+      transition: border-color .12s ease, transform .12s ease, box-shadow .12s ease;
+    }
+    .ann-card:hover {
+      border-color: var(--tk-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px -8px rgba(20,20,43,.15);
+    }
+    .ann-card-dept {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--tk-primary-soft);
+      color: #2563a8;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .ann-card-dept svg { width: 11px; height: 11px; }
+    .ann-card h3 { font-size: 17px; font-weight: 700; color: var(--tk-text); margin-bottom: 10px; }
+    .ann-card-body { font-size: 14px; line-height: 1.7; color: var(--tk-text); margin-bottom: 14px; }
+    .ann-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--tk-text-muted);
+      border-top: 1px dashed var(--tk-border);
+      padding-top: 12px;
+      margin-top: 4px;
+    }
+    .ann-card-meta span { display: flex; align-items: center; gap: 5px; }
+    .ann-card-meta svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* File attachment */
+    .ann-attach { margin-top: 14px; }
+    .ann-attach img { border-radius: 10px; border: 1px solid var(--tk-border); max-width: 100%; }
+    .ann-btn-pdf {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--tk-primary-soft); color: #2563a8;
+      border: 1.5px solid var(--tk-primary); font-weight: 600;
+      font-size: 13px; padding: 7px 14px; border-radius: 8px;
+      cursor: pointer; text-decoration: none; margin-right: 8px;
+      transition: background .12s ease;
+    }
+    .ann-btn-pdf:hover { background: var(--tk-primary); color: #fff; }
+    .ann-btn-pdf svg { width: 15px; height: 15px; }
+    .ann-btn-download {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--tk-bg); color: var(--tk-text-muted);
+      border: 1.5px solid var(--tk-border); font-weight: 600;
+      font-size: 13px; padding: 7px 14px; border-radius: 8px;
+      cursor: pointer; text-decoration: none;
+      transition: border-color .12s ease, color .12s ease;
+    }
+    .ann-btn-download:hover { border-color: var(--tk-primary); color: var(--tk-primary); }
+    .ann-btn-download svg { width: 15px; height: 15px; }
+
+    /* ── Recent posts sidebar ──────────────────────────────────── */
+    .ann-recent-card {
+      background: var(--tk-surface);
+      border: 1px solid var(--tk-border);
+      border-radius: var(--tk-radius);
+      box-shadow: var(--tk-shadow);
+      overflow: hidden;
+      position: sticky;
+      top: 80px;
+    }
+    .ann-recent-head {
+      padding: 15px 18px;
+      border-bottom: 1px solid var(--tk-border);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: var(--tk-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .ann-recent-head svg { width: 14px; height: 14px; color: var(--tk-primary); }
+    .ann-recent-item {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--tk-border);
+      transition: background .1s ease;
+    }
+    .ann-recent-item:last-child { border-bottom: none; }
+    .ann-recent-item:hover { background: var(--tk-primary-soft); }
+    .ann-recent-dept {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #2563a8;
+      background: var(--tk-primary-soft);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 5px;
+    }
+    .ann-recent-title {
+      display: block;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--tk-text);
+      text-decoration: none;
+      line-height: 1.4;
+    }
+    .ann-recent-title:hover { color: var(--tk-primary); }
+    .ann-recent-date { font-size: 11.5px; color: var(--tk-text-muted); margin-top: 3px; }
+    .ann-recent-empty { padding: 24px 18px; text-align: center; font-size: 13px; color: var(--tk-text-muted); }
+
+    /* ── Pagination ────────────────────────────────────────────── */
+    .ann-pagination { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+    .ann-page-btn {
+      border: 1.5px solid var(--tk-border);
+      background: var(--tk-surface);
+      color: var(--tk-text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all .12s ease;
+    }
+    .ann-page-btn:hover { border-color: var(--tk-primary); color: var(--tk-primary); }
+    .ann-page-btn.active { background: var(--tk-primary); border-color: var(--tk-primary); color: #fff; }
+    .ann-page-btn.disabled { opacity: .4; cursor: not-allowed; }
+    .ann-page-btn.ellipsis { cursor: default; border-color: transparent; background: transparent; }
+
+    /* ── Empty state ───────────────────────────────────────────── */
+    .ann-empty {
+      text-align: center; padding: 60px 20px; color: var(--tk-text-muted);
+    }
+    .ann-empty svg { width: 42px; height: 42px; opacity: .35; margin-bottom: 12px; }
+    .ann-empty p { font-size: 14.5px; font-weight: 600; color: var(--tk-text); margin: 0; }
+    .ann-empty span { font-size: 12.5px; }
+
+    /* ── PDF / Modal ───────────────────────────────────────────── */
+    #pdfModal .modal-content { border: none; border-radius: 16px; overflow: hidden; }
+    #pdfModal .modal-header {
+      background: linear-gradient(135deg, var(--tk-primary) 0%, var(--tk-primary-dark) 100%);
+    }
+  </style>
 </head>
 
 <body>
@@ -122,230 +327,137 @@ $result = $stmt->get_result();
 
   <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
+      <div class="ann-wrap">
 
-      <!-- ANNOUNCEMENT SECTION -->
-      <div class="card app-calendar-wrapper">
-        <div class="row g-0">
-          <div class="col border-end" id="app-calendar-sidebar">
+        <!-- Page header -->
+        <!-- <div class="ann-page-header">
+          <div>
+            <div class="eyebrow">Bulletin board</div>
+            <h4>Announcements</h4>
+            <p>Stay up to date with the latest news and updates from your department.</p>
+          </div>
+          <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        </div> -->
 
-            <div class="px-3 pt-2">
-              <div class="container mt-4">
-                <div class="row">
+        <div class="row g-4">
 
-                  <!-- LEFT SIDE: ANNOUNCEMENTS -->
-                  <div class="col-md-8">
-                    <div class="border-bottom p-3 mb-4">
-                      <div class="d-flex align-items-center gap-3">
+          <!-- LEFT: FEED -->
+          <div class="col-md-8">
 
-                        <!-- SEARCH BOX -->
-                        <div class="mb-3 flex-grow-1">
-                          <input type="text" id="searchInput" class="form-control" placeholder="Search announcements">
-                        </div>
+            <!-- Search -->
+            <div class="ann-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="text" id="searchInput" placeholder="Search announcements…">
+            </div>
 
-                        <!-- DROPDOWN FILTER -->
-                        <!-- <div class="dropdown">
-                          <button class="btn btn-light dropdown-toggle" type="button" id="departmentDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            All Announcements
+            <!-- Pagination top -->
+            <div class="ann-pagination mb-4" id="paginationTop"></div>
+
+            <!-- Posts Feed -->
+            <div id="announcementsFeed">
+              <?php if ($result->num_rows > 0): ?>
+                <?php while ($row = $result->fetch_assoc()):
+                  $file_path = !empty($row['file_path']) ? '../uploads/' . basename($row['file_path']) : '';
+                  $file_ext = $file_path ? strtolower(pathinfo($file_path, PATHINFO_EXTENSION)) : '';
+                  $poster = trim($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']);
+                ?>
+                  <div class="ann-card announcement-card">
+                    <span class="ann-card-dept">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>
+                      <?php echo htmlspecialchars($row['department']); ?>
+                    </span>
+                    <h3><?php echo htmlspecialchars($row['title']); ?></h3>
+                    <div class="ann-card-body"><?php echo nl2br(htmlspecialchars($row['message'])); ?></div>
+
+                    <!-- File attachment -->
+                    <?php if ($file_path && file_exists($file_path)): ?>
+                      <div class="ann-attach">
+                        <?php if (in_array($file_ext, ['jpg', 'jpeg', 'png', 'gif'])): ?>
+                          <img src="<?php echo htmlspecialchars($file_path); ?>" alt="Attachment">
+                        <?php elseif ($file_ext === 'pdf'): ?>
+                          <button class="ann-btn-pdf view-pdf-btn" data-pdf="<?php echo htmlspecialchars($file_path); ?>">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            View PDF
                           </button>
-                          <ul class="dropdown-menu" aria-labelledby="departmentDropdown">
-                            <li><a class="dropdown-item department-filter active" href="#"
-                                data-department="All Departments">All Departments</a></li>
-                            <?php
-                            $client_department = $department;
-                            if ($client_department != "All Departments"): ?>
-                              <li>
-                                <a class="dropdown-item department-filter" href="#"
-                                  data-department="<?php echo htmlspecialchars($client_department); ?>">
-                                  <?php echo htmlspecialchars($client_department); ?>
-                                </a>
-                              </li>
-                            <?php endif; ?>
-                          </ul>
-                        </div> -->
-                      </div>
-                    </div>
-
-                    <!-- PAGINATION TOP -->
-                    <nav aria-label="Page navigation" class="mb-3">
-                      <ul class="pagination justify-content-center" id="paginationTop"></ul>
-                    </nav>
-
-                    <!-- POSTS FEED -->
-                    <div id="announcementsFeed">
-                      <?php if ($result->num_rows > 0): ?>
-                        <?php while ($row = $result->fetch_assoc()): ?>
-                          <div class="card mb-3 announcement-card">
-                            <div class="card-body">
-                              <div class="d-flex justify-content-between align-items-start">
-                                <h3 class="card-title"><?php echo htmlspecialchars($row['title']); ?></h3>
-                              </div>
-                              <p class="card-text"><?php echo nl2br(htmlspecialchars($row['message'])); ?></p>
-                              <small class="text-muted">Posted by:
-                                <?php echo htmlspecialchars($row['firstname'] . " " . $row['middlename'] . " " . $row['lastname']); ?>
-                              </small><br>
-                              <small class="text-muted">Posted on: <?php echo $row['created_at']; ?></small>
-
-                              <!-- FILE ATTACHMENTS -->
-                              <?php if (!empty($row['file_path'])): ?>
-                                <?php
-                                $file_path = '../uploads/' . basename($row['file_path']);
-                                $file_extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
-                                ?>
-                                <?php if (file_exists($file_path)): ?>
-
-                                  <?php if (in_array($file_extension, ['jpg', 'jpeg', 'png', 'gif'])): ?>
-                                    <!-- IMAGE FILES -->
-                                    <div class="mt-3">
-                                      <img src="<?php echo htmlspecialchars($file_path); ?>" alt="Post Image"
-                                        class="img-fluid rounded shadow-sm">
-                                    </div>
-
-                                  <?php elseif ($file_extension === 'pdf'): ?>
-                                    <!-- PDF FILES -->
-                                    <div class="mt-3">
-                                      <button class="btn btn-sm btn-primary view-pdf-btn"
-                                        data-pdf="<?php echo htmlspecialchars($file_path); ?>">
-                                        <i class="bx bx-file"></i> View PDF
-                                      </button>
-                                      <a href="<?php echo htmlspecialchars($file_path); ?>" class="btn btn-sm btn-danger"
-                                        download>
-                                        <i class="bx bx-download"></i> Download PDF
-                                      </a>
-                                    </div>
-
-                                  <?php else: ?>
-                                    <!-- OTHER FILES -->
-                                    <div class="mt-3">
-                                      <a href="<?php echo htmlspecialchars($file_path); ?>" class="btn btn-sm btn-secondary"
-                                        download>
-                                        <i class="bx bx-download"></i> Download File
-                                      </a>
-                                    </div>
-                                  <?php endif; ?>
-
-                                <?php else: ?>
-                                  <p class="text-danger">File not found.</p>
-                                <?php endif; ?>
-                              <?php endif; ?>
-
-                            </div>
-                          </div>
-                        <?php endwhile; ?>
-                      <?php else: ?>
-                        <p class="text-center">No announcements available.</p>
-                      <?php endif; ?>
-                    </div>
-
-
-                    <!-- FILE ATTACHMENTS -->
-                    <?php if (!empty($row['file_path'])): ?>
-                      <?php
-                      $file_path = '../uploads/' . basename($row['file_path']);
-                      $file_extension = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
-                      ?>
-                      <?php if (file_exists($file_path)): ?>
-
-                        <?php if (in_array($file_extension, ['jpg', 'jpeg', 'png', 'gif'])): ?>
-                          <!-- IMAGE FILES -->
-                          <div class="mt-3">
-                            <img src="<?php echo htmlspecialchars($file_path); ?>" alt="Post Image"
-                              class="img-fluid rounded shadow-sm">
-                          </div>
-
-                        <?php elseif ($file_extension === 'pdf'): ?>
-                          <!-- PDF FILES -->
-                          <div class="mt-3">
-                            <button class="btn btn-sm btn-primary view-pdf-btn"
-                              data-pdf="<?php echo htmlspecialchars($file_path); ?>">
-                              <i class="bx bx-file"></i> View PDF
-                            </button>
-                            <a href="<?php echo htmlspecialchars($file_path); ?>" class="btn btn-sm btn-danger" download>
-                              <i class="bx bx-download"></i> Download PDF
-                            </a>
-                          </div>
-
+                          <a class="ann-btn-download" href="<?php echo htmlspecialchars($file_path); ?>" download>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download PDF
+                          </a>
                         <?php else: ?>
-                          <!-- OTHER FILES -->
-                          <div class="mt-3">
-                            <a href="<?php echo htmlspecialchars($file_path); ?>" class="btn btn-sm btn-secondary" download>
-                              <i class="bx bx-download"></i> Download File
-                            </a>
-                          </div>
+                          <a class="ann-btn-download" href="<?php echo htmlspecialchars($file_path); ?>" download>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download File
+                          </a>
                         <?php endif; ?>
-
-                      <?php else: ?>
-                        <p class="text-danger">File not found.</p>
-                      <?php endif; ?>
+                      </div>
+                    <?php elseif ($file_path): ?>
+                      <p class="text-danger small mt-2">Attached file not found.</p>
                     <?php endif; ?>
 
-
-                    <!-- PAGINATION BOTTOM -->
-                    <nav aria-label="Page navigation" class="mt-3">
-                      <ul class="pagination justify-content-center" id="paginationBottom"></ul>
-                    </nav>
-                  </div>
-
-                  <!-- RIGHT SIDE: RECENT POSTS -->
-                  <div class="col-md-4 mt-4">
-                    <div class="card">
-                      <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0 text-uppercase text-muted">Recent Posts</h6>
-                      </div>
-                      <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                          <?php
-                          $recent_query = "SELECT title, department, created_at FROM announcements ORDER BY created_at DESC LIMIT 5";
-                          $recent_result = $conn->query($recent_query);
-                          if ($recent_result->num_rows > 0):
-                            while ($recent = $recent_result->fetch_assoc()):
-                              ?>
-                              <li class="list-group-item">
-                                <div class="d-flex align-items-start">
-                                  <div>
-                                    <p class="mb-1 text-muted small"><?php echo htmlspecialchars($recent['department']); ?>
-                                    </p>
-                                    <a href="#" class="fw-bold text-dark text-decoration-none">
-                                      <?php echo htmlspecialchars($recent['title']); ?>
-                                    </a>
-                                    <p class="mb-0 text-muted small">
-                                      <?php echo date("F j, Y g:i A", strtotime($recent['created_at'])); ?>
-                                    </p>
-                                  </div>
-                                </div>
-                              </li>
-                            <?php endwhile; else: ?>
-                            <li class="list-group-item text-muted text-center">No recent posts</li>
-                          <?php endif; ?>
-                        </ul>
-                      </div>
+                    <div class="ann-card-meta">
+                      <span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <?php echo htmlspecialchars($poster); ?>
+                      </span>
+                      <span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                        <?php echo date("F j, Y g:i A", strtotime($row['created_at'])); ?>
+                      </span>
                     </div>
                   </div>
+                <?php endwhile; ?>
+              <?php else: ?>
+                <div class="ann-empty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                  <p>No announcements yet</p>
+                  <span>Check back later for updates from your department.</span>
                 </div>
+              <?php endif; ?>
+            </div>
+
+            <!-- Pagination bottom -->
+            <div class="ann-pagination mt-4" id="paginationBottom"></div>
+          </div>
+
+          <!-- RIGHT: RECENT POSTS -->
+          <div class="col-md-4">
+            <div class="ann-recent-card">
+              <div class="ann-recent-head">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                Recent Posts
               </div>
+              <?php
+              $recent_query = "SELECT title, department, created_at FROM announcements ORDER BY created_at DESC LIMIT 5";
+              $recent_result = $conn->query($recent_query);
+              if ($recent_result->num_rows > 0):
+                while ($recent = $recent_result->fetch_assoc()):
+              ?>
+                <div class="ann-recent-item">
+                  <span class="ann-recent-dept"><?php echo htmlspecialchars($recent['department']); ?></span>
+                  <a href="#" class="ann-recent-title"><?php echo htmlspecialchars($recent['title']); ?></a>
+                  <div class="ann-recent-date"><?php echo date("F j, Y g:i A", strtotime($recent['created_at'])); ?></div>
+                </div>
+              <?php endwhile; else: ?>
+                <div class="ann-recent-empty">No recent posts</div>
+              <?php endif; ?>
             </div>
           </div>
+
         </div>
       </div>
     </div>
   </div>
-  <div class="content-backdrop fade"></div>
-  </div>
-  </div>
-  </div>
-  <div class="layout-overlay layout-menu-toggle"></div>
-  </div>
 
   <div class="content-backdrop fade"></div>
-  </div>
+  <div class="layout-overlay layout-menu-toggle"></div>
 
   <!-- Success Modal -->
-  <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+  <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" id="successModalLabel">Success</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div class="modal-content" style="border-radius: 14px; overflow: hidden;">
+        <div class="modal-header" style="background: linear-gradient(135deg,#7cb9ff,#4e96f0); color: #fff;">
+          <h5 class="modal-title" style="color:#fff;">Success</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <?php if (isset($_SESSION['success'])) {
@@ -361,12 +473,12 @@ $result = $stmt->get_result();
   </div>
 
   <!-- Error Modal -->
-  <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <div class="modal-content" style="border-radius: 14px; overflow: hidden;">
         <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title" id="errorModalLabel">Error</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title">Error</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <?php if (isset($_SESSION['error'])) {
@@ -382,12 +494,15 @@ $result = $stmt->get_result();
   </div>
 
   <!-- PDF VIEWER MODAL -->
-  <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+  <div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 90%;">
       <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="pdfModalLabel"><i class="bx bx-file"></i> View</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-header" style="background: linear-gradient(135deg,#7cb9ff,#4e96f0);">
+          <h5 class="modal-title text-white">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Document Viewer
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-0" style="height: 85vh;">
           <iframe id="pdfViewerFrame" src="" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
@@ -401,7 +516,7 @@ $result = $stmt->get_result();
   <script src="../assets/js/pages-account-settings-account.js"></script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
 
-  <!-- PAGINATION + SEARCH + FILTER SCRIPT -->
+  <!-- PAGINATION + SEARCH SCRIPT -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const cardsPerPage = 5;
@@ -410,159 +525,91 @@ $result = $stmt->get_result();
       const announcementsFeed = document.getElementById("announcementsFeed");
       const searchInput = document.getElementById("searchInput");
       let currentPage = 1;
+      let filteredCards = [];
 
-      function applyPagination() {
-        const cards = Array.from(announcementsFeed.querySelectorAll(".announcement-card"));
-        const totalPages = Math.ceil(cards.length / cardsPerPage);
-
-        function showPage(page) {
-          const start = (page - 1) * cardsPerPage;
-          const end = start + cardsPerPage;
-          cards.forEach((card, index) => {
-            card.style.display = index >= start && index < end ? "" : "none";
-          });
-        }
-
-        function renderPagination(container) {
-          container.innerHTML = "";
-
-          // Previous Arrow
-          const prev = document.createElement("li");
-          prev.classList.add("page-item");
-          const prevLink = document.createElement("a");
-          prevLink.classList.add("page-link");
-          prevLink.href = "#";
-          prevLink.textContent = "‹";
-          prevLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            if (currentPage > 1) {
-              currentPage--;
-              updateAllPaginations();
-            }
-          });
-          prev.appendChild(prevLink);
-          container.appendChild(prev);
-
-          // Page numbers with ellipsis
-          for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-              const li = document.createElement("li");
-              li.classList.add("page-item");
-              if (i === currentPage) li.classList.add("active");
-              const link = document.createElement("a");
-              link.classList.add("page-link");
-              link.href = "#";
-              link.textContent = i;
-              link.addEventListener("click", (e) => {
-                e.preventDefault();
-                currentPage = i;
-                updateAllPaginations();
-              });
-              li.appendChild(link);
-              container.appendChild(li);
-            } else if (i === currentPage - 2 || i === currentPage + 2) {
-              const span = document.createElement("li");
-              span.classList.add("page-item", "disabled");
-              const ellipsis = document.createElement("a");
-              ellipsis.classList.add("page-link");
-              ellipsis.textContent = "...";
-              span.appendChild(ellipsis);
-              container.appendChild(span);
-            }
-          }
-
-          // Next Arrow
-          const next = document.createElement("li");
-          next.classList.add("page-item");
-          const nextLink = document.createElement("a");
-          nextLink.classList.add("page-link");
-          nextLink.href = "#";
-          nextLink.textContent = "›";
-          nextLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            if (currentPage < totalPages) {
-              currentPage++;
-              updateAllPaginations();
-            }
-          });
-          next.appendChild(nextLink);
-          container.appendChild(next);
-        }
-
-        function updateAllPaginations() {
-          showPage(currentPage);
-          renderPagination(paginationTop);
-          renderPagination(paginationBottom);
-        }
-
-        // Initialize pagination
-        if (cards.length > 0) {
-          currentPage = 1;
-          updateAllPaginations();
-        } else {
-          paginationTop.innerHTML = "";
-          paginationBottom.innerHTML = "";
-        }
+      function getVisibleCards() {
+        return Array.from(announcementsFeed.querySelectorAll(".announcement-card")).filter(c => c.dataset.hidden !== 'true');
       }
 
-      // Apply pagination initially
-      applyPagination();
+      function showPage(page) {
+        const cards = getVisibleCards();
+        const start = (page - 1) * cardsPerPage;
+        const end = start + cardsPerPage;
+        Array.from(announcementsFeed.querySelectorAll(".announcement-card")).forEach(c => {
+          c.style.display = 'none';
+        });
+        cards.forEach((card, idx) => {
+          card.style.display = idx >= start && idx < end ? '' : 'none';
+        });
+      }
+
+      function renderPagination(container) {
+        container.innerHTML = '';
+        const cards = getVisibleCards();
+        const totalPages = Math.ceil(cards.length / cardsPerPage);
+        if (totalPages <= 1) return;
+
+        const makeBtn = (label, page, cls = '') => {
+          const btn = document.createElement('button');
+          btn.className = 'ann-page-btn ' + cls;
+          btn.innerHTML = label;
+          if (cls !== 'disabled' && cls !== 'ellipsis') {
+            btn.addEventListener('click', () => {
+              currentPage = page;
+              update();
+            });
+          } else { btn.disabled = true; }
+          return btn;
+        };
+
+        container.appendChild(makeBtn('‹', currentPage - 1, currentPage === 1 ? 'disabled' : ''));
+
+        for (let i = 1; i <= totalPages; i++) {
+          if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            container.appendChild(makeBtn(i, i, i === currentPage ? 'active' : ''));
+          } else if (i === currentPage - 2 || i === currentPage + 2) {
+            container.appendChild(makeBtn('…', null, 'ellipsis'));
+          }
+        }
+
+        container.appendChild(makeBtn('›', currentPage + 1, currentPage === totalPages ? 'disabled' : ''));
+      }
+
+      function update() {
+        showPage(currentPage);
+        renderPagination(paginationTop);
+        renderPagination(paginationBottom);
+      }
 
       // Search filter
       searchInput.addEventListener("input", function () {
-        const query = searchInput.value.toLowerCase();
-        const cards = announcementsFeed.querySelectorAll(".announcement-card");
-        cards.forEach(card => {
-          const title = card.querySelector(".card-title").textContent.toLowerCase();
-          const message = card.querySelector(".card-text").textContent.toLowerCase();
-          card.style.display = (title.includes(query) || message.includes(query)) ? "" : "none";
+        const q = this.value.toLowerCase();
+        Array.from(announcementsFeed.querySelectorAll(".announcement-card")).forEach(card => {
+          const match = card.innerText.toLowerCase().includes(q);
+          card.dataset.hidden = match ? 'false' : 'true';
+          if (!match) card.style.display = 'none';
         });
+        currentPage = 1;
+        update();
       });
 
-      // Department Filter (AJAX)
-      document.querySelectorAll(".department-filter").forEach(item => {
-        item.addEventListener("click", function (event) {
-          event.preventDefault();
-          let selectedDepartment = this.getAttribute("data-department");
-          document.getElementById("departmentDropdown").innerText = selectedDepartment;
-
-          fetch("../fetch_announcements.php?department=" + encodeURIComponent(selectedDepartment))
-            .then(response => response.text())
-            .then(data => {
-              announcementsFeed.innerHTML = data;
-              applyPagination(); // reapply pagination after reload
-            })
-            .catch(error => console.error("Error fetching announcements:", error));
-        });
-      });
+      update();
     });
   </script>
 
+  <!-- Session modals -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      <?php if (isset($_SESSION['success'])) { ?>
-        var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-        successModal.show();
-      <?php } ?>
-
-      <?php if (isset($_SESSION['error'])) { ?>
-        var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-        errorModal.show();
-      <?php } ?>
+      <?php if (isset($_SESSION['success'])): ?>
+        new bootstrap.Modal(document.getElementById('successModal')).show();
+      <?php endif; ?>
+      <?php if (isset($_SESSION['error'])): ?>
+        new bootstrap.Modal(document.getElementById('errorModal')).show();
+      <?php endif; ?>
     });
   </script>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.view-pdf-btn');
-        if (!btn) return;
-        const pdfUrl = btn.getAttribute('data-pdf');
-        openPdfModal(pdfUrl); // ✅ Use our Google PDF viewer loader
-      });
-    });
-  </script>
-
+  <!-- PDF viewer -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const pdfModal = new bootstrap.Modal(document.getElementById('pdfModal'));
@@ -571,16 +618,12 @@ $result = $stmt->get_result();
       document.addEventListener('click', function (e) {
         const btn = e.target.closest('.view-pdf-btn');
         if (!btn) return;
-
         const pdfUrl = btn.getAttribute('data-pdf');
         if (!pdfUrl) return;
-
-        // ✅ Use direct link to the PDF (local or server)
         pdfFrame.src = pdfUrl;
         pdfModal.show();
       });
 
-      // Clear iframe when modal is closed
       document.getElementById('pdfModal').addEventListener('hidden.bs.modal', function () {
         pdfFrame.src = '';
       });
