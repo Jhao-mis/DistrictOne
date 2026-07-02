@@ -9,8 +9,15 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['role'])) {
     die("Unauthorized access");
 }
 
+// Fetch the current user details from the database
 $username = $_SESSION['username'];
-$normalizedRole = strtolower($_SESSION['role']);
+$query = $conn->prepare("SELECT id, firstname, middlename, lastname, email, department, profile_picture FROM users WHERE username = ?");
+$query->bind_param("s", $username);
+$query->execute();
+$query->store_result();
+$query->bind_result($user_id, $firstname, $middlename, $lastname, $email, $department, $profile_picture);
+$query->fetch();
+$query->close();
 
 /* =====================
    EMPLOYEE INFO
@@ -440,15 +447,30 @@ $netPay = $income - $deduction;
 <body>
 
 <!-- SIDEBAR (ROLE BASED) -->
-<?php
-switch ($normalizedRole) {
-    case 'user': include '../user/sidebar.php'; break;
-    case 'mis': include '../mis/sidebar.php'; break;
-    case 'admin': include '../admin/sidebar.php'; break;
-    case 'super admin': include '../super_admin/sidebar.php'; break;
-    default: exit('Unauthorized');
-}
-?>
+  <?php $role = $_SESSION['role'];
+
+    switch ($role) {
+        case 'User':
+            include '../user/sidebar.php';
+            break;
+
+        case 'mis':
+            include '../mis/sidebar.php';
+            break;
+
+        case 'Admin':
+            include '../admin/sidebar.php';
+            break;
+
+        case 'Super Admin':
+            include '../super_admin/sidebar.php';
+            break;
+
+        default:
+            echo "<p>Unauthorized role.</p>";
+            exit;
+    }
+    ?>
 
 <div class="container-xxl container-p-y">
 <div class="pr-wrap">

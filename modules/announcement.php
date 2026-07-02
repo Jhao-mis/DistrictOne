@@ -78,7 +78,6 @@ $result = $stmt->get_result();
   <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
   <script src="../assets/vendor/js/helpers.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/config.js"></script>
 
   <style>
@@ -328,17 +327,7 @@ $result = $stmt->get_result();
   <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
       <div class="ann-wrap">
-
-        <!-- Page header -->
-        <!-- <div class="ann-page-header">
-          <div>
-            <div class="eyebrow">Bulletin board</div>
-            <h4>Announcements</h4>
-            <p>Stay up to date with the latest news and updates from your department.</p>
-          </div>
-          <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-        </div> -->
-
+      
         <div class="row g-4">
 
           <!-- LEFT: FEED -->
@@ -448,8 +437,14 @@ $result = $stmt->get_result();
     </div>
   </div>
 
-  <div class="content-backdrop fade"></div>
-  <div class="layout-overlay layout-menu-toggle"></div>
+      <div class="content-backdrop fade"></div>
+    </div>
+    <!-- /layout-page -->
+  </div>
+  <!-- /layout-container -->
+</div>
+<!-- /layout-wrapper -->
+<div class="layout-overlay layout-menu-toggle"></div>
 
   <!-- Success Modal -->
   <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
@@ -511,9 +506,9 @@ $result = $stmt->get_result();
     </div>
   </div>
 
+  <script src="../assets/vendor/js/bootstrap.js"></script>
   <script src="../assets/vendor/js/menu.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/pages-account-settings-account.js"></script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
 
   <!-- PAGINATION + SEARCH SCRIPT -->
