@@ -188,7 +188,8 @@ $result = $stmt->get_result();
 $stmt->close();
 
 /* -----------------------------------------------------------
-   🔹 SweetAlert Notifications
+   🔹 SweetAlert Notifications (single source of truth — the
+   Bootstrap success/error modals previously duplicated this)
 ----------------------------------------------------------- */
 if (isset($_SESSION['error'])) {
     echo "<script>
@@ -218,45 +219,138 @@ if (isset($_SESSION['success'])) {
     </script>";
     unset($_SESSION['success']);
 }
+
+$departments = [
+    'Office of the General Manager',
+    'Management Information Services Section',
+    'Administrative Department',
+    'Finance Department',
+    'Commercial Department',
+    'Technical Services Department',
+    'Operations Department',
+];
 ?>
 <!DOCTYPE html>
-
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" data-assets-path="../assets/"
     data-template="vertical-menu-template-free">
 
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Announcement</title>
 
-    <head>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Add Announcement</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/favicon/districtone.png" />
 
-        <link rel="icon" type="image/x-icon" href="../assets/img/favicon/districtone.png" />
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
 
-        <!-- Fonts & Icons -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap"
-            rel="stylesheet" />
-        <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="../assets/vendor/css/theme-default.css" />
+    <link rel="stylesheet" href="../assets/css/demo.css" />
+    <link rel="stylesheet" href="./css/admin_announcement.css" />
+    <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
-        <!-- Core CSS -->
-        <link rel="stylesheet" href="../assets/vendor/css/core.css" />
-        <link rel="stylesheet" href="../assets/vendor/css/theme-default.css" />
-        <link rel="stylesheet" href="../assets/css/demo.css" />
-        <link rel="stylesheet" href="./css/admin_announcement.css" />
-        <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-        <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+    <!-- Helpers -->
+    <script src="../assets/vendor/js/helpers.js"></script>
+    <script src="../assets/js/config.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        <!-- Helpers -->
-        <script src="../assets/vendor/js/helpers.js"></script>
-        <script src="../assets/js/config.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    </head>
+    <style>
+        :root {
+            --ann-primary: #007bff;
+            --ann-border: #e4e6ef;
+            --ann-muted: #6c757d;
+        }
 
+        .ann-toolbar {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--ann-border);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .ann-toolbar .btn-primary {
+            background-color: var(--ann-primary);
+            border-color: var(--ann-primary);
+            font-weight: 600;
+        }
+
+        .ann-post {
+            border: 1px solid var(--ann-border);
+            border-radius: 12px;
+            margin-bottom: 1.25rem;
+            transition: box-shadow .15s ease-in-out;
+        }
+
+        .ann-post:hover {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+        }
+
+        .ann-post .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: .35rem;
+        }
+
+        .ann-post-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem .9rem;
+            font-size: .82rem;
+            color: var(--ann-muted);
+            margin-bottom: .5rem;
+        }
+
+        .ann-dept-badge {
+            display: inline-block;
+            background: #eef4ff;
+            color: var(--ann-primary);
+            font-size: .72rem;
+            font-weight: 600;
+            padding: .25rem .6rem;
+            border-radius: 999px;
+        }
+
+        .ann-empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--ann-muted);
+        }
+
+        .ann-empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: .5rem;
+            display: block;
+        }
+
+        .ann-attachment img {
+            border-radius: 8px;
+            max-height: 320px;
+            object-fit: cover;
+        }
+
+        .offcanvas-body label.form-label {
+            font-weight: 500;
+        }
+
+        #preview-container {
+            border: 1px dashed var(--ann-border);
+            border-radius: 10px;
+            padding: .75rem;
+        }
+    </style>
 </head>
 
 <body>
@@ -292,61 +386,49 @@ if (isset($_SESSION['success'])) {
                         <div class="px-3 pt-2">
                             <div class="container mt-4">
                                 <div class="row">
-                                    <!-- Left Side: Posts Feed -->
                                     <div class="col-md-12">
-                                        <div class="border-bottom p-3 mb-4 d-flex align-items-center gap-3">
-                                            <button class="btn btn-primary" data-bs-toggle="offcanvas"
-                                                data-bs-target="#addEventSidebar" style="background-color:#007bff">
-                                                + Create
-                                            </button>
 
-                                            <!-- Dropdown Sort Filter -->
+                                        <div class="ann-toolbar">
+                                            <button class="btn btn-primary" data-bs-toggle="offcanvas"
+                                                data-bs-target="#addEventSidebar">
+                                                <i class='bx bx-plus'></i> Create Announcement
+                                            </button>
 
                                             <div class="dropdown">
                                                 <button class="btn btn-light dropdown-toggle" type="button"
                                                     id="departmentDropdown" data-bs-toggle="dropdown">
-                                                    All Departments
+                                                    <?= htmlspecialchars($selectedDepartment === 'All' ? 'All Departments' : $selectedDepartment) ?>
                                                 </button>
                                                 <ul class="dropdown-menu" aria-labelledby="departmentDropdown">
-                                                    <li><a class="dropdown-item department-filter active" href="#"
-                                                            data-department="All">All Departments</a></li>
-                                                    <li><a class="dropdown-item department-filter" href="#"
-                                                            data-department="Office of the General Manager">Office of
-                                                            the General Manager</a></li>
-                                                    <li><a class="dropdown-item department-filter" href="#"
-                                                            data-department="Management Information Services Section">Management
-                                                            Information Services Section</a></li>
-                                                    <li><a class="dropdown-item department-filter" href="#"
-                                                            data-department="Administrative Department">Administrative
-                                                            Department</a></li>
-                                                    <li><a class="dropdown-item department-filter" href="#"
-                                                            data-department="Finance Department">Finance Department</a>
-                                                    </li>
-                                                    <li><a class="dropdown-item department-filter" href="#"
-                                                            data-department="Commercial Department">Commercial
-                                                            Department</a></li>
-                                                    <li><a class="dropdown-item department-filter" href="#"
-                                                            data-department="Technical Services Department">Technical
-                                                            Services Department</a></li>
-                                                    <li><a class="dropdown-item department-filter" href="#"
-                                                            data-department="Operations Department">Operations
-                                                            Department</a></li>
+                                                    <li><a class="dropdown-item department-filter <?= $selectedDepartment === 'All' ? 'active' : '' ?>"
+                                                            href="#" data-department="All">All Departments</a></li>
+                                                    <?php foreach ($departments as $dept): ?>
+                                                        <li><a class="dropdown-item department-filter <?= $selectedDepartment === $dept ? 'active' : '' ?>"
+                                                                href="#" data-department="<?= htmlspecialchars($dept) ?>"><?= htmlspecialchars($dept) ?></a>
+                                                        </li>
+                                                    <?php endforeach; ?>
                                                 </ul>
                                             </div>
+
+                                            <span class="text-muted small ms-auto"><?= (int) $total ?> announcement<?= $total == 1 ? '' : 's' ?></span>
                                         </div>
 
                                         <?php include 'pigination.php' ?>
-                                        <!-- PIGINATION MODULE -->
+
                                         <?php if ($result->num_rows > 0): ?>
                                             <?php while ($row = $result->fetch_assoc()): ?>
-                                                <div class="card mb-3">
+                                                <div class="card ann-post">
                                                     <div class="card-body">
                                                         <div class="d-flex justify-content-between align-items-start">
-                                                            <h3 class="card-title">
-                                                                <?php echo htmlspecialchars($row['title']); ?>
-                                                            </h3>
+                                                            <div>
+                                                                <h3 class="card-title">
+                                                                    <?php echo htmlspecialchars($row['title']); ?>
+                                                                </h3>
+                                                                <span class="ann-dept-badge">
+                                                                    <?php echo htmlspecialchars($row['department']); ?>
+                                                                </span>
+                                                            </div>
 
-                                                            <!-- Three-Dot Dropdown Menu -->
                                                             <div class="dropdown">
                                                                 <button class="btn btn-light btn-sm border-0" type="button"
                                                                     data-bs-toggle="dropdown">
@@ -357,8 +439,9 @@ if (isset($_SESSION['success'])) {
                                                                         <a class="dropdown-item edit-btn" href="#"
                                                                             data-id="<?php echo $row['id']; ?>"
                                                                             data-title="<?php echo htmlspecialchars($row['title']); ?>"
-                                                                            data-message="<?php echo htmlspecialchars($row['message']); ?>">
-                                                                            Edit
+                                                                            data-message="<?php echo htmlspecialchars($row['message']); ?>"
+                                                                            data-file="<?php echo htmlspecialchars($row['file_path']); ?>">
+                                                                            <i class='bx bx-edit-alt'></i> Edit
                                                                         </a>
                                                                     </li>
                                                                     <li>
@@ -368,22 +451,25 @@ if (isset($_SESSION['success'])) {
                                                                             <input type="hidden" name="delete_announcement"
                                                                                 value="true">
                                                                             <button type="button"
-                                                                                class="dropdown-item text-danger btn-delete">Delete</button>
+                                                                                class="dropdown-item text-danger btn-delete">
+                                                                                <i class='bx bx-trash'></i> Delete</button>
                                                                         </form>
-
                                                                     </li>
                                                                 </ul>
                                                             </div>
                                                         </div>
 
-                                                        <p class="card-text">
+                                                        <p class="card-text mt-2">
                                                             <?php echo nl2br(htmlspecialchars($row['message'])); ?>
                                                         </p>
-                                                        <small class="text-muted">Posted by:
-                                                            <?php echo htmlspecialchars($row['firstname'] . " " . $row['middlename'] . " " . $row['lastname']); ?>
-                                                        </small><br>
-                                                        <small class="text-muted">Posted on:
-                                                            <?php echo $row['created_at']; ?></small>
+
+                                                        <div class="ann-post-meta">
+                                                            <span><i class='bx bx-user'></i>
+                                                                <?php echo htmlspecialchars($row['firstname'] . " " . $row['middlename'] . " " . $row['lastname']); ?>
+                                                            </span>
+                                                            <span><i class='bx bx-time'></i>
+                                                                <?php echo htmlspecialchars($row['created_at']); ?></span>
+                                                        </div>
 
                                                         <!-- File Attachments -->
                                                         <?php if (!empty($row['file_path'])): ?>
@@ -391,43 +477,41 @@ if (isset($_SESSION['success'])) {
                                                             $file_path = '../uploads/' . basename($row['file_path']);
                                                             $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
                                                             ?>
-
                                                             <?php if (file_exists($file_path)): ?>
-                                                                <?php if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])): ?>
-                                                                    <div class="mt-3">
+                                                                <div class="ann-attachment mt-2">
+                                                                    <?php if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])): ?>
                                                                         <img src="<?php echo htmlspecialchars($file_path); ?>"
                                                                             alt="Post Image" class="img-fluid">
-                                                                    </div>
-                                                                <?php elseif ($ext === 'pdf'): ?>
-                                                                    <!-- Replace iframe with View button -->
-                                                                    <div class="mt-3">
+                                                                    <?php elseif ($ext === 'pdf'): ?>
                                                                         <a href="<?php echo htmlspecialchars($file_path); ?>"
                                                                             target="_blank" class="btn btn-sm btn-danger">
-                                                                            View PDF
+                                                                            <i class='bx bxs-file-pdf'></i> View PDF
                                                                         </a>
-                                                                        <a href="<?php echo htmlspecialchars($file_path); ?>" download
-                                                                            class="btn btn-sm btn-secondary">
-                                                                            Download PDF
+                                                                        <a href="<?php echo htmlspecialchars($file_path); ?>"
+                                                                            download class="btn btn-sm btn-secondary">
+                                                                            <i class='bx bx-download'></i> Download
                                                                         </a>
-                                                                    </div>
-                                                                <?php else: ?>
-                                                                    <div class="mt-3">
-                                                                        <a href="<?php echo htmlspecialchars($file_path); ?>" download
-                                                                            class="btn btn-sm btn-secondary">Download File</a>
-                                                                    </div>
-                                                                <?php endif; ?>
+                                                                    <?php else: ?>
+                                                                        <a href="<?php echo htmlspecialchars($file_path); ?>"
+                                                                            download class="btn btn-sm btn-secondary">
+                                                                            <i class='bx bx-file'></i> Download File
+                                                                        </a>
+                                                                    <?php endif; ?>
+                                                                </div>
                                                             <?php else: ?>
-                                                                <p class="text-danger mt-2">File not found.</p>
+                                                                <p class="text-danger mt-2 mb-0">File not found.</p>
                                                             <?php endif; ?>
                                                         <?php endif; ?>
                                                     </div>
                                                 </div>
                                             <?php endwhile; ?>
                                         <?php else: ?>
-                                            <p class="text-center">No announcements available.</p>
+                                            <div class="ann-empty-state">
+                                                <i class='bx bx-news'></i>
+                                                No announcements available.
+                                            </div>
                                         <?php endif; ?>
                                         <?php include 'pigination.php' ?>
-                                        <!-- PIGINATION MODULE -->
                                     </div>
                                 </div>
                             </div>
@@ -450,16 +534,23 @@ if (isset($_SESSION['success'])) {
                     <form method="post">
                         <input type="hidden" name="edit_id" id="edit_id">
 
-                        <label>Title:</label>
-                        <input type="text" name="edit_title" id="edit_title" class="form-control" required>
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="edit_title" id="edit_title" class="form-control" required>
+                        </div>
 
-                        <label>Message:</label>
-                        <textarea name="edit_message" id="edit_message" class="form-control" rows="4"
-                            required></textarea>
+                        <div class="mb-3">
+                            <label class="form-label">Message</label>
+                            <textarea name="edit_message" id="edit_message" class="form-control" rows="4"
+                                required></textarea>
+                        </div>
 
-                        <label>Attached File:</label>
-                        <input type="file" name="edit_attachment" class="form-control">
-                        <p class="mt-2"><a id="current_file_link" href="#" target="_blank">View Current File</a></p>
+                        <div class="mb-3">
+                            <label class="form-label">Attached File</label>
+                            <input type="file" name="edit_attachment" class="form-control">
+                            <p class="mt-2 mb-0"><a id="current_file_link" href="#" target="_blank">View Current
+                                    File</a></p>
+                        </div>
 
                         <div class="modal-footer">
                             <button type="submit" name="update_announcement" class="btn btn-primary">Update</button>
@@ -479,125 +570,51 @@ if (isset($_SESSION['success'])) {
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-
-            <form method="POST" enctype="multipart/form-data">
-                <div class="mb-6 form-control-validation fv-plugins-icon-container">
-                    <label class="form-label" for="eventTitle">Title</label>
-
-                    <input type="text" class="form-control" id="title" name="title" placeholder="Event Title">
-
-                    <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback">
-                    </div>
+            <form method="POST" enctype="multipart/form-data" id="addAnnouncementForm">
+                <div class="mb-3">
+                    <label class="form-label" for="title">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" placeholder="Announcement title">
                 </div>
-                <div class="mb-6">
+
+                <div class="mb-3">
                     <label class="form-label" for="department">Department</label>
-                    <div class="position-relative">
-                        <select class="select2 select-event-label form-select" id="department" name="department">
-                            <option value="All Departments" selected>All Departments
-                            </option>
-                            <option value="Office of the General Manager">Office of the
-                                General
-                                Manager</option>
-                            <option value="Management Information Services Section">
-                                Management
-                                Information Services Section</option>
-                            <option value="Administrative Department">Administrative
-                                Department
-                            </option>
-                            <option value="Finance Department">Finance Department
-                            </option>
-                            <option value="Commercial Department">Commercial Department
-                            </option>
-                            <option value="Technical Services Department">Technical
-                                Services
-                                Department</option>
-                            <option value="Operations Department">Operations Department
-                            </option>
-                        </select>
-                    </div>
-                    <div class="mb-6">
-                        <label class="form-label" for="message">Message</label>
-                        <textarea class="form-control" name="message" id="message"></textarea>
-                    </div>
+                    <select class="form-select" id="department" name="department">
+                        <option value="All Departments" selected>All Departments</option>
+                        <?php foreach ($departments as $dept): ?>
+                            <option value="<?= htmlspecialchars($dept) ?>"><?= htmlspecialchars($dept) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-                    <div class="mb-6">
-                        <label class="form-label" for="attachment"
-                            style="position:relative; top:10px; font-size:15px;">Attach
-                            File</label>
-                        <input type="file" class="form-control" id="attachment" name="attachment" placeholder="">
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label" for="message">Message</label>
+                    <textarea class="form-control" name="message" id="message" rows="4"></textarea>
+                </div>
 
-                    <!-- Preview Section -->
-                    <div id="preview-container" style="display: none; margin-top: 10px;">
-                        <p>File Preview:</p>
-                        <img id="file-preview" src="#" alt="File Preview" style="max-width: 100%; display: none;">
-                        <iframe id="pdf-preview" style="width:100%; height:500px; display:none;"></iframe>
-                        <a id="doc-preview" href="#" target="_blank" style="display:none;">Open
-                            Document</a>
-                        <p id="file-name"></p>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label" for="attachment">Attach File</label>
+                    <input type="file" class="form-control" id="attachment" name="attachment">
+                </div>
 
+                <div id="preview-container" class="mb-3" style="display: none;">
+                    <p class="mb-2 fw-medium">File Preview</p>
+                    <img id="file-preview" src="#" alt="File Preview" style="max-width: 100%; display: none;">
+                    <iframe id="pdf-preview" style="width:100%; height:300px; display:none;"></iframe>
+                    <a id="doc-preview" href="#" target="_blank" style="display:none;">Open Document</a>
+                    <p id="file-name" class="small text-muted mb-0 mt-1"></p>
+                </div>
 
-                    <div class="d-flex justify-content-sm-between justify-content-start mt-6 gap-2">
-                        <div class="d-flex" style="margin-top:20px;">
-                            <button type="button" name="post_announcement" id="postAnnouncementBtn"
-                                class="btn btn-primary btn-add-event me-4"
-                                style="background-color: #007bff;">Post</button>
-                            <button type="reset" class="btn btn-primary btn-cancel"
-                                style="background-color:rgb(255, 55, 55); border-color:rgb(179, 60, 60);">Cancel</button>
-                        </div>
-                        <button class="btn btn-label-danger btn-delete-event d-none">Delete</button>
-                    </div>
-                    <input type="hidden">
+                <div class="d-flex justify-content-start gap-2 mt-4">
+                    <button type="button" id="postAnnouncementBtn" class="btn btn-primary">
+                        <i class='bx bx-send'></i> Post
+                    </button>
+                    <button type="reset" class="btn"
+                        style="background-color:#ff3737; border-color:#b33c3c; color:#fff;">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
-    </div>
 
-    <div class="content-backdrop fade"></div>
-    </div>
-
-    <!-- Success Modal -->
-    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="successModalLabel">Success</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <?php if (isset($_SESSION['success'])) {
-                        echo $_SESSION['success'];
-                        unset($_SESSION['success']);
-                    } ?>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Error Modal -->
-    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <?php if (isset($_SESSION['error'])) {
-                        echo $_SESSION['error'];
-                        unset($_SESSION['error']);
-                    } ?>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="content-backdrop fade"></div>
     </div>
     </div>
@@ -608,16 +625,12 @@ if (isset($_SESSION['success'])) {
     <script src="../assets/vendor/js/bootstrap.js"></script>
     <script src="../assets/vendor/js/menu.js"></script>
     <script src="../assets/js/main.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script async defer src="https://buttons.github.io/buttons.js"></script>
 
-
-
-
-
     <script>
-        // SweetAlert delete confirmation (keep your existing script)
         document.addEventListener('DOMContentLoaded', function () {
+
+            // ---- Delete confirmation ----
             document.querySelectorAll('.btn-delete').forEach(btn => {
                 btn.addEventListener('click', function () {
                     const form = this.closest('form');
@@ -634,74 +647,41 @@ if (isset($_SESSION['success'])) {
                     });
                 });
             });
-        });
-    </script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+            // ---- Edit modal population ----
             document.querySelectorAll(".edit-btn").forEach(button => {
                 button.addEventListener("click", function (event) {
-                    event.preventDefault(); // Prevent default link behavior
+                    event.preventDefault();
 
                     document.getElementById("edit_id").value = this.getAttribute("data-id");
                     document.getElementById("edit_title").value = this.getAttribute("data-title");
                     document.getElementById("edit_message").value = this.getAttribute("data-message");
 
-                    var filePath = this.getAttribute("data-file"); // Get file path
-                    var fileLink = document.getElementById("current_file_link");
+                    const filePath = this.getAttribute("data-file");
+                    const fileLink = document.getElementById("current_file_link");
                     if (filePath) {
                         fileLink.href = filePath;
-                        fileLink.textContent = "View Current File";
                         fileLink.style.display = "inline";
                     } else {
                         fileLink.style.display = "none";
                     }
 
-                    var editModal = new bootstrap.Modal(document.getElementById("editModal"));
-                    editModal.show();
+                    new bootstrap.Modal(document.getElementById("editModal")).show();
                 });
             });
-        });
-    </script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+            // ---- Department filter ----
             document.querySelectorAll(".department-filter").forEach(item => {
                 item.addEventListener("click", function (event) {
                     event.preventDefault();
-
-                    let selectedDepartment = this.getAttribute("data-department");
-                    document.getElementById("departmentDropdown").textContent = selectedDepartment;
-
-                    // Update active class
-                    document.querySelectorAll(".department-filter").forEach(el => el.classList.remove("active"));
-                    this.classList.add("active");
-
-                    // Reload announcements with selected department
+                    const selectedDepartment = this.getAttribute("data-department");
                     window.location.href = "?department=" + encodeURIComponent(selectedDepartment);
                 });
             });
-        });
-    </script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            <?php if (isset($_SESSION['success'])) { ?>
-                var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-                successModal.show();
-            <?php } ?>
-
-            <?php if (isset($_SESSION['error'])) { ?>
-                var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
-                errorModal.show();
-            <?php } ?>
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
+            // ---- Post announcement confirmation ----
             const postBtn = document.getElementById('postAnnouncementBtn');
-            const form = postBtn.closest('form');
+            const form = document.getElementById('addAnnouncementForm');
 
             postBtn.addEventListener('click', function () {
                 Swal.fire({
@@ -715,87 +695,61 @@ if (isset($_SESSION['success'])) {
                     cancelButtonColor: '#d33'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Show success message FIRST
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success!',
-                            text: "Announcement has been successfully posted!",
-                            showConfirmButton: true,
-                            confirmButtonColor: '#3085d6',
-                        }).then(() => {
-                            // After success alert, submit the form
-                            const hiddenInput = document.createElement('input');
-                            hiddenInput.type = 'hidden';
-                            hiddenInput.name = 'post_announcement';
-                            hiddenInput.value = 'true';
-                            form.appendChild(hiddenInput);
-                            postBtn.disabled = true;
-                            form.submit();
-                        });
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'post_announcement';
+                        hiddenInput.value = 'true';
+                        form.appendChild(hiddenInput);
+                        postBtn.disabled = true;
+                        form.submit();
                     }
                 });
             });
-        });
-    </script>
 
-    <script>
-        document.getElementById('attachment').addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            const previewContainer = document.getElementById('preview-container');
-            const previewImage = document.getElementById('file-preview');
-            const pdfPreview = document.getElementById('pdf-preview');
-            const docPreview = document.getElementById('doc-preview');
-            const fileName = document.getElementById('file-name');
+            // ---- Attachment preview ----
+            document.getElementById('attachment').addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                const previewContainer = document.getElementById('preview-container');
+                const previewImage = document.getElementById('file-preview');
+                const pdfPreview = document.getElementById('pdf-preview');
+                const docPreview = document.getElementById('doc-preview');
+                const fileName = document.getElementById('file-name');
 
-            if (file) {
-                const fileType = file.type;
-                const reader = new FileReader();
-
-                previewContainer.style.display = "block";
-                fileName.textContent = "Selected File: " + file.name;
-
-                // Reset display settings
                 previewImage.style.display = "none";
                 pdfPreview.style.display = "none";
                 docPreview.style.display = "none";
 
-                if (fileType.startsWith("image")) {
-                    reader.onload = function (e) {
+                if (!file) {
+                    previewContainer.style.display = "none";
+                    return;
+                }
+
+                previewContainer.style.display = "block";
+                fileName.textContent = "Selected file: " + file.name;
+
+                const reader = new FileReader();
+                if (file.type.startsWith("image")) {
+                    reader.onload = e => {
                         previewImage.src = e.target.result;
                         previewImage.style.display = "block";
                     };
                     reader.readAsDataURL(file);
-                } else if (fileType === "application/pdf") {
-                    reader.onload = function (e) {
+                } else if (file.type === "application/pdf") {
+                    reader.onload = e => {
                         pdfPreview.src = e.target.result;
                         pdfPreview.style.display = "block";
                     };
                     reader.readAsDataURL(file);
-                } else if (fileType.includes("word") || fileType.includes("excel") || file.name.endsWith(".docx") || file.name.endsWith(".xlsx")) {
+                } else if (file.type.includes("word") || file.type.includes("excel") ||
+                    file.name.endsWith(".docx") || file.name.endsWith(".xlsx")) {
                     const fileURL = URL.createObjectURL(file);
                     docPreview.href = "https://view.officeapps.live.com/op/view.aspx?src=" + encodeURIComponent(fileURL);
                     docPreview.style.display = "block";
                     docPreview.textContent = "Preview in Microsoft Office";
                 } else {
-                    fileName.textContent += " (No preview available)";
+                    fileName.textContent += " (no preview available)";
                 }
-            } else {
-                previewContainer.style.display = "none";
-            }
-        });
-
-        document.getElementById('post-button').addEventListener('click', function () {
-            const previewContainer = document.getElementById('preview-container');
-            const announcementContainer = document.getElementById('announcement');
-
-            // If there is a selected file with preview
-            if (previewContainer.style.display === "block") {
-                // Clone the preview and file name, and append them to the announcement
-                const previewClone = previewContainer.cloneNode(true);
-                previewClone.style.display = "block"; // Make sure it's visible
-                announcementContainer.appendChild(previewClone);
-                announcementContainer.appendChild(document.createElement('hr')); // Adding a separator line for better visual distinction
-            }
+            });
         });
     </script>
 </body>

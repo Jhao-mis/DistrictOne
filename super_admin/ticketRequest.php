@@ -149,7 +149,7 @@ $conn->close();
     href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
     rel="stylesheet" />
 
-  <!-- Icons. Uncomment required icon fonts -->
+  <!-- Icons -->
   <link rel="stylesheet" href="../assets/vendor/fonts/boxicons.css" />
 
   <!-- Core CSS -->
@@ -159,27 +159,121 @@ $conn->close();
   <link rel="stylesheet" href="../css/admin.css" />
   <link rel="stylesheet" href="./css/ticketRequest.css">
 
-  <!-- Vendors CSS -->
+  <!-- Vendors CSS (kept: used by the sidebar/menu scroll) -->
   <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="../assets/vendor/libs/apex-charts/apex-charts.css" />
 
-  <!-- Page CSS -->
-  <link rel="stylesheet" href="../../assets/vendor/css/pages/app-calendar.css">
   <!-- Helpers -->
   <script src="../assets/vendor/js/helpers.js"></script>
   <script src="../assets/js/config.js"></script>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <style>
+    :root {
+      --tk-bg: #f7f8fa;
+      --tk-surface: #ffffff;
+      --tk-border: #e8eaee;
+      --tk-text: #1f2430;
+      --tk-text-muted: #767e8c;
+      --tk-text-faint: #a2a8b3;
+      --tk-primary: #7cb9ff;
+      --tk-primary-soft: #eaf3ff;
+      --tk-primary-dark: #4e96f0;
+      --tk-primary-deep: #2563a8;
+      --tk-room: #f87171;
+      --tk-room-soft: #fef2f2;
+      --tk-room-deep: #c0392b;
+      --tk-success: #34c759;
+      --tk-success-soft: #eafaf0;
+      --tk-success-deep: #1e8a44;
+      --tk-warning: #f5b942;
+      --tk-warning-soft: #fef7e8;
+      --tk-warning-deep: #9a6b0a;
+      --tk-info: #5b8def;
+      --tk-info-soft: #eaf1ff;
+      --tk-info-deep: #2a5cc4;
+      --tk-radius: 14px;
+      --tk-radius-sm: 9px;
+      --tk-shadow: 0 1px 2px rgba(20, 20, 43, .04), 0 8px 24px -12px rgba(20, 20, 43, .10);
+      --tk-shadow-lg: 0 20px 50px -18px rgba(20, 20, 43, .22);
+      --tk-ease: cubic-bezier(.4, 0, .2, 1);
+    }
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qtip2/3.0.3/jquery.qtip.min.js"></script>
+    * { box-sizing: border-box; }
+
+    .tk-page { animation: tk-fade-in .35s var(--tk-ease); }
+    @keyframes tk-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) { .tk-page, .tk-card, .tk-status { animation: none !important; transition: none !important; } }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .tk-header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+    .tk-header h2 { font-size: 21px; font-weight: 800; letter-spacing: -.2px; color: var(--tk-text); margin: 0 0 4px; }
+    .tk-header p { font-size: 13.5px; color: var(--tk-text-muted); margin: 0; }
+    .tk-header-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+    .tk-stat-chip { display: flex; flex-direction: column; align-items: flex-start; background: var(--tk-surface); border: 1px solid var(--tk-border); border-radius: var(--tk-radius-sm); padding: 8px 14px; min-width: 92px; }
+    .tk-stat-chip .num { font-size: 17px; font-weight: 800; color: var(--tk-text); line-height: 1.2; }
+    .tk-stat-chip .lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--tk-text-muted); margin-top: 1px; }
+    .tk-stat-chip.is-warn .num { color: var(--tk-warning-deep); }
+    .tk-stat-chip.is-info .num { color: var(--tk-info-deep); }
+    .tk-stat-chip.is-success .num { color: var(--tk-success-deep); }
+
+    /* ── Card / table ───────────────────────────────────────── */
+    .tk-card { background: var(--tk-surface); border: 1px solid var(--tk-border); border-radius: var(--tk-radius); box-shadow: var(--tk-shadow); overflow: hidden; }
+    .tk-card-body { padding: 18px 20px 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .tk-card-body h5 { margin: 0; font-size: 15px; font-weight: 800; color: var(--tk-text); }
+
+    .tk-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .tk-search { position: relative; }
+    .tk-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--tk-text-faint); pointer-events: none; }
+    .tk-search input { width: 210px; border: 1.5px solid var(--tk-border); border-radius: var(--tk-radius-sm); padding: 8px 12px 8px 34px; font-size: 13px; color: var(--tk-text); background: var(--tk-surface); transition: border-color .15s var(--tk-ease), box-shadow .15s var(--tk-ease); }
+    .tk-search input:focus { outline: none; border-color: var(--tk-primary); box-shadow: 0 0 0 3px var(--tk-primary-soft); }
+
+    .tk-select { border: 1.5px solid var(--tk-border); border-radius: var(--tk-radius-sm); padding: 8px 30px 8px 12px; font-size: 13px; font-weight: 600; color: var(--tk-text); background: var(--tk-surface); cursor: pointer; }
+    .tk-select:focus { outline: none; border-color: var(--tk-primary); box-shadow: 0 0 0 3px var(--tk-primary-soft); }
+
+    .tk-table-wrap { max-height: 560px; overflow-y: auto; }
+    .tk-table { width: 100%; border-collapse: collapse; }
+    .tk-table thead th { position: sticky; top: 0; z-index: 1; background: var(--tk-bg); font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; font-weight: 800; color: var(--tk-text-muted); padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--tk-border); white-space: nowrap; user-select: none; }
+    .tk-table thead th.sortable:hover { color: var(--tk-primary-deep); cursor: pointer; }
+    .tk-table thead th.asc::after { content: " ▲"; font-size: 9px; }
+    .tk-table thead th.desc::after { content: " ▼"; font-size: 9px; }
+    .tk-table tbody td { padding: 11px 16px; font-size: 13px; color: var(--tk-text); border-bottom: 1px solid var(--tk-border); vertical-align: middle; }
+    .tk-table tbody tr { cursor: pointer; transition: background .12s var(--tk-ease); }
+    .tk-table tbody tr:hover { background: var(--tk-bg); }
+    .tk-table tbody tr:last-child td { border-bottom: none; }
+    .tk-table .subject-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .tk-status { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 800; letter-spacing: .2px; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+    .tk-status.pending { background: var(--tk-warning-soft); color: var(--tk-warning-deep); }
+    .tk-status.in-progress { background: var(--tk-info-soft); color: var(--tk-info-deep); }
+    .tk-status.resolved { background: var(--tk-success-soft); color: var(--tk-success-deep); }
+    .tk-status.rejected { background: var(--tk-room-soft); color: var(--tk-room-deep); }
+    .tk-status.other { background: var(--tk-bg); color: var(--tk-text-faint); border: 1px solid var(--tk-border); }
+
+    .tk-btn-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 800; padding: 6px 12px; border-radius: 999px; border: 1.5px solid transparent; transition: all .15s var(--tk-ease); white-space: nowrap; text-decoration: none; cursor: pointer; }
+    .tk-btn-pill.is-primary { background: var(--tk-primary-soft); color: var(--tk-primary-deep); }
+    .tk-btn-pill.is-primary:hover { background: var(--tk-primary-dark); color: #fff; }
+
+    .tk-empty { text-align: center; padding: 50px 16px; color: var(--tk-text-faint); font-size: 13px; }
+    .tk-empty svg { width: 34px; height: 34px; opacity: .4; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; color: var(--tk-text-muted); }
+    .tk-empty strong { display: block; color: var(--tk-text-muted); font-weight: 700; font-size: 13.5px; margin-bottom: 3px; }
+
+    /* ── Modal ──────────────────────────────────────────────── */
+    .tk-modal .modal-content { border: none; border-radius: 18px; overflow: hidden; box-shadow: var(--tk-shadow-lg); }
+    .tk-modal .modal-header { padding: 20px 24px; border-bottom: none; background: linear-gradient(135deg, var(--tk-primary) 0%, var(--tk-primary-deep) 100%); }
+    .tk-modal .modal-title { color: #fff; font-size: 16px; font-weight: 800; letter-spacing: -.2px; }
+    .tk-modal .btn-close { filter: brightness(0) invert(1); opacity: .85; }
+    .tk-modal .btn-close:hover { opacity: 1; }
+    .tk-modal .modal-body { padding: 22px 24px; font-size: 13.5px; color: var(--tk-text); }
+    .tk-modal .modal-footer { border-top: 1px solid var(--tk-border); background: var(--tk-bg); padding: 14px 24px; }
+    .tk-modal-close { background: var(--tk-surface); border: 1.5px solid var(--tk-border); color: var(--tk-text); font-weight: 700; font-size: 13.5px; padding: 9px 18px; border-radius: 10px; cursor: pointer; transition: border-color .15s var(--tk-ease), color .15s var(--tk-ease); }
+    .tk-modal-close:hover { border-color: var(--tk-primary); color: var(--tk-primary-deep); }
+
+    .tk-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; margin-bottom: 16px; }
+    .tk-detail-grid .full { grid-column: 1 / -1; }
+    .tk-detail-label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--tk-text-muted); margin-bottom: 3px; }
+    .tk-detail-value { font-size: 14px; font-weight: 600; color: var(--tk-text); }
+    .tk-detail-desc { white-space: pre-wrap; background: var(--tk-bg); border: 1px solid var(--tk-border); border-radius: var(--tk-radius-sm); padding: 12px 14px; font-size: 13px; color: var(--tk-text); min-height: 70px; }
+  </style>
 </head>
 
 <body>
@@ -207,330 +301,297 @@ $conn->close();
       echo "<p>Unauthorized role.</p>";
       exit;
   }
+
+  // Combine all ticket results into one dataset
+  $all_tickets = [];
+  while ($row = $result_new->fetch_assoc())
+    $all_tickets[] = $row;
+  while ($row = $result_active->fetch_assoc())
+    $all_tickets[] = $row;
+  while ($row = $result_resolved->fetch_assoc())
+    $all_tickets[] = $row;
+
+  $totalCount = count($all_tickets);
+  $pendingCount = 0;
+  $inProgressCount = 0;
+  $resolvedCount = 0;
+  foreach ($all_tickets as $t) {
+    switch (strtolower($t['status'])) {
+      case 'pending':
+        $pendingCount++;
+        break;
+      case 'in progress':
+        $inProgressCount++;
+        break;
+      case 'resolved':
+        $resolvedCount++;
+        break;
+    }
+  }
+
+  // Map a status string to the CSS modifier class used by .tk-status
+  function statusClass(string $status): string
+  {
+    return match (strtolower($status)) {
+      'pending' => 'pending',
+      'in progress' => 'in-progress',
+      'resolved' => 'resolved',
+      'rejected' => 'rejected',
+      default => 'other',
+    };
+  }
   ?>
+
   <div class="content-wrapper">
-    <!-- Content -->
-    <div class="container-xxl flex-grow-1 container-p-y">
-      <div class="content-wrapper">
-        <div class="container-xxl flex-grow-1 container-p-y">
-          <div class="card app-calendar-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <div class="card mb-5">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                  <h5 class="mb-0">All Tickets</h5>
-                  <div class="d-flex align-items-center gap-2">
-                    <!-- 🔍 Search Bar -->
-                    <input type="text" id="searchInput" class="form-control form-control-sm"
-                      placeholder="Search ticket..." style="max-width: 200px;">
+    <div class="container-xxl flex-grow-1 container-p-y tk-page">
 
-                    <!-- 🔽 Status Filter -->
-                    <select class="form-select form-select-sm w-auto" id="statusFilter">
-                      <option value="all">All</option>
-                      <option value="Pending">Pending</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Resolved">Resolved</option>
-                      <!-- <option value="Rejected">Rejected</option> -->
-                    </select>
-                  </div>
-                </div>
-
-                <?php
-                // Combine all ticket results into one dataset
-                $all_tickets = [];
-
-                while ($row = $result_new->fetch_assoc())
-                  $all_tickets[] = $row;
-                while ($row = $result_active->fetch_assoc())
-                  $all_tickets[] = $row;
-                while ($row = $result_resolved->fetch_assoc())
-                  $all_tickets[] = $row;
-                ?>
-
-                <?php if (count($all_tickets) > 0): ?>
-                  <div
-                    class="table-responsive text-nowrap <?php echo (count($all_tickets) > 5) ? 'table-scroll' : ''; ?>">
-                    <table class="table table-smaller" id="ticketTable">
-                      <thead>
-                        <tr>
-                          <th data-column="0" class="sortable">Ticket #</th>
-                          <th data-column="1" class="sortable">Name</th>
-                          <th data-column="2" class="sortable">Subject</th>
-                          <th data-column="3" class="sortable">Status</th>
-                          <th data-column="4" class="sortable">Assigned To</th>
-                          <th data-column="5" class="sortable">Created At</th>
-                          <th data-column="6" class="sortable">Last Updated</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        <?php foreach ($all_tickets as $row): ?>
-                          <tr class="clickable-row" data-id="<?= htmlspecialchars($row['id']); ?>"
-                            data-name="<?= htmlspecialchars($row['user_name']); ?>"
-                            data-subject="<?= htmlspecialchars($row['subject']); ?>"
-                            data-status="<?= htmlspecialchars($row['status']); ?>"
-                            data-assigned="<?= htmlspecialchars($row['assigned_to'] ?: 'Pending Assignment'); ?>"
-                            data-created="<?= htmlspecialchars(date('Y-m-d h:i A', strtotime($row['created_at']))); ?>"
-                            data-updated="<?= htmlspecialchars($row['last_update'] ? date('Y-m-d h:i A', strtotime($row['last_update'])) : '—'); ?>"
-                            data-description="<?= htmlspecialchars($row['description']); ?>"
-                            data-link="viewticketSuperadmin.php?ticket_id=<?= $row['id']; ?>" style="cursor: pointer;"
-                            title="Click to view details">
-
-                            <td><?= $row['id']; ?></td>
-                            <td><?= htmlspecialchars($row['user_name']); ?></td>
-                            <td class="subject-col"><?= htmlspecialchars($row['subject']); ?></td>
-                            <td>
-                              <?php
-                              $status = strtolower($row['status']);
-                              $badgeClass = match ($status) {
-                                'pending' => 'bg-label-warning',
-                                'in progress' => 'bg-label-info',
-                                'resolved' => 'bg-label-success',
-                                'rejected' => 'bg-label-danger',
-                                default => 'bg-label-secondary'
-                              };
-                              ?>
-                              <span class="badge <?= $badgeClass; ?> me-1"><?= htmlspecialchars($row['status']); ?></span>
-                            </td>
-                            <td><?= htmlspecialchars($row['assigned_to'] ?: 'Pending Assignment'); ?></td>
-                            <td><?= date('Y-m-d h:i A', strtotime($row['created_at'])); ?></td>
-                            <td><?= $row['last_update'] ? date('Y-m-d h:i A', strtotime($row['last_update'])) : '—'; ?></td>
-                            <td><a href="viewticketSuperadmin.php?ticket_id=<?= $row['id']; ?>"
-                                class="btn btn-sm btn-primary">View</a></td>
-                          </tr>
-
-                        <?php endforeach; ?>
-                      </tbody>
-                    </table>
-                  </div>
-                <?php else: ?>
-                  <p class="px-4 py-3">No tickets found.</p>
-                <?php endif; ?>
-              </div>
-            </div>
+      <div class="tk-header">
+        <div>
+          <h2>Ticket Requests</h2>
+          <p>Track, search, and review all submitted support tickets.</p>
+        </div>
+        <div class="tk-header-stats">
+          <div class="tk-stat-chip">
+            <span class="num"><?= $totalCount ?></span>
+            <span class="lbl">Total</span>
+          </div>
+          <div class="tk-stat-chip is-warn">
+            <span class="num"><?= $pendingCount ?></span>
+            <span class="lbl">Pending</span>
+          </div>
+          <div class="tk-stat-chip is-info">
+            <span class="num"><?= $inProgressCount ?></span>
+            <span class="lbl">In Progress</span>
+          </div>
+          <div class="tk-stat-chip is-success">
+            <span class="num"><?= $resolvedCount ?></span>
+            <span class="lbl">Resolved</span>
           </div>
         </div>
       </div>
 
-
-      <!-- 📋 Ticket Details Modal -->
-      <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-          <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-              <h5 class="modal-title" id="ticketModalLabel">Ticket Details</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                aria-label="Close"></button>
+      <div class="tk-card">
+        <div class="tk-card-body">
+          <h5>All Tickets</h5>
+          <div class="tk-toolbar">
+            <div class="tk-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+              <input type="text" id="searchInput" placeholder="Search ticket...">
             </div>
+            <select class="tk-select" id="statusFilter">
+              <option value="all">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
 
-            <div class="modal-body">
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <strong>Ticket #:</strong> <span id="modalTicketId"></span>
-                </div>
-                <div class="col-md-6">
-                  <strong>Status:</strong> <span id="modalTicketStatus" class="badge"></span>
-                </div>
-              </div>
+        <?php if ($totalCount > 0): ?>
+          <div class="tk-table-wrap">
+            <table class="tk-table" id="ticketTable">
+              <thead>
+                <tr>
+                  <th data-column="0" class="sortable">Ticket #</th>
+                  <th data-column="1" class="sortable">Name</th>
+                  <th data-column="2" class="sortable">Subject</th>
+                  <th data-column="3" class="sortable">Status</th>
+                  <th data-column="4" class="sortable">Assigned To</th>
+                  <th data-column="5" class="sortable">Created At</th>
+                  <th data-column="6" class="sortable">Last Updated</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ($all_tickets as $row):
+                  $statusCls = statusClass($row['status']);
+                  $createdDisplay = htmlspecialchars(date('Y-m-d h:i A', strtotime($row['created_at'])));
+                  $updatedDisplay = $row['last_update'] ? htmlspecialchars(date('Y-m-d h:i A', strtotime($row['last_update']))) : '—';
+                  $assignedDisplay = htmlspecialchars($row['assigned_to'] ?: 'Pending Assignment');
+                  $link = 'viewticketSuperadmin.php?ticket_id=' . $row['id'];
+                  ?>
+                  <tr class="clickable-row"
+                    data-id="<?= htmlspecialchars($row['id']); ?>"
+                    data-name="<?= htmlspecialchars($row['user_name']); ?>"
+                    data-subject="<?= htmlspecialchars($row['subject']); ?>"
+                    data-status="<?= htmlspecialchars($row['status']); ?>"
+                    data-assigned="<?= $assignedDisplay; ?>"
+                    data-created="<?= $createdDisplay; ?>"
+                    data-updated="<?= $updatedDisplay; ?>"
+                    data-description="<?= htmlspecialchars($row['description']); ?>"
+                    data-link="<?= htmlspecialchars($link); ?>"
+                    title="Click to view details">
+                    <td><?= $row['id']; ?></td>
+                    <td><?= htmlspecialchars($row['user_name']); ?></td>
+                    <td class="subject-col"><?= htmlspecialchars($row['subject']); ?></td>
+                    <td class="status-cell"><span class="tk-status <?= $statusCls ?>"><?= htmlspecialchars($row['status']); ?></span></td>
+                    <td><?= $assignedDisplay; ?></td>
+                    <td><?= $createdDisplay; ?></td>
+                    <td><?= $updatedDisplay; ?></td>
+                    <td><a href="<?= htmlspecialchars($link); ?>" class="tk-btn-pill is-primary" onclick="event.stopPropagation();">View</a></td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        <?php else: ?>
+          <div class="tk-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 12h6m-6 4h6m-9 5h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.5L13 3h-2L9.5 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" /></svg>
+            <strong>No tickets found</strong>
+            Submitted tickets will show up here.
+          </div>
+        <?php endif; ?>
+      </div>
 
-              <div class="mb-2">
-                <strong>Submitted By:</strong> <span id="modalTicketName"></span>
-              </div>
+    </div>
+  </div>
 
-              <div class="mb-2">
-                <strong>Subject:</strong> <span id="modalTicketSubject"></span>
-              </div>
+  <div class="content-backdrop fade"></div>
+  <div class="layout-overlay layout-menu-toggle"></div>
 
-              <div class="mb-2">
-                <strong>Assigned To:</strong> <span id="modalTicketAssigned"></span>
-              </div>
+  <!-- 📋 Ticket Details Modal -->
+  <div class="modal fade tk-modal" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ticketModalLabel">Ticket Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
 
-              <div class="mb-2">
-                <strong>Created At:</strong> <span id="modalTicketCreated"></span>
-              </div>
-
-              <div class="mb-3">
-                <strong>Last Updated:</strong> <span id="modalTicketUpdated"></span>
-              </div>
-
-              <!-- 📝 Description Section -->
-              <div class="mt-3">
-                <strong>Description:</strong>
-                <div id="modalTicketDescription" class="border rounded p-2 bg-light"
-                  style="white-space: pre-wrap; min-height: 80px;"></div>
-              </div>
+        <div class="modal-body">
+          <div class="tk-detail-grid">
+            <div>
+              <div class="tk-detail-label">Ticket #</div>
+              <div class="tk-detail-value" id="modalTicketId"></div>
             </div>
-
-            <div class="modal-footer">
-              <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <a id="viewTicketLink" href="#" class="btn btn-primary">View</a>
+            <div>
+              <div class="tk-detail-label">Status</div>
+              <span id="modalTicketStatus" class="tk-status"></span>
+            </div>
+            <div>
+              <div class="tk-detail-label">Submitted By</div>
+              <div class="tk-detail-value" id="modalTicketName"></div>
+            </div>
+            <div>
+              <div class="tk-detail-label">Assigned To</div>
+              <div class="tk-detail-value" id="modalTicketAssigned"></div>
+            </div>
+            <div>
+              <div class="tk-detail-label">Created At</div>
+              <div class="tk-detail-value" id="modalTicketCreated"></div>
+            </div>
+            <div>
+              <div class="tk-detail-label">Last Updated</div>
+              <div class="tk-detail-value" id="modalTicketUpdated"></div>
+            </div>
+            <div class="full">
+              <div class="tk-detail-label">Subject</div>
+              <div class="tk-detail-value" id="modalTicketSubject"></div>
             </div>
           </div>
+
+          <div class="tk-detail-label">Description</div>
+          <div id="modalTicketDescription" class="tk-detail-desc"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="tk-modal-close" data-bs-dismiss="modal">Close</button>
+          <a id="viewTicketLink" href="#" class="tk-btn-pill is-primary">View Full Ticket</a>
         </div>
       </div>
     </div>
   </div>
-  </div>
-  <div class="content-backdrop fade"></div>
-  </div>
-  <div class="content-backdrop fade"></div>
-  </div>
-  </div>
-  </div>
-  <div class="layout-overlay layout-menu-toggle"></div>
-  </div>
 
+  <!-- CORE JS -->
   <script src="../assets/vendor/js/bootstrap.js"></script>
   <script src="../assets/vendor/js/menu.js"></script>
   <script src="../assets/js/main.js"></script>
-  <script src="../assets/js/dashboards-analytics.js"></script>
-  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const rows = document.querySelectorAll(".clickable-row");
-      const modal = new bootstrap.Modal(document.getElementById("ticketModal"));
+    // Ticket modal + search/filter/sort — single consolidated script (vanilla JS, no jQuery needed)
+    (function () {
+      const table = document.getElementById('ticketTable');
+      if (!table) return; // no tickets rendered, nothing to wire up
+
+      const tbody = table.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const searchInput = document.getElementById('searchInput');
+      const statusFilter = document.getElementById('statusFilter');
+      const sortDirections = {};
+
+      // ── Ticket details modal ────────────────────────────────
+      const modalEl = document.getElementById('ticketModal');
+      const modal = new bootstrap.Modal(modalEl);
+      const statusModifier = {
+        'pending': 'pending',
+        'in progress': 'in-progress',
+        'resolved': 'resolved',
+        'rejected': 'rejected'
+      };
 
       rows.forEach(row => {
-        row.addEventListener("click", () => {
-          // Populate modal fields
-          document.getElementById("modalTicketId").textContent = row.dataset.id;
-          document.getElementById("modalTicketName").textContent = row.dataset.name;
-          document.getElementById("modalTicketSubject").textContent = row.dataset.subject;
-          document.getElementById("modalTicketAssigned").textContent = row.dataset.assigned;
-          document.getElementById("modalTicketCreated").textContent = row.dataset.created;
-          document.getElementById("modalTicketUpdated").textContent = row.dataset.updated;
-          document.getElementById("modalTicketDescription").textContent = row.dataset.description || "No description provided.";
-          document.getElementById("viewTicketLink").href = row.dataset.link;
+        row.addEventListener('click', () => {
+          document.getElementById('modalTicketId').textContent = row.dataset.id;
+          document.getElementById('modalTicketName').textContent = row.dataset.name;
+          document.getElementById('modalTicketSubject').textContent = row.dataset.subject;
+          document.getElementById('modalTicketAssigned').textContent = row.dataset.assigned;
+          document.getElementById('modalTicketCreated').textContent = row.dataset.created;
+          document.getElementById('modalTicketUpdated').textContent = row.dataset.updated;
+          document.getElementById('modalTicketDescription').textContent = row.dataset.description || 'No description provided.';
+          document.getElementById('viewTicketLink').href = row.dataset.link;
 
-          // Set status badge
           const status = row.dataset.status;
-          const badge = document.getElementById("modalTicketStatus");
+          const badge = document.getElementById('modalTicketStatus');
           badge.textContent = status;
-          badge.className = "badge";
-          switch (status.toLowerCase()) {
-            case "pending":
-              badge.classList.add("bg-label-warning"); break;
-            case "in progress":
-              badge.classList.add("bg-label-info"); break;
-            case "resolved":
-              badge.classList.add("bg-label-success"); break;
-            case "rejected":
-              badge.classList.add("bg-label-danger"); break;
-            default:
-              badge.classList.add("bg-label-secondary");
-          }
+          badge.className = 'tk-status ' + (statusModifier[status.toLowerCase()] || 'other');
 
           modal.show();
         });
       });
-    });
-  </script>
 
-  <!-- ✅ Filter + Search + Sort Script -->
-  <script>
-    const statusFilter = document.getElementById('statusFilter');
-    const searchInput = document.getElementById('searchInput');
-    const table = document.getElementById('ticketTable');
-    const rows = Array.from(table.querySelectorAll('tbody tr'));
-    let sortDirections = {}; // store ASC/DESC per column
+      // ── Search + status filter ──────────────────────────────
+      function applyFilters() {
+        const query = searchInput.value.trim().toLowerCase();
+        const status = statusFilter.value;
 
-    function filterAndSearch() {
-      const filterValue = statusFilter.value.toLowerCase();
-      const searchValue = searchInput.value.toLowerCase();
-
-      rows.forEach(row => {
-        const statusText = row.querySelector('.status-cell').innerText.toLowerCase();
-        const rowText = row.innerText.toLowerCase();
-
-        const matchesStatus = (filterValue === 'all' || statusText.includes(filterValue));
-        const matchesSearch = rowText.includes(searchValue);
-
-        row.style.display = (matchesStatus && matchesSearch) ? '' : 'none';
-      });
-    }
-
-    statusFilter.addEventListener('change', filterAndSearch);
-    searchInput.addEventListener('keyup', filterAndSearch);
-
-    // 🔽 Sorting
-    document.querySelectorAll('#ticketTable th.sortable').forEach(th => {
-      th.addEventListener('click', () => {
-        const columnIndex = th.dataset.column;
-        const isAsc = !sortDirections[columnIndex];
-        sortDirections[columnIndex] = isAsc;
-
-        const sortedRows = [...rows].sort((a, b) => {
-          const aText = a.cells[columnIndex].innerText.trim().toLowerCase();
-          const bText = b.cells[columnIndex].innerText.trim().toLowerCase();
-
-          if (!isNaN(aText) && !isNaN(bText)) {
-            return isAsc ? aText - bText : bText - aText;
-          }
-          return isAsc
-            ? aText.localeCompare(bText)
-            : bText.localeCompare(aText);
-        });
-
-        const tbody = table.querySelector('tbody');
-        tbody.innerHTML = '';
-        sortedRows.forEach(row => tbody.appendChild(row));
-
-        // Update visual indicator
-        document.querySelectorAll('.sortable').forEach(el => el.classList.remove('asc', 'desc'));
-        th.classList.add(isAsc ? 'asc' : 'desc');
-      });
-    });
-  </script>
-
-
-  <script>
-    $(document).ready(function () {
-      const $rows = $("#ticketTable tbody tr");
-
-      // 🔍 SEARCH FUNCTION
-      $("#searchInput").on("keyup", function () {
-        const value = $(this).val().toLowerCase();
-
-        $rows.filter(function () {
-          const text = $(this).text().toLowerCase();
-          $(this).toggle(text.indexOf(value) > -1);
-        });
-      });
-
-      // 🔽 STATUS FILTER FUNCTION
-      $("#statusFilter").on("change", function () {
-        const selectedStatus = $(this).val();
-
-        $rows.each(function () {
-          const rowStatus = $(this).find("td:eq(3)").text().trim(); // status is in 4th column
-          if (selectedStatus === "all" || rowStatus === selectedStatus) {
-            $(this).show();
-          } else {
-            $(this).hide();
-          }
-        });
-      });
-
-      // 🧠 Combine Search + Filter
-      function applySearchAndFilter() {
-        const value = $("#searchInput").val().toLowerCase();
-        const selectedStatus = $("#statusFilter").val();
-
-        $rows.each(function () {
-          const text = $(this).text().toLowerCase();
-          const rowStatus = $(this).find("td:eq(3)").text().trim();
-
-          const matchesSearch = text.indexOf(value) > -1;
-          const matchesStatus = selectedStatus === "all" || rowStatus === selectedStatus;
-
-          $(this).toggle(matchesSearch && matchesStatus);
+        rows.forEach(row => {
+          const matchesSearch = row.textContent.toLowerCase().includes(query);
+          const matchesStatus = status === 'all' || row.dataset.status === status;
+          row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
         });
       }
 
-      // 🔁 Reapply when both inputs change
-      $("#searchInput, #statusFilter").on("keyup change", applySearchAndFilter);
-    });
+      searchInput.addEventListener('input', applyFilters);
+      statusFilter.addEventListener('change', applyFilters);
+
+      // ── Sorting ──────────────────────────────────────────────
+      table.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+          const columnIndex = Number(th.dataset.column);
+          const isAsc = !sortDirections[columnIndex];
+          sortDirections[columnIndex] = isAsc;
+
+          const sorted = [...rows].sort((a, b) => {
+            const aText = a.cells[columnIndex].innerText.trim().toLowerCase();
+            const bText = b.cells[columnIndex].innerText.trim().toLowerCase();
+
+            const aNum = parseFloat(aText);
+            const bNum = parseFloat(bText);
+            const bothNumeric = !isNaN(aNum) && !isNaN(bNum) && aText !== '' && bText !== '';
+
+            if (bothNumeric) return isAsc ? aNum - bNum : bNum - aNum;
+            return isAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+          });
+
+          sorted.forEach(row => tbody.appendChild(row));
+
+          table.querySelectorAll('th.sortable').forEach(el => el.classList.remove('asc', 'desc'));
+          th.classList.add(isAsc ? 'asc' : 'desc');
+        });
+      });
+    })();
   </script>
+
 </body>
 
 </html>

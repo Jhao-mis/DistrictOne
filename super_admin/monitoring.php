@@ -603,7 +603,7 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
             <td class="tk-subject">${t.subject}</td>
             <td>${t.department}</td>
             <td class="tk-time">${t.created_at}</td>
-            <td><span class="tk-badge st-progress"><span class="dot"></span>In Progress</span></td>
+            <td><span class="tk-badge st-progress"><span class="dot"></span>Ongoing</span></td>
           `;
                   inProgressBody.appendChild(tr);
                 });
