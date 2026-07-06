@@ -272,7 +272,7 @@ if (!$sb_name) $sb_name = $sb_username;
       <div class="app-brand demo">
         <a href="../modules/profile.php" class="app-brand-link" style="display:flex;align-items:center;gap:9px;text-decoration:none;flex:1;min-width:0;">
           <img src="../assets/img/backgrounds/districtone.png" alt="Logo" width="34" style="border-radius:8px;flex-shrink:0;">
-          <span class="sb-brand-text">District One</span>
+          <span class="sb-brand-text">DistrictOne</span>
         </a>
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none" style="color:var(--sb-muted);flex-shrink:0;">
           <i class="bx bx-chevron-left bx-sm align-middle"></i>

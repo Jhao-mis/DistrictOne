@@ -245,6 +245,11 @@ $conn->close();
         .cal-event-item h6 {
             font-size: 13px; font-weight: 700;
             color: var(--tk-text); margin-bottom: 6px; line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .cal-event-item-meta { font-size: 11.5px; color: var(--tk-text-muted); display: flex; flex-direction: column; gap: 3px; }
         .cal-event-item-meta span { display: flex; align-items: center; gap: 5px; }
@@ -458,7 +463,7 @@ $conn->close();
                         <div class="modal-header-eyebrow" id="eventModalEyebrow">Activity</div>
                         <h5 id="eventTitle" class="modal-title"></h5>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
                 </div>
                 <div class="modal-body">
                     <div class="ev-grid">
@@ -620,6 +625,14 @@ $conn->close();
                     const badgeClass = isRoom ? 'is-room' : 'is-activity';
                     const badgeLabel = isRoom ? 'Room Reservation' : 'Activity';
 
+                    // For room reservations, show the actual reservation details
+                    // (purpose, falling back to the room name) instead of the generic "Room Reserved" title.
+                    // The CSS line-clamp on .cal-event-item h6 truncates with "..." if it's too long,
+                    // and the title attribute shows the full text on hover.
+                    const displayTitle = isRoom
+                        ? (e.description || e.event_location || 'Room Reservation')
+                        : e.title;
+
                     html += `
                         <div class="cal-event-item" tabindex="0" style="--event-color: ${escapeAttr(e.color || '#7cb9ff')};"
                              onclick='openEventFromSidebar(${JSON.stringify({
@@ -634,7 +647,7 @@ $conn->close();
                              })})'
                              onkeydown='if(event.key==="Enter"||event.key===" "){event.preventDefault();this.click();}'>
                             <span class="cal-event-badge ${escapeHtml(badgeClass)}">${escapeHtml(badgeLabel)}</span>
-                            <h6>${escapeHtml(e.title)}</h6>
+                            <h6 title="${escapeAttr(displayTitle)}">${escapeHtml(displayTitle)}</h6>
                             <div class="cal-event-item-meta">
                                 <span>
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>

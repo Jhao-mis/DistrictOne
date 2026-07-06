@@ -28,6 +28,7 @@ $query->fetch();
 $query->close();
 
 $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
+$total_reports = $mir_list->num_rows;
 
 ?>
 
@@ -64,6 +65,7 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       --mir-primary: #007bff;
       --mir-border: #e4e6ef;
       --mir-muted: #6c757d;
+      --mir-hover: #f7f9fc;
     }
 
     .swal2-container {
@@ -74,6 +76,9 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       z-index: 100000 !important;
     }
 
+    /* =======================
+       HEADER / TOOLBAR
+       ======================= */
     .mir-card-header {
       display: flex;
       align-items: center;
@@ -82,8 +87,35 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       flex-wrap: wrap;
     }
 
+    .mir-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .mir-count-badge {
+      font-size: .72rem;
+      font-weight: 600;
+      padding: .25rem .55rem;
+      border-radius: 20px;
+      background: #eef2ff;
+      color: #4338ca;
+      letter-spacing: .02em;
+    }
+
+    .mir-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
     .mir-search-wrap {
       position: relative;
+      flex: 1 1 280px;
+      max-width: 420px;
     }
 
     .mir-search-wrap i {
@@ -92,12 +124,41 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       top: 50%;
       transform: translateY(-50%);
       color: var(--mir-muted);
+      pointer-events: none;
     }
 
     .mir-search-wrap input {
       padding-left: 2.2rem;
+      padding-right: 2.4rem;
     }
 
+    .mir-search-wrap kbd {
+      position: absolute;
+      right: .5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: .68rem;
+      padding: .1rem .35rem;
+      border-radius: 4px;
+      background: #f1f3f5;
+      color: var(--mir-muted);
+      border: 1px solid var(--mir-border);
+      pointer-events: none;
+    }
+
+    .mir-search-wrap input:focus + kbd {
+      display: none;
+    }
+
+    .mir-result-count {
+      font-size: .8rem;
+      color: var(--mir-muted);
+      white-space: nowrap;
+    }
+
+    /* =======================
+       TABLE
+       ======================= */
     .mir-table-scroll {
       max-height: 65vh;
       overflow-y: auto;
@@ -109,10 +170,38 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       position: sticky;
       top: 0;
       z-index: 1;
+      font-size: .74rem;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      color: var(--mir-muted);
     }
 
     .mir-table-scroll table {
       margin-bottom: 0;
+    }
+
+    .mir-row {
+      cursor: pointer;
+      transition: background-color .12s ease;
+    }
+
+    .mir-row:hover {
+      background: var(--mir-hover);
+    }
+
+    .mir-report-no {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .85rem;
+      letter-spacing: .01em;
+    }
+
+    .mir-dept-pill {
+      display: inline-block;
+      font-size: .74rem;
+      font-weight: 600;
+      padding: .2rem .6rem;
+      border-radius: 20px;
+      white-space: nowrap;
     }
 
     .mir-actions {
@@ -137,9 +226,53 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       margin-bottom: .5rem;
     }
 
+    .mir-empty .btn {
+      margin-top: .5rem;
+    }
+
     #mirContent .spinner-border {
       width: 2rem;
       height: 2rem;
+    }
+
+    /* =======================
+       AVATAR (desktop: hidden, mobile: shown in card view)
+       ======================= */
+    .mir-avatar {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: .7rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .mir-action-label {
+      display: none;
+    }
+
+    /* =======================
+       FLOATING ACTION BUTTON (mobile only)
+       ======================= */
+    .mir-fab {
+      display: none;
+    }
+
+    /* Focus visibility */
+    .mir-actions .btn:focus-visible,
+    #search:focus-visible {
+      outline: 2px solid var(--mir-primary);
+      outline-offset: 1px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mir-row {
+        transition: none;
+      }
     }
 
     /* =======================
@@ -159,6 +292,25 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       .card-header.mir-card-header .btn {
         width: 100%;
         justify-content: center;
+      }
+
+      .mir-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .mir-search-wrap {
+        flex: 0 0 auto;
+        width: 100%;
+        max-width: none;
+      }
+
+      .mir-search-wrap kbd {
+        display: none;
+      }
+
+      .mir-result-count {
+        text-align: right;
       }
     }
 
@@ -223,12 +375,93 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
       .mir-actions .btn {
         flex: 1;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .3rem;
+        font-size: .78rem;
+      }
+
+      .mir-action-label {
+        display: inline;
+      }
+
+      /* Card layout: header row (report no + date), body row (avatar + user + dept) */
+      .mir-table-scroll tbody tr {
+        display: flex;
+        flex-direction: column;
+        border-left-width: 4px;
+        border-left-color: var(--dept-color, var(--mir-border));
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+      }
+
+      td[data-label="#"] {
+        display: none;
+      }
+
+      td[data-label="Report No"] {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        order: 1;
+      }
+
+      td[data-label="Report No"]::after {
+        content: attr(data-date);
+        font-size: .72rem;
+        font-weight: 400;
+        color: var(--mir-muted);
+      }
+
+      td[data-label="End User"] {
+        order: 2;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding-top: .5rem !important;
+      }
+
+      td[data-label="Department"] {
+        order: 3;
+        padding-top: .35rem !important;
+      }
+
+      td[data-label="Date"] {
+        display: none;
+      }
+
+      .mir-actions-cell {
+        order: 4;
+      }
+
+      .mir-avatar {
+        display: inline-flex;
       }
     }
 
     @media (max-width: 575.98px) {
       .modal-dialog {
         margin: .5rem;
+      }
+
+      .mir-fab {
+        display: flex;
+        position: fixed;
+        bottom: 1.25rem;
+        right: 1.25rem;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
+        z-index: 1030;
+      }
+
+      .card-header.mir-card-header .mir-new-btn {
+        display: none;
       }
     }
   </style>
@@ -274,18 +507,25 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
       <div class="card">
         <div class="card-header mir-card-header">
-          <h5 class="mb-0">MIR List</h5>
+          <div class="mir-title-wrap">
+            <h5 class="mb-0">MIR List</h5>
+            <span class="mir-count-badge"><?= (int) $total_reports ?> total</span>
+          </div>
 
-          <a href="mir.php" class="btn btn-primary btn-sm">
+          <a href="mir.php" class="btn btn-primary btn-sm mir-new-btn">
             <i class="bx bx-plus"></i> New MIR
           </a>
         </div>
 
         <div class="card-body">
 
-          <div class="mir-search-wrap mb-3">
-            <i class='bx bx-search'></i>
-            <input type="text" id="search" class="form-control" placeholder="Search by report no, end user, department...">
+          <div class="mir-toolbar">
+            <div class="mir-search-wrap">
+              <i class='bx bx-search'></i>
+              <input type="text" id="search" class="form-control" placeholder="Search by report no, end user, department...">
+              <kbd>/</kbd>
+            </div>
+            <span class="mir-result-count" id="resultCount"></span>
           </div>
 
           <div class="mir-table-scroll">
@@ -307,32 +547,44 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
                     <td colspan="6">
                       <div class="mir-empty">
                         <i class='bx bx-file-blank'></i>
-                        No MIR reports yet. Click "New MIR" to create one.
+                        No MIR reports yet.
+                        <div>
+                          <a href="mir.php" class="btn btn-primary btn-sm">
+                            <i class="bx bx-plus"></i> Create your first MIR
+                          </a>
+                        </div>
                       </div>
                     </td>
                   </tr>
                 <?php else: ?>
                   <?php $i = 1;
                   while ($row = $mir_list->fetch_assoc()): ?>
-                    <tr>
+                    <tr class="mir-row" onclick="viewMIR(<?= (int) $row['id'] ?>)">
                       <td data-label="#"><?= $i++ ?></td>
-                      <td data-label="Report No"><strong><?= htmlspecialchars($row['report_no']) ?></strong></td>
-                      <td data-label="End User"><?= htmlspecialchars($row['end_user']) ?></td>
-                      <td data-label="Department"><?= htmlspecialchars($row['department']) ?></td>
+                      <td data-label="Report No" data-date="<?= htmlspecialchars($row['report_date']) ?>"><span class="mir-report-no"><?= htmlspecialchars($row['report_no']) ?></span></td>
+                      <td data-label="End User">
+                        <span class="mir-avatar" data-name="<?= htmlspecialchars($row['end_user']) ?>" aria-hidden="true"></span>
+                        <?= htmlspecialchars($row['end_user']) ?>
+                      </td>
+                      <td data-label="Department">
+                        <span class="mir-dept-pill" data-dept="<?= htmlspecialchars($row['department']) ?>">
+                          <?= htmlspecialchars($row['department']) ?>
+                        </span>
+                      </td>
                       <td data-label="Date"><?= htmlspecialchars($row['report_date']) ?></td>
 
-                      <td class="mir-actions-cell">
+                      <td class="mir-actions-cell" onclick="event.stopPropagation()">
                         <div class="mir-actions">
-                          <button class="btn btn-info btn-sm" onclick="viewMIR(<?= (int) $row['id'] ?>)" title="View">
-                            <i class="bx bx-show"></i>
+                          <button class="btn btn-info btn-sm" onclick="viewMIR(<?= (int) $row['id'] ?>)" title="View" aria-label="View MIR <?= (int) $row['id'] ?>">
+                            <i class="bx bx-show"></i><span class="mir-action-label">View</span>
                           </button>
 
-                          <a href="mir_print.php?id=<?= (int) $row['id'] ?>" target="_blank" class="btn btn-primary btn-sm" title="Print">
-                            <i class="bx bx-printer"></i>
+                          <a href="mir_print.php?id=<?= (int) $row['id'] ?>" target="_blank" class="btn btn-primary btn-sm" title="Print" aria-label="Print MIR <?= (int) $row['id'] ?>">
+                            <i class="bx bx-printer"></i><span class="mir-action-label">Print</span>
                           </a>
 
-                          <a href="mir.php?edit_id=<?= (int) $row['id'] ?>" class="btn btn-warning btn-sm" title="Edit">
-                            <i class="bx bx-edit"></i>
+                          <a href="mir.php?edit_id=<?= (int) $row['id'] ?>" class="btn btn-warning btn-sm" title="Edit" aria-label="Edit MIR <?= (int) $row['id'] ?>">
+                            <i class="bx bx-edit"></i><span class="mir-action-label">Edit</span>
                           </a>
 
                           <!-- <button onclick="deleteMIR(<?= (int) $row['id'] ?>)" class="btn btn-danger btn-sm" title="Delete">
@@ -361,6 +613,11 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
   <div class="layout-overlay layout-menu-toggle"></div>
 
+  <!-- MOBILE FAB: New MIR -->
+  <a href="mir.php" class="btn btn-primary mir-fab" aria-label="Create new MIR">
+    <i class="bx bx-plus"></i>
+  </a>
+
   <!-- MODAL -->
   <div class="modal fade" id="mirModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
@@ -368,7 +625,7 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
         <div class="modal-header">
           <h5 class="modal-title">MIR Details</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body" id="mirContent">
@@ -395,6 +652,68 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
   <script src="../assets/js/main.js"></script>
 
   <script>
+    // =======================
+    // DEPARTMENT PILL COLORS
+    // (consistent color per department name, no server change needed)
+    // =======================
+    const DEPT_PALETTE = [
+      { bg: '#eef2ff', fg: '#4338ca' }, // indigo
+      { bg: '#ecfdf5', fg: '#047857' }, // green
+      { bg: '#fff7ed', fg: '#c2410c' }, // orange
+      { bg: '#fdf2f8', fg: '#be185d' }, // pink
+      { bg: '#eff6ff', fg: '#1d4ed8' }, // blue
+      { bg: '#f5f3ff', fg: '#6d28d9' }, // violet
+      { bg: '#fefce8', fg: '#a16207' }, // amber
+    ];
+
+    function hashString(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash);
+    }
+
+    document.querySelectorAll('.mir-dept-pill').forEach(el => {
+      const dept = el.dataset.dept || '';
+      const color = DEPT_PALETTE[hashString(dept) % DEPT_PALETTE.length];
+      el.style.backgroundColor = color.bg;
+      el.style.color = color.fg;
+
+      // Also tint the mobile card's left accent border to match the department
+      const row = el.closest('tr.mir-row');
+      if (row) row.style.setProperty('--dept-color', color.fg);
+    });
+
+    // =======================
+    // AVATAR INITIALS (mobile card view)
+    // =======================
+    const AVATAR_BG = ['#6366f1', '#059669', '#ea580c', '#db2777', '#2563eb', '#7c3aed', '#ca8a04'];
+
+    function initialsOf(name) {
+      const parts = name.trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 0) return '?';
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    document.querySelectorAll('.mir-avatar').forEach(el => {
+      const name = el.dataset.name || '';
+      el.textContent = initialsOf(name);
+      el.style.backgroundColor = AVATAR_BG[hashString(name) % AVATAR_BG.length];
+    });
+
+    // =======================
+    // TOOLTIPS
+    // =======================
+    document.querySelectorAll('[title]').forEach(el => {
+      new bootstrap.Tooltip(el);
+    });
+
+    // =======================
+    // MODAL: VIEW MIR
+    // =======================
     function viewMIR(id) {
       const content = document.getElementById('mirContent');
       content.innerHTML = `
@@ -429,18 +748,52 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       });
     }
 
-    document.getElementById('search').addEventListener('keyup', function () {
-      let v = this.value.toLowerCase();
+    // =======================
+    // SEARCH (debounced) + result count
+    // =======================
+    const searchInput = document.getElementById('search');
+    const resultCountEl = document.getElementById('resultCount');
+    const allRows = document.querySelectorAll(".mir-table-scroll tbody tr.mir-row");
+    const totalRows = allRows.length;
+
+    function updateResultCount(visible) {
+      if (!searchInput.value) {
+        resultCountEl.textContent = totalRows ? `${totalRows} report${totalRows === 1 ? '' : 's'}` : '';
+        return;
+      }
+      resultCountEl.textContent = `${visible} of ${totalRows} match${visible === 1 ? '' : 'es'}`;
+    }
+
+    function runSearch() {
+      const v = searchInput.value.toLowerCase();
       let visibleCount = 0;
 
-      document.querySelectorAll(".mir-table-scroll tbody tr").forEach(r => {
+      allRows.forEach(r => {
         const match = r.innerText.toLowerCase().includes(v);
         r.style.display = match ? '' : 'none';
         if (match) visibleCount++;
       });
 
-      document.getElementById('noResults').classList.toggle('d-none', visibleCount !== 0);
+      document.getElementById('noResults').classList.toggle('d-none', visibleCount !== 0 || totalRows === 0);
+      updateResultCount(visibleCount);
+    }
+
+    let searchDebounce;
+    searchInput.addEventListener('keyup', function () {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(runSearch, 150);
     });
+
+    // "/" focuses search, unless already typing somewhere
+    document.addEventListener('keydown', e => {
+      if (e.key === '/' && document.activeElement !== searchInput &&
+          !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        searchInput.focus();
+      }
+    });
+
+    updateResultCount(totalRows);
   </script>
 
 </body>

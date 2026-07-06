@@ -492,12 +492,14 @@ $result = $stmt->get_result();
   <div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 90%;">
       <div class="modal-content">
-        <div class="modal-header" style="background: linear-gradient(135deg,#7cb9ff,#4e96f0);">
-          <h5 class="modal-title text-white">
+        <div class="modal-header" style="background: linear-gradient(135deg,#7cb9ff,#4e96f0); display:flex; align-items:center;">
+          <h5 class="modal-title text-white" style="margin-right:auto;">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" class="me-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             Document Viewer
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <button type="button" class="btn btn-sm" data-bs-dismiss="modal" style="flex-shrink:0; background:rgba(255,255,255,.18); color:#fff; border:1px solid rgba(255,255,255,.4); font-weight:600;">
+            Close
+          </button>
         </div>
         <div class="modal-body p-0" style="height: 85vh;">
           <iframe id="pdfViewerFrame" src="" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
@@ -505,7 +507,7 @@ $result = $stmt->get_result();
       </div>
     </div>
   </div>
-
+  
   <script src="../assets/vendor/js/bootstrap.js"></script>
   <script src="../assets/vendor/js/menu.js"></script>
   <script src="../assets/js/main.js"></script>
