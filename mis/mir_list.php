@@ -2,11 +2,18 @@
 session_start();
 require '../vendor/autoload.php';
 require 'login_verification.php';
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 require '../db.php';
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error)
+  die("DB Error");
+
 // =======================
 // FETCH USER
 // =======================
-$username = $_SESSION['username'];
+$username = $_SESSION['username'] ?? '';
 
 $query = $conn->prepare("
   SELECT id, firstname, lastname, department 
@@ -20,12 +27,7 @@ $query->bind_result($user_id, $firstname, $lastname, $department);
 $query->fetch();
 $query->close();
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-
-
 $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
-
 
 ?>
 
@@ -35,6 +37,7 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>MIR List</title>
 
   <!-- Favicon -->
@@ -55,6 +58,180 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
   <!-- Helpers -->
   <script src="../assets/vendor/js/helpers.js"></script>
   <script src="../assets/js/config.js"></script>
+
+  <style>
+    :root {
+      --mir-primary: #007bff;
+      --mir-border: #e4e6ef;
+      --mir-muted: #6c757d;
+    }
+
+    .swal2-container {
+      z-index: 99999 !important;
+    }
+
+    .swal2-popup {
+      z-index: 100000 !important;
+    }
+
+    .mir-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .mir-search-wrap {
+      position: relative;
+    }
+
+    .mir-search-wrap i {
+      position: absolute;
+      left: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--mir-muted);
+    }
+
+    .mir-search-wrap input {
+      padding-left: 2.2rem;
+    }
+
+    .mir-table-scroll {
+      max-height: 65vh;
+      overflow-y: auto;
+      border: 1px solid var(--mir-border);
+      border-radius: 8px;
+    }
+
+    .mir-table-scroll thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .mir-table-scroll table {
+      margin-bottom: 0;
+    }
+
+    .mir-actions {
+      display: flex;
+      gap: .35rem;
+      flex-wrap: wrap;
+    }
+
+    .mir-actions .btn {
+      min-width: 36px;
+    }
+
+    .mir-empty {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--mir-muted);
+    }
+
+    .mir-empty i {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: .5rem;
+    }
+
+    #mirContent .spinner-border {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    /* =======================
+       MOBILE RESPONSIVE FIXES
+       ======================= */
+    @media (max-width: 767.98px) {
+      .container-xxl {
+        padding-left: .75rem;
+        padding-right: .75rem;
+      }
+
+      .card-header.mir-card-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .card-header.mir-card-header .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Below md: convert the table into a stacked card list */
+    @media (max-width: 767.98px) {
+      .mir-table-scroll {
+        max-height: none;
+        border: none;
+        overflow: visible;
+      }
+
+      .mir-table-scroll table,
+      .mir-table-scroll thead,
+      .mir-table-scroll tbody,
+      .mir-table-scroll tr,
+      .mir-table-scroll td {
+        display: block;
+        width: 100%;
+      }
+
+      .mir-table-scroll thead {
+        display: none;
+      }
+
+      .mir-table-scroll tbody tr {
+        border: 1px solid var(--mir-border);
+        border-radius: 10px;
+        margin-bottom: .75rem;
+        padding: .75rem;
+        background: #fff;
+      }
+
+      .mir-table-scroll tbody tr:hover {
+        background: #fff;
+      }
+
+      .mir-table-scroll td {
+        border: none !important;
+        padding: .3rem 0 !important;
+      }
+
+      .mir-table-scroll td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        color: var(--mir-muted);
+        margin-bottom: .1rem;
+      }
+
+      .mir-table-scroll td.mir-actions-cell {
+        padding-top: .5rem !important;
+        border-top: 1px solid var(--mir-border) !important;
+        margin-top: .4rem;
+      }
+
+      .mir-table-scroll td.mir-actions-cell::before {
+        content: '';
+        margin: 0;
+      }
+
+      .mir-actions .btn {
+        flex: 1;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .modal-dialog {
+        margin: .5rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -62,18 +239,16 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
   <?php
   // ALERTS
   if (isset($_SESSION['error'])) {
-    echo "<script>Swal.fire('Error','" . addslashes($_SESSION['error']) . "','error')</script>";
+    echo "<script>document.addEventListener('DOMContentLoaded', () => Swal.fire('Error','" . addslashes($_SESSION['error']) . "','error'));</script>";
     unset($_SESSION['error']);
   }
   if (isset($_SESSION['success'])) {
-    echo "<script>Swal.fire('Success','" . addslashes($_SESSION['success']) . "','success')</script>";
+    echo "<script>document.addEventListener('DOMContentLoaded', () => Swal.fire('Success','" . addslashes($_SESSION['success']) . "','success'));</script>";
     unset($_SESSION['success']);
   }
   ?>
 
   <?php
-  $username = $_SESSION['username'] ?? '';
-
   switch ($_SESSION['role']) {
     case 'User':
       include '../user/sidebar.php';
@@ -97,10 +272,8 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
   <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
 
-
-
       <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header mir-card-header">
           <h5 class="mb-0">MIR List</h5>
 
           <a href="mir.php" class="btn btn-primary btn-sm">
@@ -110,11 +283,14 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
         <div class="card-body">
 
-          <input type="text" id="search" class="form-control mb-3" placeholder="🔍 Search...">
+          <div class="mir-search-wrap mb-3">
+            <i class='bx bx-search'></i>
+            <input type="text" id="search" class="form-control" placeholder="Search by report no, end user, department...">
+          </div>
 
-          <div style="max-height: 500px; overflow-y: auto;">
-            <table class="table table-hover table-bordered">
-              <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+          <div class="mir-table-scroll">
+            <table class="table table-hover table-bordered align-middle">
+              <thead class="table-light">
                 <tr>
                   <th>#</th>
                   <th>Report No</th>
@@ -126,39 +302,55 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
               </thead>
 
               <tbody>
-                <?php $i = 1;
-                while ($row = $mir_list->fetch_assoc()): ?>
+                <?php if ($mir_list->num_rows === 0): ?>
                   <tr>
-                    <td><?= $i++ ?></td>
-                    <td><strong><?= htmlspecialchars($row['report_no']) ?></strong></td>
-                    <td><?= htmlspecialchars($row['end_user']) ?></td>
-                    <td><?= htmlspecialchars($row['department']) ?></td>
-                    <td><?= htmlspecialchars($row['report_date']) ?></td>
-
-                    <td class="d-flex gap-1 flex-wrap">
-
-                      <button class="btn btn-info btn-sm" onclick="viewMIR(<?= $row['id'] ?>)">
-                        <i class="bx bx-show"></i>
-                      </button>
-
-                      <a href="mir_print.php?id=<?= $row['id'] ?>" target="_blank" class="btn btn-primary btn-sm">
-                        <i class="bx bx-printer"></i>
-                      </a>
-
-                      <a href="mir.php?edit_id=<?= $row['id'] ?>" class="btn btn-warning btn-sm">
-                        <i class="bx bx-edit"></i>
-                      </a>
-
-                      <!-- <button onclick="deleteMIR(<?= $row['id'] ?>)" class="btn btn-danger btn-sm">
-                        <i class="bx bx-trash"></i>
-                      </button> -->
-
+                    <td colspan="6">
+                      <div class="mir-empty">
+                        <i class='bx bx-file-blank'></i>
+                        No MIR reports yet. Click "New MIR" to create one.
+                      </div>
                     </td>
                   </tr>
-                <?php endwhile; ?>
+                <?php else: ?>
+                  <?php $i = 1;
+                  while ($row = $mir_list->fetch_assoc()): ?>
+                    <tr>
+                      <td data-label="#"><?= $i++ ?></td>
+                      <td data-label="Report No"><strong><?= htmlspecialchars($row['report_no']) ?></strong></td>
+                      <td data-label="End User"><?= htmlspecialchars($row['end_user']) ?></td>
+                      <td data-label="Department"><?= htmlspecialchars($row['department']) ?></td>
+                      <td data-label="Date"><?= htmlspecialchars($row['report_date']) ?></td>
+
+                      <td class="mir-actions-cell">
+                        <div class="mir-actions">
+                          <button class="btn btn-info btn-sm" onclick="viewMIR(<?= (int) $row['id'] ?>)" title="View">
+                            <i class="bx bx-show"></i>
+                          </button>
+
+                          <a href="mir_print.php?id=<?= (int) $row['id'] ?>" target="_blank" class="btn btn-primary btn-sm" title="Print">
+                            <i class="bx bx-printer"></i>
+                          </a>
+
+                          <a href="mir.php?edit_id=<?= (int) $row['id'] ?>" class="btn btn-warning btn-sm" title="Edit">
+                            <i class="bx bx-edit"></i>
+                          </a>
+
+                          <!-- <button onclick="deleteMIR(<?= (int) $row['id'] ?>)" class="btn btn-danger btn-sm" title="Delete">
+                            <i class="bx bx-trash"></i>
+                          </button> -->
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endwhile; ?>
+                <?php endif; ?>
               </tbody>
 
             </table>
+          </div>
+
+          <div id="noResults" class="mir-empty d-none">
+            <i class='bx bx-search-alt'></i>
+            No matching reports found.
           </div>
 
         </div>
@@ -171,7 +363,7 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
   <!-- MODAL -->
   <div class="modal fade" id="mirModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
 
         <div class="modal-header">
@@ -180,7 +372,10 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
         </div>
 
         <div class="modal-body" id="mirContent">
-          Loading...
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="mt-2 text-muted">Loading...</div>
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -201,11 +396,22 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
   <script>
     function viewMIR(id) {
+      const content = document.getElementById('mirContent');
+      content.innerHTML = `
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <div class="mt-2 text-muted">Loading...</div>
+        </div>`;
+
+      new bootstrap.Modal(document.getElementById('mirModal')).show();
+
       fetch('mir_view.php?id=' + id)
         .then(res => res.text())
         .then(data => {
-          document.getElementById('mirContent').innerHTML = data;
-          new bootstrap.Modal(document.getElementById('mirModal')).show();
+          content.innerHTML = data;
+        })
+        .catch(() => {
+          content.innerHTML = '<div class="text-danger text-center py-4">Failed to load MIR details.</div>';
         });
     }
 
@@ -225,9 +431,15 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
     document.getElementById('search').addEventListener('keyup', function () {
       let v = this.value.toLowerCase();
-      document.querySelectorAll("tbody tr").forEach(r => {
-        r.style.display = r.innerText.toLowerCase().includes(v) ? '' : 'none';
+      let visibleCount = 0;
+
+      document.querySelectorAll(".mir-table-scroll tbody tr").forEach(r => {
+        const match = r.innerText.toLowerCase().includes(v);
+        r.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
       });
+
+      document.getElementById('noResults').classList.toggle('d-none', visibleCount !== 0);
     });
   </script>
 

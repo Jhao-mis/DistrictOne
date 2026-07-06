@@ -169,6 +169,127 @@ $conn->close();
 
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root {
+      --acc-primary: #007bff;
+      --acc-border: #e4e6ef;
+      --acc-muted: #6c757d;
+    }
+
+    .acc-section {
+      border: 1px solid var(--acc-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.75rem;
+      background: #fff;
+    }
+
+    .acc-section-header {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: .75rem;
+      border-bottom: 2px solid var(--acc-border);
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .acc-section-header i {
+      color: var(--acc-primary);
+      font-size: 1.15rem;
+    }
+
+    .acc-avatar-wrapper {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      flex-shrink: 0;
+    }
+
+    .acc-avatar-wrapper img {
+      width: 96px;
+      height: 96px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 1px solid var(--acc-border);
+    }
+
+    .acc-avatar-edit {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: var(--acc-primary);
+      color: #fff;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px solid #fff;
+    }
+
+    .acc-avatar-edit:hover {
+      background: #0056b3;
+    }
+
+    .acc-readonly-field {
+      background: #f7f8fa;
+      color: var(--acc-muted);
+    }
+
+    .acc-field-hint {
+      font-size: .8rem;
+      color: var(--acc-muted);
+      margin-top: .3rem;
+    }
+
+    .acc-password-wrap {
+      position: relative;
+    }
+
+    .acc-password-toggle {
+      position: absolute;
+      right: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--acc-muted);
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    .acc-action-bar {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      border-top: 1px solid var(--acc-border);
+      padding: 1rem 1.5rem;
+      margin: 0 -1.5rem -1.5rem;
+      display: flex;
+      justify-content: flex-end;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .acc-action-bar .btn {
+      min-width: 170px;
+      font-weight: 600;
+    }
+
+    #passwordMismatch {
+      display: none;
+    }
+
+    @media (max-width: 576px) {
+      .acc-action-bar .btn {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -205,103 +326,138 @@ $conn->close();
   }
   ?>
 
-<?php $role = $_SESSION['role'];
+  <?php
+  $role = $_SESSION['role'];
 
-    switch ($role) {
-        case 'User':
-            include '../user/sidebar.php';
-            break;
+  switch ($role) {
+    case 'User':
+      include '../user/sidebar.php';
+      break;
 
-        case 'mis':
-            include '../mis/sidebar.php';
-            break;
+    case 'mis':
+      include '../mis/sidebar.php';
+      break;
 
-        case 'Admin':
-            include '../admin/sidebar.php';
-            break;
+    case 'Admin':
+      include '../admin/sidebar.php';
+      break;
 
-        case 'Super Admin':
-            include '../super_admin/sidebar.php';
-            break;
+    case 'Super Admin':
+      include '../super_admin/sidebar.php';
+      break;
 
-        default:
-            echo "<p>Unauthorized role.</p>";
-            exit;
-    }
-    ?>
+    default:
+      echo "<p>Unauthorized role.</p>";
+      exit;
+  }
+  ?>
 
   <!-- Content wrapper -->
   <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
-      <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Account Settings /</span> Account Settings</h4>
+      <!-- <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Account Settings /</span> Account Settings</h4> -->
 
       <div class="row">
         <div class="col-md-12">
-          <form method="POST" action="accountSettings.php" enctype="multipart/form-data">
+          <form method="POST" action="accountSettings.php" enctype="multipart/form-data" id="accountSettingsForm">
             <div class="card mb-4">
-              <h5 class="card-header">Profile Details</h5>
-
               <div class="card-body">
-                <div class="d-flex align-items-start align-items-sm-center gap-4">
-                  <img
-                    src="<?php echo isset($_SESSION['profile_picture']) ? $_SESSION['profile_picture'] : '../assets/img/avatars/1.png'; ?>"
-                    alt="user-avatar" class="d-block rounded" height="100" width="100" id="uploadedAvatar" />
 
-                  <div class="button-wrapper">
-                    <label for="upload" class="btn btn-primary me-2 mb-4" tabindex="0">
-                      <span class="d-none d-sm-block">Upload new photo</span>
-                      <i class="bx bx-upload d-block d-sm-none"></i>
+                <!-- Profile Photo -->
+                <div class="acc-section">
+                  <div class="acc-section-header"><i class='bx bx-camera'></i> Profile Photo</div>
+                  <div class="d-flex align-items-center gap-4 flex-wrap">
+                    <div class="acc-avatar-wrapper">
+                      <img
+                        src="<?php echo htmlspecialchars($_SESSION['profile_picture'] ?? '../assets/img/avatars/1.png'); ?>"
+                        alt="user-avatar" id="uploadedAvatar" />
+                      <label for="upload" class="acc-avatar-edit" tabindex="0" title="Change photo">
+                        <i class='bx bx-pencil'></i>
+                      </label>
                       <input type="file" id="upload" class="account-file-input" name="profile_picture" hidden
                         accept="image/png, image/jpeg" onchange="previewImage(event)" />
-                    </label>
-                    <p class="text-muted mb-0">Allowed JPG and PNG. Max size of 20MB</p>
+                    </div>
+                    <div>
+                      <label for="upload" class="btn btn-primary mb-2" tabindex="0">
+                        <i class='bx bx-upload'></i> Upload new photo
+                      </label>
+                      <p class="acc-field-hint mb-0">JPG or PNG only. Max size 20MB.</p>
+                    </div>
                   </div>
                 </div>
+
+                <!-- Personal Information (read-only) -->
+                <div class="acc-section">
+                  <div class="acc-section-header"><i class='bx bx-id-card'></i> Personal Information</div>
+                  <p class="acc-field-hint mt-n2 mb-3">These details are managed by HR/Admin and can't be edited
+                    here.</p>
+                  <div class="row">
+                    <div class="mb-3 col-md-6">
+                      <label for="firstname" class="form-label">First Name</label>
+                      <input class="form-control acc-readonly-field" type="text" id="firstname"
+                        value="<?php echo htmlspecialchars($firstname); ?>" readonly />
+                    </div>
+                    <div class="mb-3 col-md-6">
+                      <label for="middlename" class="form-label">Middle Name</label>
+                      <input class="form-control acc-readonly-field" type="text" id="middlename"
+                        value="<?php echo htmlspecialchars($middlename); ?>" readonly />
+                    </div>
+                    <div class="mb-3 col-md-6">
+                      <label for="lastname" class="form-label">Last Name</label>
+                      <input type="text" class="form-control acc-readonly-field" id="lastname"
+                        value="<?php echo htmlspecialchars($lastname); ?>" readonly />
+                    </div>
+                    <div class="mb-3 col-md-6">
+                      <label class="form-label" for="email">Email</label>
+                      <input type="text" id="email" class="form-control acc-readonly-field"
+                        value="<?php echo htmlspecialchars($email); ?>" readonly />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Account Credentials -->
+                <div class="acc-section mb-0">
+                  <div class="acc-section-header"><i class='bx bx-lock-alt'></i> Account Credentials</div>
+                  <div class="row">
+                    <div class="mb-3 col-md-6">
+                      <label for="username" class="form-label">Username</label>
+                      <input class="form-control" type="text" id="username" name="new_username"
+                        value="<?php echo htmlspecialchars($username); ?>" />
+                    </div>
+                    <div class="mb-3 col-md-6"><!-- spacer to keep grid aligned --></div>
+
+                    <div class="mb-3 col-md-6">
+                      <label class="form-label" for="password">New Password</label>
+                      <div class="acc-password-wrap">
+                        <input type="password" id="password" name="new_password" class="form-control"
+                          placeholder="Leave blank to keep current password" minlength="8" />
+                        <button type="button" class="acc-password-toggle" onclick="togglePassword('password', this)">
+                          <i class='bx bx-show'></i>
+                        </button>
+                      </div>
+                      <p class="acc-field-hint">At least 8 characters.</p>
+                    </div>
+                    <div class="mb-3 col-md-6">
+                      <label class="form-label" for="confirm_password">Confirm Password</label>
+                      <div class="acc-password-wrap">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                          placeholder="Re-enter new password" />
+                        <button type="button" class="acc-password-toggle"
+                          onclick="togglePassword('confirm_password', this)">
+                          <i class='bx bx-show'></i>
+                        </button>
+                      </div>
+                      <p class="acc-field-hint text-danger" id="passwordMismatch">Passwords do not match.</p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
-              <hr class="my-0" />
 
-              <div class="card-body">
-                <div class="row">
-                  <div class="mb-3 col-md-6">
-                    <label for="username" class="form-label">Username</label>
-                    <input class="form-control" type="text" id="username" name="new_username"
-                      value="<?php echo htmlspecialchars($username); ?>" />
-                  </div>
-                  <div class="mb-3 col-md-6">
-                    <label for="firstname" class="form-label">First Name</label>
-                    <input class="form-control" type="text" name="firstname" id="firstname"
-                      value="<?php echo htmlspecialchars($firstname); ?>" readonly />
-                  </div>
-                  <div class="mb-3 col-md-6">
-                    <label for="middlename" class="form-label">Middle Name</label>
-                    <input class="form-control" type="text" id="middlename" name="middlename"
-                      value="<?php echo htmlspecialchars($middlename); ?>" readonly />
-                  </div>
-                  <div class="mb-3 col-md-6">
-                    <label for="lastname" class="form-label">Last Name</label>
-                    <input type="text" class="form-control" id="lastname" name="lastname"
-                      value="<?php echo htmlspecialchars($lastname); ?>" readonly />
-                  </div>
-                  <div class="mb-3 col-md-6">
-                    <label class="form-label" for="email">Email</label>
-                    <input type="text" id="email" name="email" class="form-control"
-                      value="<?php echo htmlspecialchars($email); ?>" readonly />
-                  </div>
-                  <div class="mb-3 col-md-6">
-                    <label class="form-label" for="password">Password</label>
-                    <input type="password" id="password" name="new_password" class="form-control"
-                      placeholder="********" />
-                  </div>
-                  <div class="mb-3 col-md-6">
-                    <label class="form-label" for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
-                      placeholder="********" />
-                  </div>
-
-                  <div class="mt-2">
-                    <button type="submit" name="submit" class="btn btn-primary me-2" id="submit">Update Profile</button>
-                  </div>
-                </div>
+              <div class="acc-action-bar">
+                <button type="submit" name="submit" class="btn btn-primary" id="submit">
+                  <i class='bx bx-save'></i> Update Profile
+                </button>
               </div>
             </div>
           </form>
@@ -328,12 +484,51 @@ $conn->close();
   <!-- Custom Scripts -->
   <script>
     function previewImage(event) {
-      var reader = new FileReader();
+      const reader = new FileReader();
       reader.onload = function () {
         document.getElementById('uploadedAvatar').src = reader.result;
       };
       reader.readAsDataURL(event.target.files[0]);
     }
+
+    function togglePassword(fieldId, button) {
+      const field = document.getElementById(fieldId);
+      const icon = button.querySelector('i');
+      const isHidden = field.type === 'password';
+      field.type = isHidden ? 'text' : 'password';
+      icon.classList.toggle('bx-show', !isHidden);
+      icon.classList.toggle('bx-hide', isHidden);
+    }
+
+    document.getElementById('accountSettingsForm').addEventListener('submit', function (e) {
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm_password').value;
+      const mismatchHint = document.getElementById('passwordMismatch');
+
+      if (password && password !== confirmPassword) {
+        e.preventDefault();
+        mismatchHint.style.display = 'block';
+        document.getElementById('confirm_password').focus();
+        return;
+      }
+      mismatchHint.style.display = 'none';
+
+      e.preventDefault();
+      Swal.fire({
+        title: 'Update Profile',
+        text: 'Save these changes to your account?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, update',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#007bff',
+        cancelButtonColor: '#d33',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
   </script>
 </body>
 
