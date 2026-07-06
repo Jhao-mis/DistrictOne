@@ -257,6 +257,38 @@ $conn->close();
     .tk-empty svg { width: 34px; height: 34px; opacity: .4; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; color: var(--tk-text-muted); }
     .tk-empty strong { display: block; color: var(--tk-text-muted); font-weight: 700; font-size: 13.5px; margin-bottom: 3px; }
 
+    /* ── Pagination ─────────────────────────────────────────── */
+    .tk-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 20px;
+      border-top: 1px solid var(--tk-border);
+      background: var(--tk-surface);
+    }
+    .tk-pagination-info { font-size: 12.5px; color: var(--tk-text-muted); }
+    .tk-pagination-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .tk-pagesize-group { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--tk-text-muted); }
+    .tk-pagesize-group select.tk-select { padding: 6px 26px 6px 10px; font-size: 12.5px; }
+    .tk-pagination-controls { display: flex; align-items: center; gap: 6px; }
+    .tk-page-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      border: 1.5px solid var(--tk-border);
+      background: var(--tk-surface);
+      border-radius: 8px;
+      color: var(--tk-text);
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      transition: border-color .15s var(--tk-ease), background .15s var(--tk-ease), color .15s var(--tk-ease);
+    }
+    .tk-page-btn:hover:not(:disabled) { border-color: var(--tk-primary); color: var(--tk-primary-deep); background: var(--tk-primary-soft); }
+    .tk-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .tk-page-indicator { font-size: 12.5px; font-weight: 700; color: var(--tk-text); white-space: nowrap; min-width: 90px; text-align: center; }
+
     /* ── Modal ──────────────────────────────────────────────── */
     .tk-modal .modal-content { border: none; border-radius: 18px; overflow: hidden; box-shadow: var(--tk-shadow-lg); }
     .tk-modal .modal-header { padding: 20px 24px; border-bottom: none; background: linear-gradient(135deg, var(--tk-primary) 0%, var(--tk-primary-deep) 100%); }
@@ -434,6 +466,28 @@ $conn->close();
               </tbody>
             </table>
           </div>
+
+          <div class="tk-pagination" id="tkPagination">
+            <span class="tk-pagination-info" id="paginationInfo"></span>
+            <div class="tk-pagination-right">
+              <div class="tk-pagesize-group">
+                <span>Show</span>
+                <select class="tk-select" id="pageSizeSelect">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="all">All</option>
+                </select>
+                <span>entries</span>
+              </div>
+              <div class="tk-pagination-controls">
+                <button type="button" class="tk-page-btn" id="prevPageBtn" aria-label="Previous page">‹</button>
+                <span class="tk-page-indicator" id="pageIndicator"></span>
+                <button type="button" class="tk-page-btn" id="nextPageBtn" aria-label="Next page">›</button>
+              </div>
+            </div>
+          </div>
         <?php else: ?>
           <div class="tk-empty">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 12h6m-6 4h6m-9 5h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.5L13 3h-2L9.5 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" /></svg>
@@ -508,7 +562,7 @@ $conn->close();
   <script src="../assets/js/main.js"></script>
 
   <script>
-    // Ticket modal + search/filter/sort — single consolidated script (vanilla JS, no jQuery needed)
+    // Ticket modal + search/filter/sort/pagination — single consolidated script (vanilla JS, no jQuery needed)
     (function () {
       const table = document.getElementById('ticketTable');
       if (!table) return; // no tickets rendered, nothing to wire up
@@ -517,7 +571,13 @@ $conn->close();
       const rows = Array.from(tbody.querySelectorAll('tr'));
       const searchInput = document.getElementById('searchInput');
       const statusFilter = document.getElementById('statusFilter');
+      const pageSizeSelect = document.getElementById('pageSizeSelect');
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const pageIndicator = document.getElementById('pageIndicator');
+      const paginationInfo = document.getElementById('paginationInfo');
       const sortDirections = {};
+      let currentPage = 1;
 
       // ── Ticket details modal ────────────────────────────────
       const modalEl = document.getElementById('ticketModal');
@@ -549,20 +609,65 @@ $conn->close();
         });
       });
 
-      // ── Search + status filter ──────────────────────────────
-      function applyFilters() {
+      // ── Search + status filter (returns the rows that match, in current DOM/sort order) ──
+      function getFilteredRows() {
         const query = searchInput.value.trim().toLowerCase();
         const status = statusFilter.value;
 
-        rows.forEach(row => {
+        return rows.filter(row => {
           const matchesSearch = row.textContent.toLowerCase().includes(query);
           const matchesStatus = status === 'all' || row.dataset.status === status;
-          row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+          return matchesSearch && matchesStatus;
         });
+      }
+
+      // ── Pagination: shows only the current page's slice of the filtered rows ──
+      function renderPage() {
+        const filtered = getFilteredRows();
+        const totalItems = filtered.length;
+        const pageSizeRaw = pageSizeSelect.value;
+        const pageSize = pageSizeRaw === 'all' ? Math.max(totalItems, 1) : parseInt(pageSizeRaw, 10);
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const start = (currentPage - 1) * pageSize;
+        const end = pageSizeRaw === 'all' ? totalItems : start + pageSize;
+        const visibleSet = new Set(filtered.slice(start, end));
+
+        rows.forEach(row => {
+          row.style.display = visibleSet.has(row) ? '' : 'none';
+        });
+
+        if (totalItems === 0) {
+          paginationInfo.textContent = 'No matching tickets';
+        } else {
+          paginationInfo.textContent = `Showing ${start + 1}–${Math.min(end, totalItems)} of ${totalItems}`;
+        }
+
+        pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+      }
+
+      function applyFilters() {
+        currentPage = 1; // reset to page 1 whenever the result set changes
+        renderPage();
       }
 
       searchInput.addEventListener('input', applyFilters);
       statusFilter.addEventListener('change', applyFilters);
+      pageSizeSelect.addEventListener('change', applyFilters);
+
+      prevBtn.addEventListener('click', () => {
+        currentPage -= 1;
+        renderPage();
+      });
+      nextBtn.addEventListener('click', () => {
+        currentPage += 1;
+        renderPage();
+      });
 
       // ── Sorting ──────────────────────────────────────────────
       table.querySelectorAll('th.sortable').forEach(th => {
@@ -571,7 +676,7 @@ $conn->close();
           const isAsc = !sortDirections[columnIndex];
           sortDirections[columnIndex] = isAsc;
 
-          const sorted = [...rows].sort((a, b) => {
+          rows.sort((a, b) => {
             const aText = a.cells[columnIndex].innerText.trim().toLowerCase();
             const bText = b.cells[columnIndex].innerText.trim().toLowerCase();
 
@@ -583,12 +688,18 @@ $conn->close();
             return isAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
           });
 
-          sorted.forEach(row => tbody.appendChild(row));
+          rows.forEach(row => tbody.appendChild(row));
 
           table.querySelectorAll('th.sortable').forEach(el => el.classList.remove('asc', 'desc'));
           th.classList.add(isAsc ? 'asc' : 'desc');
+
+          currentPage = 1;
+          renderPage();
         });
       });
+
+      // Initial paint
+      renderPage();
     })();
   </script>
 
