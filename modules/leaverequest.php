@@ -685,7 +685,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
             hint.classList.toggle('is-ready', isValid);
             document.getElementById('saveHintText').textContent = isValid
                 ? 'All set — ready to submit.'
-                : 'Fill in the required leave details to enable submission.';
+                : 'Fill in the required leave details.';
         }
 
         document.getElementById("leave_type").addEventListener("change", toggleLeaveFields);
