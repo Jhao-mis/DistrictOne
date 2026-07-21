@@ -906,7 +906,7 @@ $conn->close();
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="tk-view-header">
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <!-- <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button> -->
           <div class="tk-modal-eyebrow">Ticket <span id="modalTicketId"></span></div>
           <h5 class="modal-title" id="ticketModalLabel">Ticket details</h5>
           <span class="tk-view-status" id="modalTicketStatusWrap">
@@ -974,7 +974,7 @@ $conn->close();
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="tk-modal-header">
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <!-- <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button> -->
           <div class="tk-modal-eyebrow">New request</div>
           <h5 class="modal-title" id="editModalLabel">Submit a new ticket</h5>
           <p>Tell us what's going on and we'll route it to the right team.</p>

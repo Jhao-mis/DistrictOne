@@ -73,16 +73,64 @@ if (isset($_POST['reject_ticket_id'])) {
   $stmt->close();
 }
 
-// ✅ Fetch only pending tickets not yet approved
-$sql = "SELECT t.id, t.subject, t.description, t.status, t.created_at,
-               u.firstname, u.lastname, u.department
-        FROM tickets t
-        JOIN users u ON t.user_id = u.id
-        WHERE t.status = 'Pending' AND t.admin_approved = 0
-        ORDER BY t.created_at DESC";
+// ─────────────────────────────────────────────────────────────
+// ✅ Tab + "Show N rows" handling
+// ─────────────────────────────────────────────────────────────
+$allowed_show   = [10, 25, 50, 100, 999999]; // 999999 acts as "All"
+$allowed_tabs   = ['pending', 'approved', 'rejected'];
 
-$result = $conn->query($sql);
-$pending_count = $result ? $result->num_rows : 0;
+$active_tab = isset($_GET['tab']) && in_array($_GET['tab'], $allowed_tabs, true) ? $_GET['tab'] : 'pending';
+
+function get_show_limit($key, $allowed_show) {
+  return isset($_GET[$key]) && in_array((int)$_GET[$key], $allowed_show, true) ? (int)$_GET[$key] : 10;
+}
+
+$pending_show  = get_show_limit('pending_show', $allowed_show);
+$approved_show = get_show_limit('approved_show', $allowed_show);
+$rejected_show = get_show_limit('rejected_show', $allowed_show);
+
+// ─────────────────────────────────────────────────────────────
+// ✅ Fetch total counts (unaffected by the "show" limit)
+// ─────────────────────────────────────────────────────────────
+$pending_count_sql  = "SELECT COUNT(*) AS c FROM tickets WHERE status = 'Pending' AND admin_approved = 0";
+$approved_count_sql = "SELECT COUNT(*) AS c FROM tickets WHERE admin_approved = 1";
+$rejected_count_sql = "SELECT COUNT(*) AS c FROM tickets WHERE status = 'Rejected'";
+
+$pending_count  = ($r = $conn->query($pending_count_sql))  ? (int)$r->fetch_assoc()['c'] : 0;
+$approved_count = ($r = $conn->query($approved_count_sql)) ? (int)$r->fetch_assoc()['c'] : 0;
+$rejected_count = ($r = $conn->query($rejected_count_sql)) ? (int)$r->fetch_assoc()['c'] : 0;
+
+// ─────────────────────────────────────────────────────────────
+// ✅ Fetch rows per tab, respecting the selected "show" limit
+//    ($_GET values are validated against $allowed_show above,
+//     so it's safe to interpolate them as integers here)
+// ─────────────────────────────────────────────────────────────
+$pending_sql = "SELECT t.id, t.subject, t.description, t.status, t.created_at,
+                       u.firstname, u.lastname, u.department
+                FROM tickets t
+                JOIN users u ON t.user_id = u.id
+                WHERE t.status = 'Pending' AND t.admin_approved = 0
+                ORDER BY t.created_at DESC
+                LIMIT $pending_show";
+$result_pending = $conn->query($pending_sql);
+
+$approved_sql = "SELECT t.id, t.subject, t.description, t.status, t.created_at,
+                        u.firstname, u.lastname, u.department
+                 FROM tickets t
+                 JOIN users u ON t.user_id = u.id
+                 WHERE t.admin_approved = 1
+                 ORDER BY t.created_at DESC
+                 LIMIT $approved_show";
+$result_approved = $conn->query($approved_sql);
+
+$rejected_sql = "SELECT t.id, t.subject, t.description, t.status, t.created_at,
+                        u.firstname, u.lastname, u.department
+                 FROM tickets t
+                 JOIN users u ON t.user_id = u.id
+                 WHERE t.status = 'Rejected'
+                 ORDER BY t.created_at DESC
+                 LIMIT $rejected_show";
+$result_rejected = $conn->query($rejected_sql);
 ?>
 
 <!DOCTYPE html>
@@ -147,6 +195,7 @@ $pending_count = $result ? $result->num_rows : 0;
     }
     .tk-header-title { font-size: 20px; font-weight: 700; }
     .tk-header-sub { font-size: 13px; opacity: .85; margin-top: 4px; }
+    .tk-header-stats { display: flex; gap: 10px; flex-wrap: wrap; }
     .tk-header-count {
       display: flex;
       align-items: center;
@@ -173,6 +222,43 @@ $pending_count = $result ? $result->num_rows : 0;
     .tk-alert.is-error { background: var(--tk-reject-bg); color: var(--tk-reject); }
     .tk-alert svg { width: 17px; height: 17px; flex-shrink: 0; }
 
+    /* ── Tabs ──────────────────────────────────────────────────────── */
+    .tk-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--tk-border);
+    }
+    .tk-tab-btn {
+      appearance: none;
+      background: none;
+      border: none;
+      padding: 10px 16px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tk-text-muted);
+      cursor: pointer;
+      border-bottom: 2.5px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color .12s ease, border-color .12s ease;
+    }
+    .tk-tab-btn:hover { color: var(--tk-text); }
+    .tk-tab-btn.is-active { color: var(--tk-text); border-bottom-color: var(--tk-primary); }
+    .tk-tab-btn .tk-tab-count {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--tk-bg);
+      color: var(--tk-text-muted);
+    }
+    .tk-tab-btn.is-active .tk-tab-count { background: var(--tk-primary-soft); color: #2563a8; }
+
+    .tk-tab-panel { display: none; }
+    .tk-tab-panel.is-active { display: block; }
+
     /* ── Table card ────────────────────────────────────────────────── */
     .tk-card {
       background: var(--tk-surface);
@@ -188,9 +274,31 @@ $pending_count = $result ? $result->num_rows : 0;
       font-size: 15px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
     }
+    .tk-card-head-title { display: flex; align-items: center; gap: 8px; }
     .tk-card-head svg { width: 16px; height: 16px; color: var(--tk-text-muted); }
+
+    .tk-show-select {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--tk-text-muted);
+    }
+    .tk-show-select select {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--tk-text);
+      border: 1.5px solid var(--tk-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      background: var(--tk-surface);
+      cursor: pointer;
+    }
 
     table.tk-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
     table.tk-table thead th {
@@ -233,6 +341,8 @@ $pending_count = $result ? $result->num_rows : 0;
       font-size: 12px; font-weight: 700;
       background: var(--tk-pending-bg); color: var(--tk-pending);
     }
+    .tk-badge.is-approve { background: var(--tk-approve-bg); color: var(--tk-approve); }
+    .tk-badge.is-reject { background: var(--tk-reject-bg); color: var(--tk-reject); }
     .tk-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
     .tk-time { color: var(--tk-text-muted); font-size: 12.5px; }
@@ -436,14 +546,30 @@ $pending_count = $result ? $result->num_rows : 0;
         <div class="tk-header-card">
           <div>
             <div class="tk-header-eyebrow">Approval queue</div>
-            <div class="tk-header-title">Tickets pending approval</div>
-            <div class="tk-header-sub">Review newly submitted requests before they move into the support pipeline.</div>
+            <div class="tk-header-title">IT Service Requests</div>
+            
           </div>
-          <div class="tk-header-count">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6M9 16h6M9 8h6M5 4h14v16l-3-2-3 2-3-2-3 2V4z"/></svg>
-            <div>
-              <div class="num"><?= $pending_count ?></div>
-              <div class="label">Awaiting review</div>
+          <div class="tk-header-stats">
+            <div class="tk-header-count">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6M9 16h6M9 8h6M5 4h14v16l-3-2-3 2-3-2-3 2V4z"/></svg>
+              <div>
+                <div class="num"><?= $pending_count ?></div>
+                <div class="label">Pending</div>
+              </div>
+            </div>
+            <div class="tk-header-count">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              <div>
+                <div class="num"><?= $approved_count ?></div>
+                <div class="label">Approved</div>
+              </div>
+            </div>
+            <div class="tk-header-count">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              <div>
+                <div class="num"><?= $rejected_count ?></div>
+                <div class="label">Rejected</div>
+              </div>
             </div>
           </div>
         </div>
@@ -462,86 +588,183 @@ $pending_count = $result ? $result->num_rows : 0;
           </div>
         <?php endif; ?>
 
-        <!-- Table -->
-        <div class="tk-card">
-          <div class="tk-card-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-            Pending tickets
-          </div>
+        <!-- Tabs -->
+        <div class="tk-tabs">
+          <button type="button" class="tk-tab-btn <?= $active_tab === 'pending' ? 'is-active' : '' ?>" data-tab-target="pending">
+            Pending <span class="tk-tab-count"><?= $pending_count ?></span>
+          </button>
+          <button type="button" class="tk-tab-btn <?= $active_tab === 'approved' ? 'is-active' : '' ?>" data-tab-target="approved">
+            Approved <span class="tk-tab-count"><?= $approved_count ?></span>
+          </button>
+          <button type="button" class="tk-tab-btn <?= $active_tab === 'rejected' ? 'is-active' : '' ?>" data-tab-target="rejected">
+            Rejected <span class="tk-tab-count"><?= $rejected_count ?></span>
+          </button>
+        </div>
 
-          <div class="table-responsive text-nowrap">
-            <table class="tk-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Submitted By</th>
-                  <th>Department</th>
-                  <th>Subject</th>
-                  <th>Status</th>
-                  <th>Created At</th>
-                  <th class="text-center">Action</th>
-                </tr>
-              </thead>
+        <?php
+        // Reusable renderer for each table panel
+        function render_show_select($name, $current, $allowed_show) {
+          echo '<form method="GET" class="tk-show-select" data-show-form>';
+          // preserve the active tab + other show params when this form submits
+          echo '<input type="hidden" name="tab" value="' . htmlspecialchars($GLOBALS['active_tab']) . '">';
+          foreach (['pending_show', 'approved_show', 'rejected_show'] as $p) {
+            if ($p !== $name) {
+              echo '<input type="hidden" name="' . $p . '" value="' . (int)$GLOBALS[$p] . '">';
+            }
+          }
+          echo 'Show';
+          echo '<select name="' . $name . '" onchange="this.form.submit()">';
+          foreach ($allowed_show as $opt) {
+            $label = $opt === 999999 ? 'All' : $opt;
+            $sel = (int)$current === $opt ? 'selected' : '';
+            echo '<option value="' . $opt . '" ' . $sel . '>' . $label . '</option>';
+          }
+          echo '</select>';
+          echo '</form>';
+        }
 
-              <tbody>
-                <?php if ($result && $result->num_rows > 0): ?>
-                  <?php while ($row = $result->fetch_assoc()):
-                    $fullName = trim($row['firstname'] . ' ' . $row['lastname']);
-                    $initials = strtoupper(substr($row['firstname'], 0, 1) . substr($row['lastname'], 0, 1));
-                  ?>
-                    <tr data-ticket-id="<?= $row['id']; ?>"
-                      data-ticket-subject="<?= htmlspecialchars($row['subject']); ?>"
-                      data-ticket-description="<?= htmlspecialchars($row['description']); ?>"
-                      data-ticket-status="<?= htmlspecialchars($row['status']); ?>"
-                      data-ticket-department="<?= htmlspecialchars($row['department']); ?>"
-                      data-ticket-user="<?= htmlspecialchars($fullName); ?>"
-                      data-ticket-date="<?= htmlspecialchars(date("M d, Y h:i A", strtotime($row['created_at']))); ?>"
-                      title="Click to view details">
-                      <td class="tk-id">#<?= htmlspecialchars($row['id']); ?></td>
-                      <td>
-                        <div class="tk-user">
-                          <div class="tk-avatar"><?= htmlspecialchars($initials) ?></div>
-                          <div class="tk-user-name"><?= htmlspecialchars($fullName); ?></div>
-                        </div>
-                      </td>
-                      <td><?= htmlspecialchars($row['department']); ?></td>
-                      <td class="tk-subject">
-                        <?= htmlspecialchars(strlen($row['subject']) > 30 ? substr($row['subject'], 0, 30) . '…' : $row['subject']); ?>
-                      </td>
-                      <td><span class="tk-badge"><span class="dot"></span><?= htmlspecialchars($row['status']); ?></span></td>
-                      <td class="tk-time"><?= htmlspecialchars(date("M d, Y h:i A", strtotime($row['created_at']))); ?></td>
-                      <td class="text-center" onclick="event.stopPropagation()">
-                        <div class="tk-actions">
-                          <form class="action-form" method="POST" data-action="approve">
-                            <input type="hidden" name="approve_ticket_id" value="<?= htmlspecialchars($row['id']); ?>">
-                            <button type="submit" class="tk-action-btn is-approve" title="Approve">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            </button>
-                          </form>
-                          <form class="action-form" method="POST" data-action="reject">
-                            <input type="hidden" name="reject_ticket_id" value="<?= htmlspecialchars($row['id']); ?>">
-                            <button type="submit" class="tk-action-btn is-reject" title="Reject">
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                            </button>
-                          </form>
-                        </div>
-                      </td>
-                    </tr>
-                  <?php endwhile; ?>
-                <?php else: ?>
-                  <tr>
-                    <td colspan="7">
-                      <div class="tk-empty">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-                        <p>No pending tickets found</p>
-                        <span>You're all caught up — new submissions will show up here.</span>
-                      </div>
-                    </td>
-                  </tr>
+        function render_ticket_table($result, $show_actions) {
+          if ($result && $result->num_rows > 0):
+            while ($row = $result->fetch_assoc()):
+              $fullName = trim($row['firstname'] . ' ' . $row['lastname']);
+              $initials = strtoupper(substr($row['firstname'], 0, 1) . substr($row['lastname'], 0, 1));
+              $badgeClass = 'tk-badge';
+              $badgeText = $row['status'];
+              if ($show_actions === 'approved') { $badgeClass .= ' is-approve'; $badgeText = 'Approved'; }
+              if ($row['status'] === 'Rejected') { $badgeClass .= ' is-reject'; }
+              ?>
+              <tr data-ticket-id="<?= $row['id']; ?>"
+                data-ticket-subject="<?= htmlspecialchars($row['subject']); ?>"
+                data-ticket-description="<?= htmlspecialchars($row['description']); ?>"
+                data-ticket-status="<?= htmlspecialchars($badgeText); ?>"
+                data-ticket-department="<?= htmlspecialchars($row['department']); ?>"
+                data-ticket-user="<?= htmlspecialchars($fullName); ?>"
+                data-ticket-date="<?= htmlspecialchars(date("M d, Y h:i A", strtotime($row['created_at']))); ?>"
+                data-ticket-actionable="<?= $show_actions === 'pending' ? '1' : '0' ?>"
+                title="Click to view details">
+                <td class="tk-id">#<?= htmlspecialchars($row['id']); ?></td>
+                <td>
+                  <div class="tk-user">
+                    <div class="tk-avatar"><?= htmlspecialchars($initials) ?></div>
+                    <div class="tk-user-name"><?= htmlspecialchars($fullName); ?></div>
+                  </div>
+                </td>
+                <td><?= htmlspecialchars($row['department']); ?></td>
+                <td class="tk-subject">
+                  <?= htmlspecialchars(strlen($row['subject']) > 30 ? substr($row['subject'], 0, 30) . '…' : $row['subject']); ?>
+                </td>
+                <td><span class="<?= $badgeClass ?>"><span class="dot"></span><?= htmlspecialchars($badgeText); ?></span></td>
+                <td class="tk-time"><?= htmlspecialchars(date("M d, Y h:i A", strtotime($row['created_at']))); ?></td>
+                <?php if ($show_actions === 'pending'): ?>
+                <td class="text-center" onclick="event.stopPropagation()">
+                  <div class="tk-actions">
+                    <form class="action-form" method="POST" data-action="approve">
+                      <input type="hidden" name="approve_ticket_id" value="<?= htmlspecialchars($row['id']); ?>">
+                      <button type="submit" class="tk-action-btn is-approve" title="Approve">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      </button>
+                    </form>
+                    <form class="action-form" method="POST" data-action="reject">
+                      <input type="hidden" name="reject_ticket_id" value="<?= htmlspecialchars($row['id']); ?>">
+                      <button type="submit" class="tk-action-btn is-reject" title="Reject">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                      </button>
+                    </form>
+                  </div>
+                </td>
                 <?php endif; ?>
-              </tbody>
+              </tr>
+              <?php
+            endwhile;
+          else:
+            $colspan = $show_actions === 'pending' ? 7 : 6;
+            ?>
+            <tr>
+              <td colspan="<?= $colspan ?>">
+                <div class="tk-empty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                  <p>No tickets found</p>
+                  <span>There's nothing to show here yet.</span>
+                </div>
+              </td>
+            </tr>
+            <?php
+          endif;
+        }
+        ?>
 
-            </table>
+        <!-- Pending Panel -->
+        <div class="tk-tab-panel <?= $active_tab === 'pending' ? 'is-active' : '' ?>" id="panel-pending">
+          <div class="tk-card">
+            <div class="tk-card-head">
+              <div class="tk-card-head-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                Pending tickets
+              </div>
+              <?php render_show_select('pending_show', $pending_show, $allowed_show); ?>
+            </div>
+            <div class="table-responsive text-nowrap">
+              <table class="tk-table">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Submitted By</th><th>Department</th><th>Subject</th><th>Status</th><th>Created At</th><th class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php render_ticket_table($result_pending, 'pending'); ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Approved Panel -->
+        <div class="tk-tab-panel <?= $active_tab === 'approved' ? 'is-active' : '' ?>" id="panel-approved">
+          <div class="tk-card">
+            <div class="tk-card-head">
+              <div class="tk-card-head-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                Approved tickets
+              </div>
+              <?php render_show_select('approved_show', $approved_show, $allowed_show); ?>
+            </div>
+            <div class="table-responsive text-nowrap">
+              <table class="tk-table">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Submitted By</th><th>Department</th><th>Subject</th><th>Status</th><th>Created At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php render_ticket_table($result_approved, 'approved'); ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rejected Panel -->
+        <div class="tk-tab-panel <?= $active_tab === 'rejected' ? 'is-active' : '' ?>" id="panel-rejected">
+          <div class="tk-card">
+            <div class="tk-card-head">
+              <div class="tk-card-head-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                Rejected tickets
+              </div>
+              <?php render_show_select('rejected_show', $rejected_show, $allowed_show); ?>
+            </div>
+            <div class="table-responsive text-nowrap">
+              <table class="tk-table">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Submitted By</th><th>Department</th><th>Subject</th><th>Status</th><th>Created At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php render_ticket_table($result_rejected, 'rejected'); ?>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -599,7 +822,7 @@ $pending_count = $result ? $result->num_rows : 0;
           <div id="modalTicketDescription" class="tk-view-desc"></div>
         </div>
 
-        <div class="modal-footer">
+        <div class="modal-footer" id="modalFooterActions">
           <button type="button" class="tk-btn-cancel" data-bs-dismiss="modal">Close</button>
           <button type="button" class="tk-btn-reject" id="modalRejectBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -621,6 +844,29 @@ $pending_count = $result ? $result->num_rows : 0;
   <script src="../assets/vendor/js/bootstrap.js"></script>
   <script src="../assets/vendor/js/menu.js"></script>
   <script src="../assets/js/main.js"></script>
+
+  <!-- TAB SWITCHING SCRIPT -->
+  <script>
+    $(document).ready(function () {
+      $('.tk-tab-btn').on('click', function () {
+        const target = $(this).data('tab-target');
+
+        $('.tk-tab-btn').removeClass('is-active');
+        $(this).addClass('is-active');
+
+        $('.tk-tab-panel').removeClass('is-active');
+        $('#panel-' + target).addClass('is-active');
+
+        // Keep the URL (and "show" selects) in sync with the active tab
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', target);
+        window.history.replaceState({}, '', url);
+
+        // update hidden tab inputs inside the show-select forms
+        $('form[data-show-form] input[name="tab"]').val(target);
+      });
+    });
+  </script>
 
   <!-- SWEET ALERT SCRIPT HANDLER -->
   <script>
@@ -680,6 +926,10 @@ $pending_count = $result ? $result->num_rows : 0;
         $('#modalTicketDept').text(row.data('ticket-department'));
         $('#modalTicketUser').text(row.data('ticket-user'));
         $('#modalTicketDate').text(row.data('ticket-date'));
+
+        // Only show Approve/Reject buttons for tickets that are still pending
+        const actionable = row.data('ticket-actionable') === 1 || row.data('ticket-actionable') === '1';
+        $('#modalApproveBtn, #modalRejectBtn').toggle(actionable);
 
         $('#ticketModal').modal('show');
       });

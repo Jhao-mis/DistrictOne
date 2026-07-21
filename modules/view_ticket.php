@@ -28,6 +28,84 @@ if (!$user_id) {
 }
 $_SESSION['user_id'] = $user_id;
 
+// ─────────────────────────────────────────────────────────────────────────
+// ✅ Handle AJAX "Cancel Ticket" requests (self-contained, no separate file)
+// Only allowed while the ticket is still "Pending" — once it's approved
+// (moved to In Progress) or resolved/rejected/already cancelled, this
+// will refuse the request.
+// ─────────────────────────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cancel_ticket') {
+  header('Content-Type: application/json');
+
+  $cancel_ticket_id = isset($_POST['ticket_id']) ? intval($_POST['ticket_id']) : 0;
+
+  if ($cancel_ticket_id <= 0) {
+    echo json_encode(['success' => false, 'message' => 'Invalid ticket ID.']);
+    exit;
+  }
+
+  // Confirm the ticket exists and grab its status + owner + approval flag
+  $checkStmt = $conn->prepare("SELECT status, user_id, admin_approved FROM tickets WHERE id = ?");
+  if (!$checkStmt) {
+    echo json_encode(['success' => false, 'message' => 'Server error: ' . $conn->error]);
+    exit;
+  }
+  $checkStmt->bind_param("i", $cancel_ticket_id);
+  $checkStmt->execute();
+  $checkStmt->bind_result($cancel_status, $cancel_owner_id, $cancel_admin_approved);
+  $found = $checkStmt->fetch();
+  $checkStmt->close();
+
+  if (!$found) {
+    echo json_encode(['success' => false, 'message' => 'Ticket not found.']);
+    exit;
+  }
+
+  if ((int)$cancel_owner_id !== (int)$user_id) {
+    echo json_encode(['success' => false, 'message' => 'You are not allowed to cancel this ticket.']);
+    exit;
+  }
+
+  // ✅ Only "Pending" AND not-yet-approved tickets can be cancelled.
+  // Once admin_approved = 1 (or status moves past Pending), cancellation is blocked.
+  if ($cancel_status !== 'Pending' || (int)$cancel_admin_approved === 1) {
+    echo json_encode(['success' => false, 'message' => 'This ticket has already been approved/processed and can no longer be cancelled.']);
+    exit;
+  }
+
+  $conn->begin_transaction();
+  try {
+    $updateStmt = $conn->prepare("UPDATE tickets SET status = 'Cancelled' WHERE id = ? AND status = 'Pending' AND admin_approved = 0");
+    $updateStmt->bind_param("i", $cancel_ticket_id);
+    $updateStmt->execute();
+    $affected = $updateStmt->affected_rows;
+    $updateStmt->close();
+
+    if ($affected === 0) {
+      // Status/approval changed between the check and the update (race condition)
+      $conn->rollback();
+      echo json_encode(['success' => false, 'message' => 'This ticket has already been approved/processed and can no longer be cancelled.']);
+      exit;
+    }
+
+    $cancelNow = date('Y-m-d H:i:s');
+    $cancelAction = "Ticket cancelled by requester";
+    $historyStmt = $conn->prepare("INSERT INTO ticket_history (ticket_id, action, action_by, timestamp) VALUES (?, ?, ?, ?)");
+    $historyStmt->bind_param("isis", $cancel_ticket_id, $cancelAction, $user_id, $cancelNow);
+    $historyStmt->execute();
+    $historyStmt->close();
+
+    $conn->commit();
+    echo json_encode(['success' => true, 'message' => 'Your ticket has been cancelled.']);
+  } catch (Exception $e) {
+    $conn->rollback();
+    echo json_encode(['success' => false, 'message' => 'Failed to cancel the ticket. Please try again.']);
+  }
+
+  $conn->close();
+  exit;
+}
+
 // Check if 'ticket_id' is provided
 if (!isset($_GET['ticket_id']) || empty($_GET['ticket_id'])) {
   die("<p style='color:red; text-align:center;'>❌ Error: Ticket ID is missing or invalid.</p>");
@@ -82,6 +160,13 @@ $statusMap = [
   'Cancelled'   => ['class' => 'st-cancelled', 'icon' => 'x'],
 ];
 $statusInfo = $statusMap[$ticket['status']] ?? ['class' => 'st-pending', 'icon' => 'hourglass'];
+
+// ✅ Determine if the current user is allowed to cancel this ticket.
+// Cancellable ONLY while status is "Pending" AND admin_approved = 0 —
+// once approved, resolved, rejected, or already cancelled, the button won't show.
+$canCancel = $ticket['status'] === 'Pending'
+  && (int)$ticket['admin_approved'] === 0
+  && (int)$ticket['user_id'] === (int)$user_id;
 
 $assigneeName = $ticket['mis_name'] !== null ? trim(preg_replace('/\s+/', ' ', $ticket['mis_name'])) : '';
 $isAssigned = $assigneeName !== '';
@@ -241,6 +326,12 @@ function tk_history_icon(string $action): string
       line-height: 1.3;
       max-width: 560px;
     }
+    .tk-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
     .tk-status-pill {
       display: inline-flex;
       align-items: center;
@@ -253,6 +344,26 @@ function tk_history_icon(string $action): string
       white-space: nowrap;
     }
     .tk-status-pill svg { width: 14px; height: 14px; }
+
+    .tk-cancel-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 15px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(255,255,255,.16);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.35);
+      cursor: pointer;
+      transition: background .12s ease, transform .08s ease;
+      white-space: nowrap;
+    }
+    .tk-cancel-btn:hover { background: rgba(255,255,255,.28); }
+    .tk-cancel-btn:active { transform: scale(.97); }
+    .tk-cancel-btn svg { width: 14px; height: 14px; }
+    .tk-cancel-btn:disabled { opacity: .6; cursor: not-allowed; }
 
     /* ── Body grid ─────────────────────────────────────────────────── */
     .tk-grid {
@@ -492,18 +603,27 @@ function tk_history_icon(string $action): string
               <div class="tk-header-eyebrow">Ticket #<?= htmlspecialchars($ticket['id']); ?></div>
               <div class="tk-header-subject"><?= htmlspecialchars($ticket['subject']); ?></div>
             </div>
-            <span class="tk-status-pill <?= $statusInfo['class'] ?>">
-              <?php if ($statusInfo['icon'] === 'check'): ?>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-              <?php elseif ($statusInfo['icon'] === 'clock'): ?>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-              <?php elseif ($statusInfo['icon'] === 'hourglass'): ?>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h14M5 22h14M5 2c0 6 5 7 5 10s-5 4-5 10M19 2c0 6-5 7-5 10s5 4 5 10"/></svg>
-              <?php else: ?>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <div class="tk-header-actions">
+              <span class="tk-status-pill <?= $statusInfo['class'] ?>">
+                <?php if ($statusInfo['icon'] === 'check'): ?>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                <?php elseif ($statusInfo['icon'] === 'clock'): ?>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                <?php elseif ($statusInfo['icon'] === 'hourglass'): ?>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2h14M5 22h14M5 2c0 6 5 7 5 10s-5 4-5 10M19 2c0 6-5 7-5 10s5 4 5 10"/></svg>
+                <?php else: ?>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <?php endif; ?>
+                <?= htmlspecialchars($ticket['status']); ?>
+              </span>
+
+              <?php if ($canCancel): ?>
+                <button type="button" id="btnCancelTicket" class="tk-cancel-btn" data-ticket-id="<?= (int)$ticket['id'] ?>">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  Cancel Ticket
+                </button>
               <?php endif; ?>
-              <?= htmlspecialchars($ticket['status']); ?>
-            </span>
+            </div>
           </div>
         </div>
 
@@ -629,6 +749,50 @@ function tk_history_icon(string $action): string
           editModal.show();
         });
       });
+
+      // ── Cancel ticket ──────────────────────────────────────────────
+      var cancelBtn = document.getElementById("btnCancelTicket");
+      if (cancelBtn) {
+        cancelBtn.addEventListener("click", function () {
+          var ticketId = this.dataset.ticketId;
+          var btn = this;
+
+          Swal.fire({
+            title: "Cancel this ticket?",
+            text: "This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, cancel it",
+            cancelButtonText: "No, keep it",
+            confirmButtonColor: "#c0392b"
+          }).then(function (result) {
+            if (!result.isConfirmed) return;
+
+            btn.disabled = true;
+
+            fetch(window.location.pathname + window.location.search, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: "action=cancel_ticket&ticket_id=" + encodeURIComponent(ticketId)
+            })
+              .then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data.success) {
+                  Swal.fire("Cancelled!", data.message, "success").then(function () {
+                    location.reload();
+                  });
+                } else {
+                  btn.disabled = false;
+                  Swal.fire("Error", data.message, "error");
+                }
+              })
+              .catch(function () {
+                btn.disabled = false;
+                Swal.fire("Error", "Something went wrong. Please try again.", "error");
+              });
+          });
+        });
+      }
     });
   </script>
 

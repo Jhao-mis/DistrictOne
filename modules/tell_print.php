@@ -75,6 +75,7 @@ $customOrderNumbers = [
     1001,
     1002,
     1003,
+    1006,
     3004,
     5005,
     2006,
@@ -125,8 +126,8 @@ unset($row);
     <style>
         /* --- MANUAL ADJUSTMENT AREA --- */
         :root {
-            --td-font-size: 13.5px;      /* Increase/Decrease to fit more/less */
-            --td-padding: 2.5px 4px;    /* Increase/Decrease vertical space */
+            --td-font-size: 13.4px;      /* Increase/Decrease to fit more/less */
+            --td-padding: 2.7px 4px;    /* Increase/Decrease vertical space */
             --print-scale: 0.95;        /* 1.0 is original size, 0.95 shrinks it */
         }
         /* ------------------------------ */

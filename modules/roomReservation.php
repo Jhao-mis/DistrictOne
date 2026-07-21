@@ -457,7 +457,7 @@ $conn->close();
                 aria-labelledby="roomReservationSidebarLabel">
                 <div class="offcanvas-header border-bottom">
                     <h5 class="offcanvas-title" id="roomReservationSidebarLabel">Room Reservation Request</h5>
-                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    <!-- <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button> -->
                 </div>
                 <div class="offcanvas-body">
                     <form method="POST" class="reservation-form">
@@ -588,7 +588,7 @@ $conn->close();
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="reservationModalLabel">Reservation Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
                 </div>
 
                 <div class="modal-body">
