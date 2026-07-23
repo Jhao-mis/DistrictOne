@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
   }
 
-  $stmt = $conn->prepare("SELECT id FROM users WHERE email=?");
+  $stmt = $conn->prepare("SELECT id, username FROM users WHERE email=?");
   $stmt->bind_param("s", $email);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -34,6 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   $user = $result->fetch_assoc();
   $user_id = $user['id'];
+  $username = $user['username'];
 
   // Generate secure token
   $token = bin2hex(random_bytes(32));
@@ -99,7 +100,7 @@ Password Reset Request
 
 <p style="color:#555;font-size:14px;line-height:1.6">
 We received a request to reset the password for your
-<b>DistrictOne account</b>.
+<b>DistrictOne account</b> (username: <b>' . htmlspecialchars($username) . '</b>).
 </p>
 
 <p style="color:#555;font-size:14px">
@@ -158,7 +159,12 @@ Manage Information Services Section
 
     $mail->send();
 
-    $_SESSION['alert'] = ['type' => 'success', 'message' => 'Reset link sent to your email'];
+    // Store username in session so it can be displayed on the forgot-password page
+    $_SESSION['alert'] = [
+      'type' => 'success',
+      'message' => 'Reset link sent to your email',
+      'username' => $username
+    ];
 
   } catch (Exception $e) {
     $_SESSION['alert'] = ['type' => 'error', 'message' => 'Mailer Error'];
@@ -345,15 +351,15 @@ Manage Information Services Section
 
     <!-- SweetAlert2 Script -->
     <?php if (isset($_SESSION['alert'])): ?>
-                  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                  <script>
-                    Swal.fire({
-                      icon: '<?= $_SESSION['alert']['type'] ?>',
-                      title: '<?= $_SESSION['alert']['message'] ?>',
-                      confirmButtonText: 'OK'
-                    });
-                  </script>
-                  <?php unset($_SESSION['alert']); ?>
+                      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                      <script>
+                        Swal.fire({
+                          icon: '<?= $_SESSION['alert']['type'] ?>',
+                          title: '<?= $_SESSION['alert']['message'] ?>',
+                          confirmButtonText: 'OK'
+                        });
+                      </script>
+                      <?php unset($_SESSION['alert']); ?>
 <?php endif; ?>
 
 
