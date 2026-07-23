@@ -243,7 +243,7 @@ Manage Information Services Section
   </head>
   <style>
   body {
-        background-image: url('assets/img/backgrounds/jan.jpg');
+        background-image: url('assets/img/backgrounds/bg69.jpg');
         background-attachment: fixed; /* Makes background image fixed */
         background-size: cover; /* Ensures the background image covers the entire screen */
         background-position: center center; /* Center the background image */

@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       min-height: 100vh;
 
       /* 🔥 YOUR BACKGROUND IMAGE HERE */
-      background-image: url("assets/img/backgrounds/May.jpg");
+      background-image: url("assets/img/backgrounds/bg69.jpg");
 
 
       background-position: center center;
@@ -383,7 +383,7 @@ window.location.href = '$redirect_url';
         </div>
 
         <!-- SECTION SUBTEXT -->
-        <div style="padding-left: 4px; color: #ffffff;">
+        <!-- <div style="padding-left: 4px; color: #ffffff;">
           <p style="margin: 0 0 4px 0; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; color: #ffffff;">
             Greater things are coming.
           </p>
@@ -391,7 +391,7 @@ window.location.href = '$redirect_url';
             style="display: block; opacity: 0.65; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #ffffff;">
             Management Information Services Section
           </small>
-        </div>
+        </div> -->
 
       </div>
 

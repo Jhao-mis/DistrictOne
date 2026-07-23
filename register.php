@@ -232,7 +232,8 @@ if (isset($_SESSION['success'])) {
 
                 </svg>
               </span>
-              <img src="assets/img/backgrounds/districtone.png" alt="CWD Logo" width="60" class="logo" />
+              <!-- CHANGE FOR BG -->
+              <img src="assets/img/backgrounds/bg69.jpg" alt="CWD Logo" width="60" class="logo" />  
               <span class="app-brand-text text-body fw-bolder">District One</span>
               <br />
               <span class="app-brand-text text-body fw-bolder small-text">Calamba Water District Management Information
