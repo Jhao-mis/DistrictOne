@@ -389,8 +389,8 @@ $conn->close();
                 <!-- Personal Information (read-only) -->
                 <div class="acc-section">
                   <div class="acc-section-header"><i class='bx bx-id-card'></i> Personal Information</div>
-                  <p class="acc-field-hint mt-n2 mb-3">These details are managed by HR/Admin and can't be edited
-                    here.</p>
+                  <!-- <p class="acc-field-hint mt-n2 mb-3">These details are managed by HR/Admin and can't be edited
+                    here.</p> -->
                   <div class="row">
                     <div class="mb-3 col-md-6">
                       <label for="firstname" class="form-label">First Name</label>
