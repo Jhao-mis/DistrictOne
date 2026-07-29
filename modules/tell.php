@@ -648,6 +648,10 @@ $result = $stmt->get_result();
                                             class="icon-base bx bx-phone icon-sm me-1_5"></i> Local Directory</a>
                                 </li>
 
+                                <li class="nav-item">
+                                    <a class="nav-link" href="comms.php"><i class="icon-base bx bx-phone icon-sm me-1_5"></i>
+                                        Committees</a>
+                                </li>
 
                             </ul>
                         </div>
