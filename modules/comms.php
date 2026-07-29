@@ -1457,8 +1457,7 @@ $result = $stmt->get_result();
                                 <circle cx="11" cy="11" r="7" />
                                 <path d="M21 21l-4.3-4.3" />
                             </svg>
-                            <input type="text" id="commSearch"
-                                placeholder="Search by member name, committee, or designation...">
+                            <input type="text" id="commSearch" placeholder="Search by member name or designation">
                         </div>
 
 
@@ -1541,13 +1540,14 @@ $result = $stmt->get_result();
 
                                                         <!-- Spacer Push -->
                                                         <div class="mt-auto pt-2 w-100">
+                                                            
                                                             <!-- Designation -->
                                                             <span
-                                                                class="badge rounded-pill bg-label-primary text-primary fw-semibold px-3 py-2 w-100 text-truncate d-block"
+                                                                class="badge rounded-pill bg-label-primary text-primary fw-semibold px-3 py-2 w-100 d-inline-flex align-items-center justify-content-center text-wrap lh-sm"
                                                                 title="<?= htmlspecialchars($member['designation']); ?>">
-                                                                <i class="fa-solid fa-user-check text-[#2E96EC] text-xs"></i>
-                                                                <span
-                                                                    class="align-middle"><?= htmlspecialchars($member['designation']); ?></span>
+                                                                <i
+                                                                    class="fa-solid fa-user-check text-[#2E96EC] text-xs me-1 flex-shrink-0"></i>
+                                                                <span><?= htmlspecialchars($member['designation']); ?></span>
                                                             </span>
                                                         </div>
 
