@@ -1397,8 +1397,8 @@ $result = $stmt->get_result();
                     ],
                 ];
 
-                
-                
+
+
                 ?>
 
                 <!-- COMMITTEE MEMBERSHIPS UI CONTAINER -->
@@ -1415,16 +1415,21 @@ $result = $stmt->get_result();
                                 placeholder="Search by member name, committee, or designation...">
                         </div>
 
-                        <!-- CONTROLS: COMMITTEE QUICK FILTERS -->
-                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                            <div class="dir-filters" id="committeeFilters">
-                                <button class="dir-filter-btn active" data-filter="all">All Committees</button>
+
+                        <!-- CONTROLS: COMMITTEE DROPDOWN FILTER -->
+                        <div class="mb-4">
+                            <label for="committeeSelect" class="form-label fw-bold text-dark mb-2">
+                                <i class="bx bx-filter-alt me-1"></i> Filter by Committee:
+                            </label>
+                            <select id="committeeSelect" class="form-select form-select-lg shadow-sm"
+                                style="border-radius: 10px; border-color: var(--tk-border);">
+                                <option value="all">All Committees</option>
                                 <?php foreach ($committees_data as $index => $comm): ?>
-                                    <button class="dir-filter-btn" data-filter="comm-<?= $index ?>">
-                                        <?= htmlspecialchars($comm['committee_name']) ?>
-                                    </button>
+                                    <option value="comm-<?= $index ?>">
+                                        <?= htmlspecialchars($comm['committee_name']) ?> (<?= count($comm['members']) ?>)
+                                    </option>
                                 <?php endforeach; ?>
-                            </div>
+                            </select>
                         </div>
 
                         <!-- COMMITTEE MEMBERSHIP CONTAINER -->
@@ -1532,15 +1537,20 @@ $result = $stmt->get_result();
                 });
             });
 
-            // Committee Quick Filter Buttons
-            filterButtons.forEach(button => {
-                button.addEventListener("click", function () {
-                    filterButtons.forEach(btn => btn.classList.remove("active"));
-                    this.classList.add("active");
+            // Committee Select Dropdown Filter
+            const committeeSelect = document.getElementById("committeeSelect");
 
-                    const selectedFilter = this.getAttribute("data-filter");
+            if (committeeSelect) {
+                committeeSelect.addEventListener("change", function () {
+                    const selectedFilter = this.value;
+
+                    // Reset search input kapag nagpalit ng filter (optional pero magandang UX)
+                    if (searchInput) searchInput.value = "";
 
                     document.querySelectorAll(".comm-group").forEach(group => {
+                        // I-reset ang visibility ng member cards sa napiling committee
+                        group.querySelectorAll(".member-card").forEach(card => card.style.display = "");
+
                         if (selectedFilter === "all" || group.getAttribute("data-comm") === selectedFilter) {
                             group.style.display = "";
                         } else {
@@ -1548,7 +1558,7 @@ $result = $stmt->get_result();
                         }
                     });
                 });
-            });
+            }
         });
 
         function copyToClipboard(text) {
