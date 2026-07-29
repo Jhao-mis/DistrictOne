@@ -528,6 +528,52 @@ $result = $stmt->get_result();
             color: var(--tk-primary);
             background: var(--tk-primary-soft) !important;
         }
+
+        /* Committee Dropdown Custom Styling */
+        .comm-filter-card {
+            background: #ffffff;
+            padding: 16px 20px;
+            border-radius: var(--tk-radius, 12px);
+            border: 1px solid var(--tk-border, #e8eaee);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .comm-filter-card:hover {
+            border-color: var(--tk-primary, #7cb9ff);
+        }
+
+        .custom-comm-select {
+            border-radius: 10px !important;
+            border: 1.5px solid var(--tk-border, #e8eaee) !important;
+            font-size: 0.95rem !important;
+            font-weight: 500 !important;
+            color: var(--tk-text, #1f2430) !important;
+            background-color: var(--tk-bg, #f7f8fa) !important;
+            padding: 12px 16px !important;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out !important;
+        }
+
+        /* Hover at Focus States */
+        .custom-comm-select:hover {
+            background-color: #ffffff !important;
+            border-color: var(--tk-primary, #7cb9ff) !important;
+        }
+
+        .custom-comm-select:focus {
+            background-color: #ffffff !important;
+            border-color: #4e96f0 !important;
+            box-shadow: 0 0 0 4px var(--tk-primary-soft, #eaf3ff) !important;
+            outline: none !important;
+        }
+
+        /* Styling para sa mismong options list */
+        .custom-comm-select option {
+            padding: 10px;
+            font-weight: 500;
+            color: #333;
+        }
     </style>
 </head>
 
@@ -1417,19 +1463,25 @@ $result = $stmt->get_result();
 
 
                         <!-- CONTROLS: COMMITTEE DROPDOWN FILTER -->
-                        <div class="mb-4">
-                            <label for="committeeSelect" class="form-label fw-bold text-dark mb-2">
-                                <i class="bx bx-filter-alt me-1"></i> Filter by Committee:
+                        <div class="mb-4 comm-filter-card">
+                            <label for="committeeSelect"
+                                class="form-label fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+                                <i class="bx bx-filter-alt text-primary fs-5"></i>
+                                <span>Filter by Committee</span>
                             </label>
-                            <select id="committeeSelect" class="form-select form-select-lg shadow-sm"
-                                style="border-radius: 10px; border-color: var(--tk-border);">
-                                <option value="all">All Committees</option>
-                                <?php foreach ($committees_data as $index => $comm): ?>
-                                    <option value="comm-<?= $index ?>">
-                                        <?= htmlspecialchars($comm['committee_name']) ?> (<?= count($comm['members']) ?>)
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+
+                            <div class="position-relative">
+                                <select id="committeeSelect"
+                                    class="form-select form-select-lg shadow-sm custom-comm-select">
+                                    <option value="all">📁 All Committees</option>
+                                    <?php foreach ($committees_data as $index => $comm): ?>
+                                        <option value="comm-<?= $index ?>">
+                                            👥 <?= htmlspecialchars($comm['committee_name']) ?>
+                                            (<?= count($comm['members']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- COMMITTEE MEMBERSHIP CONTAINER -->
