@@ -557,6 +557,23 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
       </script>
 
       <script>
+        // --- Notification sound setup ---
+        const notificationSound = new Audio('../assets/sounds/notification.wav');
+        notificationSound.volume = 0.6; // adjust 0.0–1.0 as needed
+        let previousPendingCount = null; // null = "not loaded yet", so we don't beep on first page load
+
+        function playNotificationSound() {
+          try {
+            notificationSound.currentTime = 0; // rewind in case it's still playing from a rapid update
+            notificationSound.play().catch(e => {
+              // Autoplay blocked until user interacts with the page — this is expected on first load
+              console.warn('Notification sound blocked until user interacts with page:', e);
+            });
+          } catch (e) {
+            console.warn('Notification sound failed:', e);
+          }
+        }
+
         // Real-time tickets loader
         function loadTicketsRealtime() {
           fetch('monitoring.php?tickets=1', { cache: 'no-store' })
@@ -565,6 +582,12 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
               return res.json();
             })
             .then(data => {
+              // 🔔 Play sound if new pending tickets came in since last check
+              if (previousPendingCount !== null && data.pending.length > previousPendingCount) {
+                playNotificationSound();
+              }
+              previousPendingCount = data.pending.length;
+
               // Pending tickets
               const pendingBody = document.getElementById('pendingTicketsBody');
               pendingBody.innerHTML = '';
