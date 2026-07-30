@@ -595,8 +595,8 @@ $result = $stmt->get_result();
                                 </li>
 
                                 <li class="nav-item">
-                                    <a class="nav-link" href="comms.php"><i class="icon-base bx bx-phone icon-sm me-1_5"></i>
-                                        Committees</a>
+                                    <a class="nav-link" href="comms.php"><i
+                                            class="icon-base bx bx-sitemap icon-sm me-1_5"></i> Committees</a>
                                 </li>
 
                             </ul>
