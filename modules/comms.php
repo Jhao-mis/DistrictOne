@@ -848,7 +848,7 @@ $result = $stmt->get_result();
                         'description' => '',
                         'members' => [
                             ['name' => 'Engr. Joselito A. Gillera', 'designation' => 'Command Post'],
-                            ['name' => 'Engr. Elizaldy O. Novillos', 'designation' => 'CWDDMT Chair'],
+                            ['name' => 'Engr. Elizaldy O. Novillos', 'designation' => 'Chairperson'],
                             ['name' => 'Engr. Bernard Joseph G. Rodriguez', 'designation' => 'Chair, Fire Brigade Team'],
                             ['name' => 'Teodorico T. Ortiz', 'designation' => 'Chair, Damage Team'],
                             ['name' => 'Jonathan M. Rico', 'designation' => 'Chair, Communication Team'],
@@ -1136,13 +1136,6 @@ $result = $stmt->get_result();
                             ['name' => 'Jewelle Dela Raga', 'designation' => 'Member - Comm\'l Dept.'],
                             ['name' => 'Engr. Vergel David', 'designation' => 'Member - Tech. Serv. Dept.'],
                             ['name' => 'Depro Mari A. Alinsunurin', 'designation' => 'Member - Operations Dept.'],
-                        ]
-                    ],
-                    [
-                        'committee_name' => 'PBB Focal Person',
-                        'description' => '',
-                        'members' => [
-                            ['name' => 'Engr. Jonathan Dave A. Fajarda', 'designation' => 'Focal Person'],
                         ]
                     ],
                     [
@@ -1507,8 +1500,99 @@ $result = $stmt->get_result();
                                     <?php endif; ?>
 
                                     <!-- MEMBER CARDS GRID -->
-                                    <div class="row g-4 mb-4">
-                                        <?php foreach ($comm['members'] as $member): ?>
+                                    <div class="row g-4 mb-4 justify-content-center">
+                                        <?php
+                                        $chairs = [];
+                                        $regular_members = [];
+
+                                        foreach ($comm['members'] as $member) {
+                                            $desig = strtolower($member['designation']);
+                                            $name = strtolower($member['name']);
+
+                                            $is_chair = (
+                                                strpos($desig, 'chairperson') !== false ||
+                                                strpos($desig, 'chairman') !== false ||
+                                                strpos($desig, 'editor-in-chief') !== false ||
+                                                strpos($desig, 'final') !== false ||
+                                                strpos($desig, 'focal') !== false ||
+                                                strpos($desig, 'iso head') !== false
+                                            );
+
+                                            $is_vice = (
+                                                strpos($desig, 'vice') !== false ||
+                                                strpos($desig, 'co-') !== false ||
+                                                strpos($desig, 'co ') !== false
+                                            );
+
+                                            
+                                            $is_excluded_person = (strpos($name, 'geraldine') !== false);
+
+                                            if ($is_chair && !$is_vice && !$is_excluded_person) {
+                                                $chairs[] = $member;
+                                            } else {
+                                                $regular_members[] = $member;
+                                            }
+                                        }
+
+                                        // 1. RENDER MAIN CHAIRPERSON / CHAIRMANSHIP POSITIONS (Mas Malaki & Nasa Gitna)
+                                        foreach ($chairs as $member):
+                                            ?>
+
+                                            <div class="col-xl-4 col-lg-5 col-md-6 col-sm-10 member-card">
+                                                <div class="card tel-card-ui border-0 shadow-sm h-100 overflow-hidden border-start border-primary"
+                                                    style="border-left-width: 4px !important;">
+                                                    <!-- Binawasan ang padding mula p-4 papuntang p-3 -->
+                                                    <div
+                                                        class="card-body p-3 d-flex flex-column align-items-center text-center">
+
+                                                        <!-- Avatar (Ginawang 85px mula 95px) -->
+                                                        <div class="tel-avatar-wrapper mb-2">
+                                                            <img src="<?= !empty($member['profile_picture']) ? htmlspecialchars($member['profile_picture']) : '../assets/img/avatars/default_dp.jpg'; ?>"
+                                                                class="rounded-circle border border-3 border-primary shadow-sm"
+                                                                alt="<?= htmlspecialchars($member['name']); ?>"
+                                                                style="width: 85px; height: 85px; object-fit: cover;">
+                                                        </div>
+
+                                                        <!-- Name (Ginawang fs-5 / H5-size para mas sakto lang) -->
+                                                        <h5 class="fw-bold text-dark mb-1 text-truncate w-100"
+                                                            title="<?= htmlspecialchars($member['name']); ?>">
+                                                            <?= htmlspecialchars($member['name']); ?>
+                                                        </h5>
+
+                                                        <!-- Department -->
+                                                        <?php if (!empty($member['department'])): ?>
+                                                            <div class="small text-muted text-truncate w-100 mb-2"
+                                                                title="<?= htmlspecialchars($member['department']); ?>">
+                                                                <i class="bx bx-building-house me-1 align-middle"></i>
+                                                                <span
+                                                                    class="align-middle"><?= htmlspecialchars($member['department']); ?></span>
+                                                            </div>
+                                                        <?php endif; ?>
+
+                                                        <!-- Spacer Push -->
+                                                        <div class="mt-auto pt-2 w-100">
+                                                            <!-- Designation Badge (Mas compact na padding) -->
+                                                            <span
+                                                                class="badge rounded-pill bg-primary text-white fs-6 fw-semibold px-3 py-2 w-100 d-inline-flex align-items-center justify-content-center text-wrap lh-sm shadow-sm"
+                                                                title="<?= htmlspecialchars($member['designation']); ?>">
+                                                                <i class="fa-solid fa-user-tie me-2"></i>
+                                                                <span><?= htmlspecialchars($member['designation']); ?></span>
+                                                            </span>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        <?php endforeach; ?>
+
+                                        <!-- Break Line para hiwalay ang Row ng Chair sa ibang Members -->
+                                        <?php if (!empty($chairs) && !empty($regular_members)): ?>
+                                            <div class="w-100"></div>
+                                        <?php endif; ?>
+
+                                        <!-- 2. RENDER THE REST OF THE MEMBERS (Kasama na rito ang Vice Chairman) -->
+                                        <?php foreach ($regular_members as $member): ?>
                                             <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 member-card">
                                                 <div class="card tel-card-ui border-0 shadow-sm h-100 overflow-hidden">
                                                     <div
@@ -1540,7 +1624,6 @@ $result = $stmt->get_result();
 
                                                         <!-- Spacer Push -->
                                                         <div class="mt-auto pt-2 w-100">
-                                                            
                                                             <!-- Designation -->
                                                             <span
                                                                 class="badge rounded-pill bg-label-primary text-primary fw-semibold px-3 py-2 w-100 d-inline-flex align-items-center justify-content-center text-wrap lh-sm"
