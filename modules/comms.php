@@ -1494,11 +1494,7 @@ $result = $stmt->get_result();
                                         <hr class="flex-grow-1 ms-3 text-muted opacity-25 d-none d-md-block">
                                     </div>
 
-                                    <?php if (!empty($comm['description'])): ?>
-                                        <p class="text-muted small mb-4 ms-1">
-                                            <i class="bx bx-info-circle me-1"></i><?= htmlspecialchars($comm['description']) ?>
-                                        </p>
-                                    <?php endif; ?>
+
 
                                     <!-- MEMBER CARDS GRID -->
                                     <div class="row g-4 mb-4 justify-content-center">
@@ -1525,7 +1521,7 @@ $result = $stmt->get_result();
                                                 strpos($desig, 'co ') !== false
                                             );
 
-                                            
+
                                             $is_excluded_person = (strpos($name, 'geraldine') !== false);
 
                                             if ($is_chair && !$is_vice && !$is_excluded_person) {
@@ -1534,6 +1530,8 @@ $result = $stmt->get_result();
                                                 $regular_members[] = $member;
                                             }
                                         }
+
+
 
                                         // 1. RENDER MAIN CHAIRPERSON / CHAIRMANSHIP POSITIONS (Mas Malaki & Nasa Gitna)
                                         foreach ($chairs as $member):
@@ -1587,6 +1585,8 @@ $result = $stmt->get_result();
 
                                         <?php endforeach; ?>
 
+                                        
+
                                         <!-- Break Line para hiwalay ang Row ng Chair sa ibang Members -->
                                         <?php if (!empty($chairs) && !empty($regular_members)): ?>
                                             <div class="w-100"></div>
@@ -1639,6 +1639,13 @@ $result = $stmt->get_result();
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
+
+                                        <?php if (!empty($comm['description'])): ?>
+                                            <p class="text-muted small mb-2 ms-1">
+                                                <i class="bx bx-info-circle me-1"></i>
+                                                <?= htmlspecialchars($comm['description']) ?>
+                                            </p>
+                                        <?php endif; ?>
                                     </div>
 
                                 </div>
