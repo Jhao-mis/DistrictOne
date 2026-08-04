@@ -746,7 +746,8 @@ $result = $stmt->get_result();
                 $committees_data = [
                     [
                         'committee_name' => 'Bids and Awards Committee (BAC)',
-                        'description' => 'BR 10, S. 2025 Hold over capacity',
+                        'description' => 'BR 10, S. 2025 - BAC shall continue to serve in hold over capacity until such time that the Board shall 
+                        have designated a new set of officers and members',
                         'members' => [
                             ['name' => 'Engr. Joselito A. Gillera', 'designation' => 'Chairman'],
                             ['name' => 'Engr. Elizaldy O. Novillos', 'designation' => 'Vice-Chairman'],
