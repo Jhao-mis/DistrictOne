@@ -57,7 +57,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $conn->begin_transaction();
 
     // Profile picture update
-    if ($profile_picture && $profile_picture["error"] == 0) {
+    if ($profile_picture && $profile_picture["error"] != UPLOAD_ERR_NO_FILE) {
+      if ($profile_picture["error"] !== UPLOAD_ERR_OK) {
+        $upload_errors = [
+          UPLOAD_ERR_INI_SIZE   => "File exceeds the server's maximum upload size.",
+          UPLOAD_ERR_FORM_SIZE  => "File exceeds the form's maximum upload size.",
+          UPLOAD_ERR_PARTIAL    => "File was only partially uploaded. Please try again.",
+          UPLOAD_ERR_NO_TMP_DIR => "Server is missing a temporary folder for uploads.",
+          UPLOAD_ERR_CANT_WRITE => "Server failed to write the file to disk.",
+          UPLOAD_ERR_EXTENSION  => "Upload was blocked by a server extension.",
+        ];
+        throw new Exception($upload_errors[$profile_picture["error"]] ?? "Photo upload failed. Please try again.");
+      }
+
       $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
       $max_size = 20 * 1024 * 1024; //adjust here for the max image size.
 
@@ -455,7 +467,7 @@ $conn->close();
               </div>
 
               <div class="acc-action-bar">
-                <button type="submit" name="submit" class="btn btn-primary" id="submit">
+                <button type="submit" name="submitBtn" class="btn btn-primary" id="submitBtn">
                   <i class='bx bx-save'></i> Update Profile
                 </button>
               </div>
