@@ -294,6 +294,7 @@ $result = $stmt->get_result();
             box-shadow: var(--tk-shadow);
             overflow: hidden;
         }
+        .user-profile-info { line-height: 1.4; }
         .user-name { font-size: 1.75rem; }
         @media (max-width: 576px) {
             .user-name { font-size: 1.4rem; }
@@ -581,6 +582,7 @@ $result = $stmt->get_result();
 
                                 <!-- User Info -->
                                 <div class="flex-grow-1 mt-3 mt-lg-5">
+                                    <br>
                                     <div
                                         class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4 mt-2 ms-3">
                                         <div class="user-profile-info">
