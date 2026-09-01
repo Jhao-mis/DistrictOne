@@ -582,6 +582,25 @@ $emp_id = $emp_id ?? '—';
 
                 $committees_data = [];
 
+                // Titles/suffixes to ignore when guessing the lastname
+                // (e.g. "Mr. Exequiel A. Aguilar Jr." -> lastname is "Aguilar",
+                // not "Jr."). Add more here if new ones show up.
+                $titlesToStrip = ['mr', 'mrs', 'ms', 'dr', 'engr', 'atty', 'hon', 'prof'];
+                $suffixesToStrip = ['jr', 'sr', 'ii', 'iii', 'iv', 'v'];
+
+                // Strips a trailing suffix token (Jr., Sr., III, ...) off a name
+                // string, if present. Used on BOTH the guessed committee lastname
+                // AND the `users.lastname` value below, since some records store
+                // the suffix as part of the lastname (e.g. "Baricanosa Jr.") and
+                // some don't - without this, those two would never match.
+                $stripSuffix = function ($name) use ($suffixesToStrip) {
+                    $tokens = preg_split('/\s+/', trim($name));
+                    while (count($tokens) > 1 && in_array(strtolower(rtrim(end($tokens), '.')), $suffixesToStrip)) {
+                        array_pop($tokens);
+                    }
+                    return implode(' ', $tokens);
+                };
+
                 // ---------------------------------------------------------
                 // Build a lastname => [user records] lookup (for profile_picture / department)
                 // Grouped as a list per lastname so we can disambiguate
@@ -596,18 +615,12 @@ $emp_id = $emp_id ?? '—';
                 $userLookupResult = $userLookupQuery->get_result();
 
                 while ($u = $userLookupResult->fetch_assoc()) {
-                    $lnKey = strtolower(trim($u['lastname']));
+                    $lnKey = strtolower(trim($stripSuffix($u['lastname'])));
                     if ($lnKey !== '') {
                         $usersLookup[$lnKey][] = $u;
                     }
                 }
                 $userLookupQuery->close();
-
-                // Titles/suffixes to ignore when guessing the lastname
-                // (e.g. "Mr. Exequiel A. Aguilar Jr." -> lastname is "Aguilar",
-                // not "Jr."). Add more here if new ones show up.
-                $titlesToStrip = ['mr', 'mrs', 'ms', 'dr', 'engr', 'atty', 'hon', 'prof'];
-                $suffixesToStrip = ['jr', 'sr', 'ii', 'iii', 'iv', 'v'];
 
                 // Manual overrides for the rare Member Name that still won't
                 // parse correctly with the rule above. Key = exact value of
