@@ -582,6 +582,41 @@ $emp_id = $emp_id ?? '—';
 
                 $committees_data = [];
 
+                // ---------------------------------------------------------
+                // Build a lastname => user lookup (for profile_picture / department)
+                // NOTE: matching is by lastname only, since the `committee` table
+                // has no user_id / username to join on directly. If two users
+                // share the same lastname, only one will match correctly.
+                // ---------------------------------------------------------
+                $usersLookup = [];
+                $userLookupQuery = $conn->prepare("
+                    SELECT lastname, profile_picture, department
+                    FROM users
+                ");
+                $userLookupQuery->execute();
+                $userLookupResult = $userLookupQuery->get_result();
+
+                while ($u = $userLookupResult->fetch_assoc()) {
+                    $lnKey = strtolower(trim($u['lastname']));
+                    if ($lnKey !== '') {
+                        $usersLookup[$lnKey] = $u;
+                    }
+                }
+                $userLookupQuery->close();
+
+                // Titles/suffixes to ignore when guessing the lastname
+                // (e.g. "Mr. Exequiel A. Aguilar Jr." -> lastname is "Aguilar",
+                // not "Jr."). Add more here if new ones show up.
+                $titlesToStrip = ['mr', 'mrs', 'ms', 'dr', 'engr', 'atty', 'hon', 'prof'];
+                $suffixesToStrip = ['jr', 'sr', 'ii', 'iii', 'iv', 'v'];
+
+                // Manual overrides for the rare Member Name that still won't
+                // parse correctly with the rule above. Key = exact value of
+                // `Member Name` in the committee table, Value = correct lastname.
+                $lastnameOverrides = [
+                    // 'Mr. Exequiel A. Aguilar Jr.' => 'Aguilar',
+                ];
+
                 $commQuery = $conn->prepare("
                     SELECT `Committee`, `Member Name`, `Designation`
                     FROM `committee`
@@ -601,9 +636,47 @@ $emp_id = $emp_id ?? '—';
                         ];
                     }
 
+                    // ---- Guess the lastname out of "Member Name" ----
+                    $memberName = trim($row['Member Name']);
+
+                    if (isset($lastnameOverrides[$memberName])) {
+                        $lastnameGuess = $lastnameOverrides[$memberName];
+                    } elseif (strpos($memberName, ',') !== false) {
+                        // Format assumed: "Lastname, Firstname MI."
+                        $nameParts = explode(',', $memberName, 2);
+                        $lastnameGuess = trim($nameParts[0]);
+                    } else {
+                        // Format assumed: "[Title] Firstname MI. Lastname [Suffix]"
+                        $nameTokens = preg_split('/\s+/', $memberName);
+
+                        // Drop leading title(s): "Mr.", "Dr.", etc.
+                        while (count($nameTokens) > 1 && in_array(strtolower(rtrim($nameTokens[0], '.')), $titlesToStrip)) {
+                            array_shift($nameTokens);
+                        }
+
+                        // Drop trailing suffix(es): "Jr.", "Sr.", "III", etc.
+                        while (count($nameTokens) > 1 && in_array(strtolower(rtrim(end($nameTokens), '.')), $suffixesToStrip)) {
+                            array_pop($nameTokens);
+                        }
+
+                        $lastnameGuess = end($nameTokens);
+                    }
+
+                    $lastnameKey = strtolower($lastnameGuess);
+
+                    $memberProfilePic = '';
+                    $memberDepartment = '';
+
+                    if (isset($usersLookup[$lastnameKey])) {
+                        $memberProfilePic = $usersLookup[$lastnameKey]['profile_picture'];
+                        $memberDepartment = $usersLookup[$lastnameKey]['department'];
+                    }
+
                     $committees_data[$committeeName]['members'][] = [
-                        'name' => $row['Member Name'],
-                        'designation' => $row['Designation']
+                        'name' => $memberName,
+                        'designation' => $row['Designation'],
+                        'profile_picture' => $memberProfilePic,
+                        'department' => $memberDepartment
                     ];
                 }
                 $commQuery->close();
