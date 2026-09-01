@@ -583,14 +583,13 @@ $emp_id = $emp_id ?? '—';
                 $committees_data = [];
 
                 // ---------------------------------------------------------
-                // Build a lastname => user lookup (for profile_picture / department)
-                // NOTE: matching is by lastname only, since the `committee` table
-                // has no user_id / username to join on directly. If two users
-                // share the same lastname, only one will match correctly.
+                // Build a lastname => [user records] lookup (for profile_picture / department)
+                // Grouped as a list per lastname so we can disambiguate
+                // duplicate lastnames using the guessed firstname below.
                 // ---------------------------------------------------------
                 $usersLookup = [];
                 $userLookupQuery = $conn->prepare("
-                    SELECT lastname, profile_picture, department
+                    SELECT firstname, lastname, profile_picture, department
                     FROM users
                 ");
                 $userLookupQuery->execute();
@@ -599,7 +598,7 @@ $emp_id = $emp_id ?? '—';
                 while ($u = $userLookupResult->fetch_assoc()) {
                     $lnKey = strtolower(trim($u['lastname']));
                     if ($lnKey !== '') {
-                        $usersLookup[$lnKey] = $u;
+                        $usersLookup[$lnKey][] = $u;
                     }
                 }
                 $userLookupQuery->close();
@@ -612,9 +611,9 @@ $emp_id = $emp_id ?? '—';
 
                 // Manual overrides for the rare Member Name that still won't
                 // parse correctly with the rule above. Key = exact value of
-                // `Member Name` in the committee table, Value = correct lastname.
+                // `Member Name` in the committee table, Value = [lastname, firstname].
                 $lastnameOverrides = [
-                    // 'Mr. Exequiel A. Aguilar Jr.' => 'Aguilar',
+                    // 'Mr. Exequiel A. Aguilar Jr.' => ['Aguilar', 'Exequiel'],
                 ];
 
                 $commQuery = $conn->prepare("
@@ -636,15 +635,20 @@ $emp_id = $emp_id ?? '—';
                         ];
                     }
 
-                    // ---- Guess the lastname out of "Member Name" ----
+                    // ---- Guess the lastname (and firstname) out of "Member Name" ----
                     $memberName = trim($row['Member Name']);
 
                     if (isset($lastnameOverrides[$memberName])) {
-                        $lastnameGuess = $lastnameOverrides[$memberName];
+                        $lastnameGuess = $lastnameOverrides[$memberName][0];
+                        $firstnameGuess = $lastnameOverrides[$memberName][1] ?? '';
                     } elseif (strpos($memberName, ',') !== false) {
                         // Format assumed: "Lastname, Firstname MI."
                         $nameParts = explode(',', $memberName, 2);
                         $lastnameGuess = trim($nameParts[0]);
+
+                        $firstRemainder = trim($nameParts[1] ?? '');
+                        $firstTokens = preg_split('/\s+/', $firstRemainder);
+                        $firstnameGuess = $firstTokens[0] ?? '';
                     } else {
                         // Format assumed: "[Title] Firstname MI. Lastname [Suffix]"
                         $nameTokens = preg_split('/\s+/', $memberName);
@@ -659,17 +663,53 @@ $emp_id = $emp_id ?? '—';
                             array_pop($nameTokens);
                         }
 
+                        $firstnameGuess = $nameTokens[0] ?? '';
                         $lastnameGuess = end($nameTokens);
                     }
 
                     $lastnameKey = strtolower($lastnameGuess);
+                    $firstnameKey = strtolower($firstnameGuess);
 
                     $memberProfilePic = '';
                     $memberDepartment = '';
 
                     if (isset($usersLookup[$lastnameKey])) {
-                        $memberProfilePic = $usersLookup[$lastnameKey]['profile_picture'];
-                        $memberDepartment = $usersLookup[$lastnameKey]['department'];
+                        $candidates = $usersLookup[$lastnameKey];
+                        $matchedUser = null;
+
+                        // Try to find a candidate whose firstname reasonably
+                        // matches the guessed firstname (exact, or one is a
+                        // prefix of the other - covers nicknames/initials).
+                        foreach ($candidates as $candidate) {
+                            $candidateFirstKey = strtolower(trim($candidate['firstname']));
+                            if (
+                                $candidateFirstKey === $firstnameKey ||
+                                ($firstnameKey !== '' && strpos($candidateFirstKey, $firstnameKey) === 0) ||
+                                ($candidateFirstKey !== '' && strpos($firstnameKey, $candidateFirstKey) === 0)
+                            ) {
+                                $matchedUser = $candidate;
+                                break;
+                            }
+                        }
+
+                        // Fallback: if nothing matched but there's exactly ONE
+                        // user with this lastname, allow it ONLY if the first
+                        // initial still lines up. This is deliberately strict -
+                        // just sharing a lastname is NOT enough (e.g. "Geraldine
+                        // Manguiat" must never pick up "Alpha Manguiat"'s data
+                        // just because Alpha is the only Manguiat in `users`).
+                        if (!$matchedUser && count($candidates) === 1) {
+                            $onlyCandidate = $candidates[0];
+                            $onlyFirstKey = strtolower(trim($onlyCandidate['firstname']));
+                            if ($firstnameKey !== '' && $onlyFirstKey !== '' && $firstnameKey[0] === $onlyFirstKey[0]) {
+                                $matchedUser = $onlyCandidate;
+                            }
+                        }
+
+                        if ($matchedUser) {
+                            $memberProfilePic = $matchedUser['profile_picture'];
+                            $memberDepartment = $matchedUser['department'];
+                        }
                     }
 
                     $committees_data[$committeeName]['members'][] = [
