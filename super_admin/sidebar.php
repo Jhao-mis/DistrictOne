@@ -7,7 +7,7 @@ require 'login_verification.php';
 $approveCount     = $conn->query("SELECT COUNT(*) AS total FROM tickets WHERE status='Pending' AND admin_approved=0")->fetch_assoc()['total'] ?? 0;
 $reservationCount = $conn->query("SELECT COUNT(*) AS total FROM room_reservations WHERE status='Pending'")->fetch_assoc()['total'] ?? 0;
 $unverifiedCount  = $conn->query("SELECT COUNT(*) AS total FROM users WHERE isVerified=0")->fetch_assoc()['total'] ?? 0;
-$notifTotalCount  = (int)$approveCount + (int)$reservationCount;
+$notifTotalCount  = (int)$approveCount + (int)$reservationCount + (int)$unverifiedCount;
 
 // ── Detect current page ────────────────────────────────────────────
 $currentPage = basename($_SERVER['PHP_SELF']);
@@ -19,6 +19,42 @@ $sb_role     = $_SESSION['role'] ?? '';
 $sb_dept     = $department ?? '';
 $sb_name     = trim(($firstname ?? '') . ' ' . ($lastname ?? ''));
 if (!$sb_name) $sb_name = $sb_username;
+
+// ── Root-relative base URL for AJAX calls ───────────────────────────
+// sidebar.php is now included from pages at different folder depths,
+// so a hardcoded "../super_admin/..." AJAX path (correct only one
+// level deep) silently breaks on every other page — the request 404s,
+// jQuery's error callback swallows it, and the panel just shows
+// "No new notifications" forever with no visible error.
+//
+// This detects the site's base path by finding where the CURRENT
+// request's URL enters a known top-level app folder (modules/,
+// super_admin/), which is the same one-level-deep assumption already
+// baked into this file's menu links (e.g. "../modules/profile.php").
+// If you add more top-level folders that pages live in, list them here.
+$sb_known_top_dirs = ['modules', 'super_admin'];
+$sb_script_path = $_SERVER['SCRIPT_NAME'] ?? '';
+$sb_base_url = '';
+foreach ($sb_known_top_dirs as $sb_dir) {
+    $sb_marker = '/' . $sb_dir . '/';
+    $sb_pos = strpos($sb_script_path, $sb_marker);
+    if ($sb_pos !== false) {
+        $sb_base_url = substr($sb_script_path, 0, $sb_pos);
+        break;
+    }
+}
+// $sb_base_url is now e.g. "" (site at domain root) or "/districtone"
+// (site in a subfolder) — correct no matter which page included this.
+$sb_notif_endpoint = $sb_base_url . '/super_admin/get_notifications.php';
+
+// Token that identifies THIS login. It's created once per session and
+// only disappears when the session is destroyed (i.e. on logout), so
+// it reliably changes across a logout/login cycle even if the
+// browser happens to reuse the same PHPSESSID cookie afterward.
+if (empty($_SESSION['sb_notif_login_token'])) {
+    $_SESSION['sb_notif_login_token'] = bin2hex(random_bytes(8));
+}
+$sb_login_token = $_SESSION['sb_notif_login_token'];
 ?>
 
 <style>
@@ -307,6 +343,53 @@ if (!$sb_name) $sb_name = $sb_username;
 .sb-notif-by, .sb-notif-time { font-size: 10.5px; color: #adb5bd; margin-top: 2px; }
 .sb-notif-empty { text-align: center; padding: 32px 20px; color: var(--sb-muted); font-size: 13px; }
 .sb-notif-empty svg { width: 28px; height: 28px; opacity: .35; display: block; margin: 0 auto 8px; }
+
+/* ── Real-time toast pop-outs ──────────────────────────────────────
+   Stack in the top-right corner. Fired when polling detects a
+   brand-new notification, or every 30 min as a pending reminder.
+─────────────────────────────────────────────────────────────────*/
+#sbToastStack {
+  position: fixed;
+  top: 16px; right: 16px;
+  z-index: 1080;
+  display: flex; flex-direction: column; gap: 10px;
+  width: 320px; max-width: 90vw;
+  pointer-events: none;
+}
+.sb-toast {
+  pointer-events: auto;
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--sb-bg);
+  border: 1px solid var(--sb-border);
+  border-left: 4px solid var(--sb-primary-dark);
+  border-radius: 12px;
+  padding: 12px 12px 12px 14px;
+  box-shadow: 0 18px 40px -12px rgba(20,20,43,.3), 0 4px 14px -6px rgba(20,20,43,.16);
+  text-decoration: none; color: inherit;
+  opacity: 0; transform: translateX(24px);
+  animation: sbToastIn .22s ease forwards;
+  cursor: pointer;
+}
+.sb-toast.sb-toast-reminder { border-left-color: var(--sb-danger); }
+.sb-toast.sb-toast-out { animation: sbToastOut .18s ease forwards; }
+@keyframes sbToastIn  { to   { opacity: 1; transform: translateX(0); } }
+@keyframes sbToastOut { from{ opacity: 1; transform: translateX(0);} to { opacity: 0; transform: translateX(24px); } }
+.sb-toast-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  background: var(--sb-primary-soft); color: #2563a8;
+  display: flex; align-items: center; justify-content: center;
+}
+.sb-toast.sb-toast-reminder .sb-toast-icon { background: #fdecea; color: var(--sb-danger); }
+.sb-toast-icon svg { width: 15px; height: 15px; }
+.sb-toast-body { flex: 1; min-width: 0; }
+.sb-toast-title { font-size: 12.5px; font-weight: 700; color: var(--sb-text); }
+.sb-toast-msg { font-size: 11.5px; color: var(--sb-muted); margin-top: 2px; word-break: break-word; }
+.sb-toast-close {
+  flex-shrink: 0; background: none; border: none; color: var(--sb-muted);
+  cursor: pointer; padding: 2px; line-height: 0; opacity: .6;
+}
+.sb-toast-close:hover { opacity: 1; }
+.sb-toast-close svg { width: 13px; height: 13px; }
 </style>
 
 <!-- Mobile menu toggle (only visible below xl breakpoint) -->
@@ -332,6 +415,9 @@ if (!$sb_name) $sb_name = $sb_username;
     </div>
   </div>
 </div>
+
+<!-- Real-time toast pop-outs -->
+<div id="sbToastStack"></div>
 
 <!-- Layout wrapper -->
 <div class="layout-wrapper layout-content-navbar">
@@ -430,6 +516,10 @@ if (!$sb_name) $sb_name = $sb_username;
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+// Root-relative endpoint — see PHP block above computing $sb_notif_endpoint.
+// Works no matter how deep the page that included sidebar.php sits.
+const SB_NOTIF_ENDPOINT = <?= json_encode($sb_notif_endpoint) ?>;
+
 function positionSbNotif() {
   var btn = document.getElementById('sbBellBtn');
   var pop = document.getElementById('sbNotifPanel');
@@ -485,7 +575,7 @@ function sbNotifOutsideScroll(e) {
 
 function loadSbNotifs() {
   $.ajax({
-    url: "../super_admin/get_notifications.php",
+    url: SB_NOTIF_ENDPOINT,
     method: "GET", dataType: "json",
     success: function(data) {
       updateBadge(data.count);
@@ -496,15 +586,12 @@ function loadSbNotifs() {
         return;
       }
       list.innerHTML = data.items.map(function(item) {
-        const isTicket = item.type === "Ticket Request";
-        const icon = isTicket
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 12h6M9 16h6M9 8h6M5 4h14v16l-3-2-3 2-3-2-3 2V4z"/></svg>'
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+        const icon = sbNotifIcon(item.type);
         return '<a href="'+item.link+'" class="sb-notif-item"><div class="sb-notif-icon">'+icon+'</div><div><div class="sb-notif-type">'+item.type+'</div><div class="sb-notif-subject">'+item.subject+'</div><div class="sb-notif-by">By: '+item.firstname+' '+item.lastname+'</div><div class="sb-notif-time">'+item.time+'</div></div></a>';
       }).join('');
       if (document.getElementById('sbNotifPanel').classList.contains('open')) positionSbNotif();
     },
-    error: function() {}
+    error: function(xhr) { console.error('Sidebar notifications request failed:', SB_NOTIF_ENDPOINT, xhr.status, xhr.statusText); }
   });
 }
 
@@ -515,9 +602,134 @@ function updateBadge(count) {
   else { b.style.display = 'none'; }
 }
 
-// Refresh badge count every 30s without opening the panel
-setInterval(function() {
-  $.ajax({ url: "../super_admin/get_notifications.php", method: "GET", dataType: "json",
-    success: function(d) { updateBadge(d.count); }, error: function(){} });
-}, 30000);
+function sbNotifIcon(type) {
+  if (type === 'Ticket Request' || type === 'New Approve Tickets') {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 12h6M9 16h6M9 8h6M5 4h14v16l-3-2-3 2-3-2-3 2V4z"/></svg>';
+  }
+  if (type === 'Room Reservation') {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+  }
+  if (type === 'Account Management' || type === 'Approval') {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>';
+  }
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+}
+
+/* ── Real-time-style live updates ─────────────────────────────────
+   The stack (PHP/MySQL, no WebSocket/SSE server) can't push true
+   server-initiated events, so "real-time" here means: poll
+   frequently, and the moment a genuinely NEW item shows up in the
+   response, pop a toast immediately instead of waiting for the user
+   to open the bell panel. A separate 30-min timer nudges the user
+   with a reminder toast whenever something is still pending.
+   Seen IDs persist in localStorage (scoped per logged-in user) so a
+   page refresh doesn't re-toast items already shown.
+─────────────────────────────────────────────────────────────────*/
+const SB_USER_KEY   = <?= json_encode(($sb_username ?: 'guest') . '_' . $sb_login_token) ?>;
+const SB_SEEN_KEY    = 'sbSeenNotifIds_' + SB_USER_KEY;
+const SB_POLL_MS     = 15000;   // how often we check for new notifications
+const SB_REMINDER_MS = 30 * 60 * 1000; // 30-minute pending reminder
+let sbSeenInitialized = false;
+
+function sbLoadSeen() {
+  try { return new Set(JSON.parse(localStorage.getItem(SB_SEEN_KEY)) || []); }
+  catch (e) { return new Set(); }
+}
+function sbSaveSeen(set) {
+  try {
+    // cap stored history so it doesn't grow forever
+    const arr = Array.from(set).slice(-500);
+    localStorage.setItem(SB_SEEN_KEY, JSON.stringify(arr));
+  } catch (e) {}
+}
+function sbItemKey(item) {
+  // Prefer a real id from the backend if present; fall back to a
+  // composite key built from fields already in the payload.
+  return item.id || [item.type, item.subject, item.firstname, item.lastname, item.time].join('|');
+}
+
+function sbShowToast(item, isReminder) {
+  const stack = document.getElementById('sbToastStack');
+  const toast = document.createElement(isReminder ? 'div' : 'a');
+  toast.className = 'sb-toast' + (isReminder ? ' sb-toast-reminder' : '');
+  if (!isReminder) { toast.href = item.link; }
+
+  const icon = isReminder
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>'
+    : sbNotifIcon(item.type);
+  const title = isReminder ? 'Pending reminder' : item.type;
+  const msg   = isReminder ? item.subject : (item.subject + (item.firstname ? ' — ' + item.firstname + ' ' + item.lastname : ''));
+
+  toast.innerHTML =
+    '<div class="sb-toast-icon">' + icon + '</div>' +
+    '<div class="sb-toast-body"><div class="sb-toast-title">' + title + '</div><div class="sb-toast-msg">' + msg + '</div></div>' +
+    '<button type="button" class="sb-toast-close" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>';
+
+  toast.querySelector('.sb-toast-close').addEventListener('click', function(e) {
+    e.preventDefault(); e.stopPropagation(); sbDismissToast(toast);
+  });
+
+  stack.appendChild(toast);
+  // Persists until manually dismissed via the close button — no auto-timeout.
+}
+
+function sbDismissToast(toast) {
+  if (!toast || !toast.parentNode) return;
+  toast.classList.add('sb-toast-out');
+  setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 180);
+}
+
+function sbPollForUpdates() {
+  $.ajax({
+    url: SB_NOTIF_ENDPOINT,
+    method: "GET", dataType: "json",
+    success: function(data) {
+      updateBadge(data.count);
+
+      // If the panel is currently open, keep its contents fresh too.
+      if (document.getElementById('sbNotifPanel').classList.contains('open')) loadSbNotifs();
+
+      const items = data.items || [];
+      const seen = sbLoadSeen();
+
+      if (!sbSeenInitialized) {
+        // First check this session: remember what's already pending
+        // without popping toasts for a backlog the user hasn't
+        // actually "missed" yet.
+        items.forEach(function(item) { seen.add(sbItemKey(item)); });
+        sbSaveSeen(seen);
+        sbSeenInitialized = true;
+        return;
+      }
+
+      const freshItems = items.filter(function(item) { return !seen.has(sbItemKey(item)); });
+      freshItems.forEach(function(item) {
+        seen.add(sbItemKey(item));
+        sbShowToast(item, false);
+      });
+      if (freshItems.length) sbSaveSeen(seen);
+    },
+    error: function(xhr) { console.error('Sidebar notifications request failed:', SB_NOTIF_ENDPOINT, xhr.status, xhr.statusText); }
+  });
+}
+
+function sbShowReminder() {
+  $.ajax({
+    url: SB_NOTIF_ENDPOINT,
+    method: "GET", dataType: "json",
+    success: function(data) {
+      const count = data.count || 0;
+      if (count <= 0) return;
+      sbShowToast({
+        subject: count + ' notification' + (count === 1 ? '' : 's') + ' still need' + (count === 1 ? 's' : '') + ' your attention.'
+      }, true);
+    },
+    error: function(xhr) { console.error('Sidebar notifications request failed:', SB_NOTIF_ENDPOINT, xhr.status, xhr.statusText); }
+  });
+}
+
+// Kick off polling immediately, then on the configured intervals.
+sbPollForUpdates();
+setInterval(sbPollForUpdates, SB_POLL_MS);
+setInterval(sbShowReminder, SB_REMINDER_MS);
 </script>

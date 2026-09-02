@@ -35,7 +35,7 @@ $query->close();
 ----------------------------------------------------------- */
 function handleFileUpload($fileField)
 {
-    $uploadDir = "../uploads/";
+    $uploadDir = "../uploads/announcements/";
     if (!is_dir($uploadDir))
         mkdir($uploadDir, 0777, true);
 
@@ -465,7 +465,7 @@ if (isset($_SESSION['success'])) {
                                                         <!-- File Attachments -->
                                                         <?php if (!empty($row['file_path'])): ?>
                                                             <?php
-                                                            $file_path = '../uploads/' . basename($row['file_path']);
+                                                            $file_path = '../uploads/announcements/' . basename($row['file_path']);
                                                             $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
                                                             ?>
                                                             <?php if (file_exists($file_path)): ?>

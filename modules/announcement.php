@@ -346,7 +346,7 @@ $result = $stmt->get_result();
             <div id="announcementsFeed">
               <?php if ($result->num_rows > 0): ?>
                 <?php while ($row = $result->fetch_assoc()):
-                  $file_path = !empty($row['file_path']) ? '../uploads/' . basename($row['file_path']) : '';
+                  $file_path = !empty($row['file_path']) ? '../uploads/announcements/' . basename($row['file_path']) : '';
                   $file_ext = $file_path ? strtolower(pathinfo($file_path, PATHINFO_EXTENSION)) : '';
                   $poster = trim($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']);
                 ?>

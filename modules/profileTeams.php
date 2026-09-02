@@ -527,6 +527,7 @@ $result = $stmt->get_result();
 
                                 <!-- User Info -->
                                 <div class="flex-grow-1 mt-3 mt-lg-5">
+                                    <br>
                                     <div
                                         class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4 mt-2 ms-3">
                                         <div class="user-profile-info">
@@ -592,6 +593,11 @@ $result = $stmt->get_result();
                                 <li class="nav-item">
                                     <a class="nav-link " href="tell.php"><i
                                             class="icon-base bx bx-phone icon-sm me-1_5"></i> Local Directory</a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link" href="comms.php"><i
+                                            class="icon-base bx bx-sitemap icon-sm me-1_5"></i> Committees</a>
                                 </li>
 
                             </ul>
