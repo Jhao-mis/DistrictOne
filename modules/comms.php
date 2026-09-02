@@ -630,9 +630,18 @@ $emp_id = $emp_id ?? '—';
                 ];
 
                 $commQuery = $conn->prepare("
-                    SELECT `Committee`, `Member Name`, `Designation`
-                    FROM `committee`
-                    ORDER BY `Committee` ASC
+                    SELECT c.`id` AS `committee_row_id`,
+                           c.`Committee`,
+                           c.`Member Name`,
+                           c.`Designation`,
+                           c.`user_id`,
+                           u.`firstname` AS `linked_firstname`,
+                           u.`lastname` AS `linked_lastname`,
+                           u.`profile_picture` AS `linked_profile_picture`,
+                           u.`department` AS `linked_department`
+                    FROM `committee` c
+                    LEFT JOIN `users` u ON c.`user_id` = u.`id`
+                    ORDER BY c.`Committee` ASC
                 ");
                 $commQuery->execute();
                 $commResult = $commQuery->get_result();
@@ -648,80 +657,87 @@ $emp_id = $emp_id ?? '—';
                         ];
                     }
 
-                    // ---- Guess the lastname (and firstname) out of "Member Name" ----
+                    // ---- Member's display name (used regardless of link status) ----
                     $memberName = trim($row['Member Name']);
-
-                    if (isset($lastnameOverrides[$memberName])) {
-                        $lastnameGuess = $lastnameOverrides[$memberName][0];
-                        $firstnameGuess = $lastnameOverrides[$memberName][1] ?? '';
-                    } elseif (strpos($memberName, ',') !== false) {
-                        // Format assumed: "Lastname, Firstname MI."
-                        $nameParts = explode(',', $memberName, 2);
-                        $lastnameGuess = trim($nameParts[0]);
-
-                        $firstRemainder = trim($nameParts[1] ?? '');
-                        $firstTokens = preg_split('/\s+/', $firstRemainder);
-                        $firstnameGuess = $firstTokens[0] ?? '';
-                    } else {
-                        // Format assumed: "[Title] Firstname MI. Lastname [Suffix]"
-                        $nameTokens = preg_split('/\s+/', $memberName);
-
-                        // Drop leading title(s): "Mr.", "Dr.", etc.
-                        while (count($nameTokens) > 1 && in_array(strtolower(rtrim($nameTokens[0], '.')), $titlesToStrip)) {
-                            array_shift($nameTokens);
-                        }
-
-                        // Drop trailing suffix(es): "Jr.", "Sr.", "III", etc.
-                        while (count($nameTokens) > 1 && in_array(strtolower(rtrim(end($nameTokens), '.')), $suffixesToStrip)) {
-                            array_pop($nameTokens);
-                        }
-
-                        $firstnameGuess = $nameTokens[0] ?? '';
-                        $lastnameGuess = end($nameTokens);
-                    }
-
-                    $lastnameKey = strtolower($lastnameGuess);
-                    $firstnameKey = strtolower($firstnameGuess);
 
                     $memberProfilePic = '';
                     $memberDepartment = '';
 
-                    if (isset($usersLookup[$lastnameKey])) {
-                        $candidates = $usersLookup[$lastnameKey];
-                        $matchedUser = null;
+                    if (!empty($row['user_id']) && $row['linked_lastname'] !== null) {
+                        // ---- Row is linked to a real user account - use it directly ----
+                        $memberProfilePic = $row['linked_profile_picture'];
+                        $memberDepartment = $row['linked_department'];
+                    } else {
+                        // ---- FALLBACK: not linked yet, guess by name (legacy behavior) ----
+                        if (isset($lastnameOverrides[$memberName])) {
+                            $lastnameGuess = $lastnameOverrides[$memberName][0];
+                            $firstnameGuess = $lastnameOverrides[$memberName][1] ?? '';
+                        } elseif (strpos($memberName, ',') !== false) {
+                            // Format assumed: "Lastname, Firstname MI."
+                            $nameParts = explode(',', $memberName, 2);
+                            $lastnameGuess = trim($nameParts[0]);
 
-                        // Try to find a candidate whose firstname reasonably
-                        // matches the guessed firstname (exact, or one is a
-                        // prefix of the other - covers nicknames/initials).
-                        foreach ($candidates as $candidate) {
-                            $candidateFirstKey = strtolower(trim($candidate['firstname']));
-                            if (
-                                $candidateFirstKey === $firstnameKey ||
-                                ($firstnameKey !== '' && strpos($candidateFirstKey, $firstnameKey) === 0) ||
-                                ($candidateFirstKey !== '' && strpos($firstnameKey, $candidateFirstKey) === 0)
-                            ) {
-                                $matchedUser = $candidate;
-                                break;
+                            $firstRemainder = trim($nameParts[1] ?? '');
+                            $firstTokens = preg_split('/\s+/', $firstRemainder);
+                            $firstnameGuess = $firstTokens[0] ?? '';
+                        } else {
+                            // Format assumed: "[Title] Firstname MI. Lastname [Suffix]"
+                            $nameTokens = preg_split('/\s+/', $memberName);
+
+                            // Drop leading title(s): "Mr.", "Dr.", etc.
+                            while (count($nameTokens) > 1 && in_array(strtolower(rtrim($nameTokens[0], '.')), $titlesToStrip)) {
+                                array_shift($nameTokens);
                             }
+
+                            // Drop trailing suffix(es): "Jr.", "Sr.", "III", etc.
+                            while (count($nameTokens) > 1 && in_array(strtolower(rtrim(end($nameTokens), '.')), $suffixesToStrip)) {
+                                array_pop($nameTokens);
+                            }
+
+                            $firstnameGuess = $nameTokens[0] ?? '';
+                            $lastnameGuess = end($nameTokens);
                         }
 
-                        // Fallback: if nothing matched but there's exactly ONE
-                        // user with this lastname, allow it ONLY if the first
-                        // initial still lines up. This is deliberately strict -
-                        // just sharing a lastname is NOT enough (e.g. "Geraldine
-                        // Manguiat" must never pick up "Alpha Manguiat"'s data
-                        // just because Alpha is the only Manguiat in `users`).
-                        if (!$matchedUser && count($candidates) === 1) {
-                            $onlyCandidate = $candidates[0];
-                            $onlyFirstKey = strtolower(trim($onlyCandidate['firstname']));
-                            if ($firstnameKey !== '' && $onlyFirstKey !== '' && $firstnameKey[0] === $onlyFirstKey[0]) {
-                                $matchedUser = $onlyCandidate;
-                            }
-                        }
+                        $lastnameKey = strtolower($lastnameGuess);
+                        $firstnameKey = strtolower($firstnameGuess);
 
-                        if ($matchedUser) {
-                            $memberProfilePic = $matchedUser['profile_picture'];
-                            $memberDepartment = $matchedUser['department'];
+                        if (isset($usersLookup[$lastnameKey])) {
+                            $candidates = $usersLookup[$lastnameKey];
+                            $matchedUser = null;
+
+                            // Try to find a candidate whose firstname reasonably
+                            // matches the guessed firstname (exact, or one is a
+                            // prefix of the other - covers nicknames/initials).
+                            foreach ($candidates as $candidate) {
+                                $candidateFirstKey = strtolower(trim($candidate['firstname']));
+                                if (
+                                    $candidateFirstKey === $firstnameKey ||
+                                    ($firstnameKey !== '' && strpos($candidateFirstKey, $firstnameKey) === 0) ||
+                                    ($candidateFirstKey !== '' && strpos($firstnameKey, $candidateFirstKey) === 0)
+                                ) {
+                                    $matchedUser = $candidate;
+                                    break;
+                                }
+                            }
+
+                            // Fallback: if nothing matched but there's exactly ONE
+                            // user with this lastname, allow it ONLY if the first
+                            // initial still lines up. This is deliberately strict -
+                            // just sharing a lastname is NOT enough (e.g. "Geraldine
+                            // Manguiat" must never pick up "Alpha Manguiat"'s data
+                            // just because Alpha is the only Manguiat in `users`).
+                            if (!$matchedUser && count($candidates) === 1) {
+                                $onlyCandidate = $candidates[0];
+                                $onlyFirstKey = strtolower(trim($onlyCandidate['firstname']));
+                                if ($firstnameKey !== '' && $onlyFirstKey !== '' && $firstnameKey[0] === $onlyFirstKey[0]) {
+                                    $matchedUser = $onlyCandidate;
+                                }
+                            }
+
+                            if ($matchedUser) {
+                                $memberProfilePic = $matchedUser['profile_picture'];
+                                $memberDepartment = $matchedUser['department'];
+                            }
                         }
                     }
 

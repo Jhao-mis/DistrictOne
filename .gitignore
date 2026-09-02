@@ -3,6 +3,8 @@ database
 uploads
 uploads-1
 counter.php
+migrate_committee_user_id.php
+comms.sql
 
 
 
