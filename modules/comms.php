@@ -826,7 +826,8 @@ $emp_id = $emp_id ?? '—';
                                                 strpos($desig, 'editor-in-chief') !== false ||
                                                 strpos($desig, 'final') !== false ||
                                                 strpos($desig, 'focal') !== false ||
-                                                strpos($desig, 'iso head') !== false
+                                                strpos($desig, 'iso head') !== false ||
+                                                strpos($desig, 'chief information officer') !== false
                                             );
 
                                             $is_vice = (
