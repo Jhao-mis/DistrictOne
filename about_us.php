@@ -309,7 +309,7 @@
 
     <div class="profile-slide profile-container" id="profile-1">
       <div class="profile-image">
-        <img src="assets/img/avatars/profile2.png" alt="Andrae Sebastean O. Alegre">
+        <img src="assets/img/avatars/dre.jpg" alt="Andrae Sebastean O. Alegre">
       </div>
       <div class="profile-text">
         <div class="title">Andrae Sebastean O. Alegre</div>
@@ -325,7 +325,7 @@
 
     <div class="profile-slide profile-container" id="profile-2">
       <div class="profile-image">
-        <img src="assets/img/avatars/profile4.png" alt="Joshua Scieryl Glaraga">
+        <img src="assets/img/avatars/jhao.jpg" alt="Joshua Scieryl Glaraga">
       </div>
       <div class="profile-text">
         <div class="title">Joshua Scieryl Glaraga</div>
@@ -342,7 +342,7 @@
 
     <div class="profile-slide profile-container" id="profile-3">
       <div class="profile-image">
-        <img src="assets/img/avatars/profile3.png" alt="Hannah G. Torres">
+        <img src="assets/img/avatars/hannah.jpg" alt="Hannah G. Torres">
       </div>
       <div class="profile-text">
         <div class="title">Hannah G. Torres</div>
@@ -365,18 +365,18 @@
         <p class="title">Project Manager/ SCRUM Master</p>
       </div>
       <div class="team-member" data-index="1">
-        <img src="assets/img/avatars/profile21.png" alt="Andrae Sebastean O. Alegre" />
+        <img src="assets/img/avatars/dre.jpg" alt="Andrae Sebastean O. Alegre" />
         <p class="name">Andrae Sebastean O. Alegre</p>
         <p class="title">Full Stack Developer/ DBA</p>
       </div>
       <div class="team-member" data-index="2">
-        <img src="assets/img/avatars/profile41.png" alt="Joshua Scieryl Glaraga" />
+        <img src="assets/img/avatars/jhao.jpg" alt="Joshua Scieryl Glaraga" />
         <p class="name">Joshua Scieryl G. Glaraga</p>
         <p class="title">Backend Developer/</p>
         <p class="title"> Server Administrator/ DBA</p>
       </div>
       <div class="team-member" data-index="3">
-        <img src="assets/img/avatars/profile31.png" alt="Hannah G. Torres" />
+        <img src="assets/img/avatars/hannah.jpg" alt="Hannah G. Torres" />
         <p class="name">Hannah G. Torres</p>
         <p class="title">UI Designer/</p>
         <p class="title"> Backend Developer/ DBA</p>
