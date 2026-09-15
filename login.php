@@ -190,11 +190,11 @@ unset($_SESSION['success']);
     </div>
 
     <!-- RIGHT IMAGE PANEL -->
-    <div class="hidden lg:flex flex-1 relative flex-col items-center justify-center bg-[url('assets/img/backgrounds/bg69.jpg')] bg-cover bg-center">
+    <div class="hidden lg:flex flex-1 relative flex-col items-center justify-center bg-[url('assets/img/backgrounds/sep.jpg')] bg-cover bg-center">
 
       <div class="absolute inset-0 bg-black/45"></div>
 
-      <div class="relative z-10 text-center text-white px-10 pb-40 animate-fadeUp">
+      <div class="relative z-10 text-center text-white px-10 pb-[550px] animate-fadeUp"> <!--px-[550px] adjust this for height of content -->
         <h2 class="text-xl font-light">Welcome to</h2>
         <h1 class="text-5xl md:text-6xl font-extrabold tracking-wide">DistrictOne</h1>
         <p class="mt-4 text-white/80 max-w-md mx-auto">Calamba Water District Management Information System</p>
