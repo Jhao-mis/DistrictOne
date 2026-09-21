@@ -190,7 +190,7 @@ unset($_SESSION['success']);
     </div>
 
     <!-- RIGHT IMAGE PANEL -->
-    <div class="hidden lg:flex flex-1 relative flex-col items-center justify-center bg-[url('assets/img/backgrounds/sep.jpg')] bg-cover bg-center">
+    <div class="hidden lg:flex flex-1 relative flex-col items-center justify-center bg-[url('assets/img/backgrounds/week2.jpg')] bg-cover bg-center">
 
       <div class="absolute inset-0 bg-black/45"></div>
 
