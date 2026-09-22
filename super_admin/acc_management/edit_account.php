@@ -10,6 +10,7 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) {
 
 try {
     include '../../db.php';           // database connection
+    include '../../lib/access_control.php';
     include '../login_verification.php'; // session check
 
     // If login_verification.php redirects unauthenticated users with header(),
@@ -34,6 +35,15 @@ try {
         $user = mysqli_fetch_assoc($result);
 
         if ($user) {
+            $permissionStmt = $conn->prepare('SELECT p.permission_key FROM user_permissions up JOIN permissions p ON p.id = up.permission_id WHERE up.user_id = ?');
+            $permissionStmt->bind_param('i', $id);
+            $permissionStmt->execute();
+            $permissionResult = $permissionStmt->get_result();
+            $user['permissions'] = [];
+            while ($permission = $permissionResult->fetch_assoc()) {
+                $user['permissions'][] = $permission['permission_key'];
+            }
+            $permissionStmt->close();
             echo json_encode(['success' => true, 'user' => $user]);
         } else {
             echo json_encode(['success' => false, 'message' => 'User not found.']);
@@ -56,7 +66,7 @@ try {
         $username   = mysqli_real_escape_string($conn, $_POST['username'] ?? '');
         $email      = mysqli_real_escape_string($conn, $_POST['email'] ?? '');
         $department = mysqli_real_escape_string($conn, $_POST['department'] ?? '');
-        $role       = mysqli_real_escape_string($conn, $_POST['role'] ?? '');
+        $permissions = array_values(array_unique(array_filter($_POST['permissions'] ?? [], 'is_string')));
 
         // Duplicate emp_id check
         $dup_check = mysqli_query($conn, "SELECT id FROM users WHERE emp_id = '$emp_id' AND id != '$id'");
@@ -77,12 +87,33 @@ try {
                 lastname = '$lastname',
                 username = '$username',
                 email = '$email',
-                department = '$department',
-                role = '$role'
+                department = '$department'
             WHERE id = '$id'
         ";
 
         if (mysqli_query($conn, $update)) {
+            $conn->begin_transaction();
+
+            $deletePermissions = $conn->prepare('DELETE FROM user_permissions WHERE user_id = ?');
+            $deletePermissions->bind_param('i', $id);
+            $deletePermissions->execute();
+            $deletePermissions->close();
+
+            $permissionStmt = $conn->prepare('INSERT INTO user_permissions (user_id, permission_id) SELECT ?, id FROM permissions WHERE permission_key = ?');
+            foreach ($permissions as $permission) {
+                $permissionStmt->bind_param('is', $id, $permission);
+                $permissionStmt->execute();
+            }
+            $permissionStmt->close();
+
+            if (in_array($department, ['Management Information Services Section', 'Manage Information Services Section'], true)) {
+                $misPermissionStmt = $conn->prepare("INSERT IGNORE INTO user_permissions (user_id, permission_id) SELECT ?, id FROM permissions WHERE permission_key = 'mis.personnel'");
+                $misPermissionStmt->bind_param('i', $id);
+                $misPermissionStmt->execute();
+                $misPermissionStmt->close();
+            }
+            $conn->commit();
+
             echo json_encode([
                 'success' => true,
                 'message' => 'The account information has been successfully updated.',
@@ -95,7 +126,7 @@ try {
                     'username'   => $username,
                     'email'      => $email,
                     'department' => $department,
-                    'role'       => $role,
+                    'permissions' => $permissions,
                 ]
             ]);
         } else {

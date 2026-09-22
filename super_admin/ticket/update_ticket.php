@@ -7,6 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["ticket_id"])) {
     $assigned_to = isset($_POST["assigned_to"]) ? intval($_POST["assigned_to"]) : null;
     $status      = $_POST["status"] ?? null;
     $feedback    = trim($_POST["feedback"]);
+    $return_to   = $_POST["return_to"] ?? '';
     $user_id     = $_SESSION["user_id"]; // ✅ safer than relying only on role
 
     // ✅ Fetch updater's name & role
@@ -89,6 +90,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["ticket_id"])) {
 
     if ($update_stmt->execute()) {
         $update_stmt->close();
+
+        // This form is used by the Super Admin ticket-detail page. Return to
+        // the same ticket after saving, regardless of role-label formatting.
+        if ($return_to === 'viewticket_superadmin') {
+            $_SESSION['success'] = 'Ticket updated successfully.';
+            header("Location: ../viewticketSuperadmin.php?ticket_id=" . $ticket_id);
+            exit();
+        }
 
         // Redirect to the appropriate dashboard
         if ($role == "Admin" || $role == "Super Admin") {

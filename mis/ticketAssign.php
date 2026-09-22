@@ -746,6 +746,9 @@ $conn->close();
     case 'Admin':
       include '../admin/sidebar.php';
       break;
+    case 'Super Admin':
+      include '../super_admin/sidebar.php';
+      break;
 
     case 'super_admin':
       include '../super_admin/sidebar.php';

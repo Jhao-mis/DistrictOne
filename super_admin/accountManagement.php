@@ -1,6 +1,7 @@
 <?php
 require '../vendor/autoload.php';
 require '../db.php';
+require '../lib/access_control.php';
 require 'login_verification.php';
 
 $conn = new mysqli($host, $user, $pass, $db);
@@ -45,6 +46,16 @@ $activeCount = 0;
 $unverifiedCount = 0;
 
 while ($row = mysqli_fetch_assoc($result)) {
+  $permissionStmt = $conn->prepare('SELECT p.permission_key FROM user_permissions up JOIN permissions p ON p.id = up.permission_id WHERE up.user_id = ?');
+  $permissionStmt->bind_param('i', $row['id']);
+  $permissionStmt->execute();
+  $permissionResult = $permissionStmt->get_result();
+  $row['permissions'] = [];
+  while ($permission = $permissionResult->fetch_assoc()) {
+    $row['permissions'][] = $permission['permission_key'];
+  }
+  $permissionStmt->close();
+
   if ($row['isVerified']) {
     $activeUsers[] = $row;
     $activeCount++;
@@ -52,6 +63,16 @@ while ($row = mysqli_fetch_assoc($result)) {
     $unverifiedUsers[] = $row;
     $unverifiedCount++;
   }
+}
+
+$permissionGroups = [
+  'Default Access' => [],
+  'MIS Access' => [],
+  'Special Access' => []
+];
+$permissionResult = $conn->query("SELECT permission_key, label, group_name, module_path FROM permissions WHERE group_name IN ('Default Access', 'MIS Access', 'Special Access') ORDER BY FIELD(group_name, 'Default Access', 'MIS Access', 'Special Access'), display_order");
+while ($permission = $permissionResult->fetch_assoc()) {
+  $permissionGroups[$permission['group_name']][] = $permission;
 }
 ?>
 
@@ -972,13 +993,34 @@ while ($row = mysqli_fetch_assoc($result)) {
             </div>
 
             <div class="mb-2">
-              <label class="form-label">Role</label>
-              <select name="role" id="edit_role" class="form-select" required>
-                <option value="User">User</option>
-                <option value="mis">MIS</option>
-                <option value="Admin">Admin</option>
-                <option value="Super Admin">Super Admin</option>
-              </select>
+              <label class="form-label">Access</label>
+              <?php foreach ($permissionGroups as $groupName => $permissions): ?>
+                <?php if (empty($permissions)) continue; ?>
+                <h6 class="text-muted mt-3 mb-2 fw-bold" style="font-size:11px; text-transform:uppercase; letter-spacing:.4px;">
+                  <?= htmlspecialchars($groupName) ?>
+                </h6>
+                <div class="row g-2">
+                  <?php foreach ($permissions as $permissionIndex => $permission): ?>
+                    <?php if ($groupName === 'Default Access' && $permissionIndex === 1): ?>
+                      </div>
+                      <h6 class="text-muted mt-3 mb-2 fw-bold" style="font-size:11px; text-transform:uppercase; letter-spacing:.4px;">
+                        Account
+                      </h6>
+                      <div class="row g-2">
+                    <?php endif; ?>
+                    <div class="col-md-6">
+                      <label class="form-check">
+                        <input class="form-check-input edit-permission" type="checkbox" name="permissions[]"
+                          value="<?= htmlspecialchars($permission['permission_key']) ?>">
+                        <span class="form-check-label">
+                          <?= htmlspecialchars($permission['label']) ?>
+                          <small class="d-block text-muted"><?= htmlspecialchars($permission['module_path']) ?></small>
+                        </span>
+                      </label>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              <?php endforeach; ?>
             </div>
           </div>
 
@@ -1145,7 +1187,9 @@ while ($row = mysqli_fetch_assoc($result)) {
             document.getElementById('edit_emp_id').value = u.emp_id || '';
             document.getElementById('edit_email').value = u.email || '';
             document.getElementById('edit_department').value = u.department || '';
-            document.getElementById('edit_role').value = u.role || '';
+            document.querySelectorAll('.edit-permission').forEach(input => {
+              input.checked = Array.isArray(u.permissions) && u.permissions.includes(input.value);
+            });
             editModal.show();
           })
           .catch(err => {

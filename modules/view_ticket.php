@@ -522,7 +522,9 @@ function tk_history_icon(string $action): string
       font-size: 13px;
       font-weight: 600;
       color: var(--tk-text);
-      line-height: 1.45;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
     .tk-timeline-meta {
       display: flex;

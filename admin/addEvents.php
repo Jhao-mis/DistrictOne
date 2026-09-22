@@ -663,16 +663,16 @@ $conn->close();
 <body>
     <?php $role = trim(strtolower($_SESSION['role'] ?? ''));
     switch ($role) {
-        case 'user':
+        case 'User':
             include '../user/sidebar.php';
             break;
         case 'mis':
             include '../mis/sidebar.php';
             break;
-        case 'admin':
+        case 'Admin':
             include '../admin/sidebar.php';
             break;
-        case 'super admin':
+        case 'Super Admin':
             include '../super_admin/sidebar.php';
             break;
         default:

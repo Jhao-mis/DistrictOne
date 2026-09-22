@@ -3,6 +3,7 @@ session_start();
 
 require 'vendor/autoload.php';
 require 'db.php';
+require 'lib/access_control.php';
 
 $alertType = $_SESSION['alertType'] ?? '';
 $alertText = $_SESSION['alertText'] ?? '';
@@ -43,7 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
       $_SESSION['user_id'] = $user['id'];
       $_SESSION['username'] = $user['username'];
-      $_SESSION['role'] = $user['role'];
+      $_SESSION['role'] = access_normalize_role((string) $user['role']);
+      access_refresh_session($conn, (int) $user['id']);
       $_SESSION['success'] = "Welcome, " . $_SESSION['username'] . "!"; // Set success message
 
       // Redirect to the same page to display the SweetAlert, then the
