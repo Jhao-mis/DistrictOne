@@ -600,6 +600,12 @@ $result = $stmt->get_result();
                                             class="icon-base bx bx-sitemap icon-sm me-1_5"></i> Committees</a>
                                 </li>
 
+                                <li class="nav-item">
+                                    <a class="nav-link" href="org.php"><i
+                                            class="icon-base bx bx-group diversity icon-sm me-1_5"></i> Organizational
+                                        Chart</a>
+                                </li>
+
                             </ul>
                         </div>
                     </div>
