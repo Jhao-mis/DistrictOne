@@ -502,7 +502,7 @@ $conn->close();
                         <select name="room" class="form-select" required>
                             <option value="" disabled selected>Select Room</option>
                             <option value="Training Room, 3rd Floor, CWD Main Building">Training Room, 3rd Floor, CWD Main Building</option>
-                            <option value="Multipurpose Hall 5th Floor CWD Main Building">Multipurpose Hall 5th Floor CWD Main Building</option>
+                            <!-- <option value="Multipurpose Hall 5th Floor CWD Main Building">Multipurpose Hall 5th Floor CWD Main Building</option> -->
                             <option value="Conference Room, 2nd Floor, CWD Warehouse">Conference Room, 2nd Floor, CWD Warehouse</option>
                             <option value="Conference Room, Operations Building, BPS Upper">Conference Room, Operations Building, BPS Upper</option>
                             <option value="Roof Deck, Operations Building, BPS Upper">Roof Deck, Operations Building, BPS Upper</option>
