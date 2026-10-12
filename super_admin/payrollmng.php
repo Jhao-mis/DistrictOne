@@ -1,13 +1,17 @@
 <?php
 session_start();
 require '../db.php';
+require '../lib/access_control.php';
+require 'login_verification.php';
 
 /* =====================
    AUTH CHECK
 ===================== */
-if (!isset($_SESSION['username']) || !isset($_SESSION['role'])) {
+if (!isset($_SESSION['username']) || !isset($_SESSION['user_id'])) {
     die("Unauthorized access");
 }
+
+access_require('special.payroll_management');
 
 /* =====================
    SESSION VARIABLES
@@ -15,7 +19,7 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['role'])) {
 $user_id        = $_SESSION['user_id'] ?? null;
 $username       = $_SESSION['username'] ?? '';
 $role           = $_SESSION['role'] ?? '';
-$normalizedRole = strtolower($role);
+$normalizedRole = access_normalize_role($role);
 
 /* =====================
    FETCH USER DEPARTMENT
@@ -45,7 +49,7 @@ if ($user_id) {
   <meta charset="utf-8">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  <title>Profile</title>
+  <title>Payroll Management</title>
   <meta name="description" content="">
 
   <!-- Favicon -->
@@ -68,9 +72,6 @@ if ($user_id) {
   <link rel="stylesheet" href="../assets/css/demo.css">
   <link rel="stylesheet" href="../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css">
 
-  <!-- Page CSS -->
-  <link rel="stylesheet" href="./css/profileTeams.css">
-
   <!-- Apex Charts (kept because profile originally had it) -->
   <link rel="stylesheet" href="../assets/vendor/libs/apex-charts/apex-charts.css">
 
@@ -89,16 +90,16 @@ if ($user_id) {
 ===================== -->
 <?php
 switch ($normalizedRole) {
-    case 'user':
+    case 'User':
         include '../user/sidebar.php';
         break;
     case 'mis':
         include '../mis/sidebar.php';
         break;
-    case 'admin':
+    case 'Admin':
         include '../admin/sidebar.php';
         break;
-    case 'super admin':
+    case 'Super Admin':
         include '../super_admin/sidebar.php';
         break;
     default:

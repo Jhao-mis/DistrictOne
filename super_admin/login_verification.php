@@ -7,24 +7,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once __DIR__ . '/../lib/access_control.php';
+
 // Check if user is logged in and role is set
-if (!isset($_SESSION["username"]) || !isset($_SESSION['role'])) {
+if (!isset($_SESSION["username"]) || !isset($_SESSION['user_id'])) {
     // Redirect to session expired page
     header("Location: ../sessionExpired.php");
     exit();
 }
 
-// Define allowed roles (optional, for flexibility)
-$allowed_roles = isset($allowed_roles) ? $allowed_roles : ['Super Admin'];
-
-// Normalize role names to avoid case issues
-$userRole = strtolower(trim($_SESSION['role']));
-$allowedRolesLower = array_map('strtolower', $allowed_roles);
-
-// Check if the user's role is allowed
-if (!in_array($userRole, $allowedRolesLower)) {
-    // Redirect to session expired page for unauthorized access
+if (!access_has_valid_role()) {
     header("Location: ../sessionExpired.php");
     exit();
 }
+
+access_require_current_request('../sessionExpired.php');
 ?>

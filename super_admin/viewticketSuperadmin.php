@@ -49,8 +49,15 @@ $history_stmt->execute();
 $history_logs = $history_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $history_stmt->close();
 
-// Fetch MIS personnel list for the dropdown
-$mis_query = $conn->query("SELECT id, CONCAT(firstname, ' ', lastname) AS name FROM users WHERE role = 'mis'");
+// Fetch IT Personnel by explicit permission or MIS department. This works for either role.
+$mis_query = $conn->query("SELECT u.id, CONCAT(u.firstname, ' ', u.lastname) AS name
+                           FROM users u
+                  LEFT JOIN user_permissions up ON up.user_id = u.id
+                  LEFT JOIN permissions p ON p.id = up.permission_id AND p.permission_key = 'mis.personnel'
+                  WHERE p.permission_key = 'mis.personnel'
+                              OR u.department IN ('Management Information Services Section', 'Manage Information Services Section')
+                  GROUP BY u.id, u.firstname, u.lastname
+                           ORDER BY u.firstname, u.lastname");
 $mis_personnel = $mis_query->fetch_all(MYSQLI_ASSOC);
 
 $conn->close();
@@ -72,7 +79,30 @@ function tkt_history_icon($action) {
   return ['icon' => 'bx-message-detail', 'tone' => 'gray'];
 }
 
-$status_slug = strtolower(str_replace(' ', '-', $ticket['status']));
+// Helper: initials for the requester avatar bubble
+function tkt_initials($name) {
+  $parts = preg_split('/\s+/', trim((string)$name));
+  $initials = '';
+  foreach (array_slice($parts, 0, 2) as $p) {
+    if ($p !== '') $initials .= strtoupper(substr($p, 0, 1));
+  }
+  return $initials !== '' ? $initials : '?';
+}
+
+// Helper: tone for a priority value. Only used if the tickets table has a
+// 'priority' column — degrades gracefully (no badge) if it doesn't.
+function tkt_priority_tone($priority) {
+  $p = strtolower((string)$priority);
+  if (strpos($p, 'urgent') !== false || strpos($p, 'critical') !== false) return 'red';
+  if (strpos($p, 'high') !== false) return 'amber';
+  if (strpos($p, 'low') !== false) return 'gray';
+  return 'blue'; // medium / normal / default
+}
+
+$status_slug   = strtolower(str_replace(' ', '-', $ticket['status']));
+$has_priority  = isset($ticket['priority']) && trim((string)$ticket['priority']) !== '';
+$has_category  = isset($ticket['category']) && trim((string)$ticket['category']) !== '';
+$priority_tone = $has_priority ? tkt_priority_tone($ticket['priority']) : '';
 ?>
 
 <!DOCTYPE html>
@@ -134,119 +164,189 @@ $status_slug = strtolower(str_replace(' ', '-', $ticket['status']));
 
   <style>
     :root {
-      --tkt-bg: #f4f6f9;
+      --tkt-bg: #f4f7fb;
       --tkt-surface: #ffffff;
-      --tkt-border: #e6e9ef;
-      --tkt-text: #1f2430;
-      --tkt-muted: #7c8494;
-      --tkt-faint: #a6acb9;
-      --tkt-primary: #4f7cff;
-      --tkt-primary-soft: #edf2ff;
-      --tkt-primary-deep: #2f57d6;
+      --tkt-border: #e1e8f2;
+      --tkt-border-strong: #cddcef;
+      --tkt-text: #1c2634;
+      --tkt-muted: #64748b;
+      --tkt-faint: #9aa8ba;
+      --tkt-primary: #3b82f6;
+      --tkt-primary-soft: #eaf2ff;
+      --tkt-primary-deep: #1d4ed8;
       --tkt-radius: 14px;
       --tkt-radius-sm: 10px;
-      --tkt-shadow: 0 1px 2px rgba(20,20,43,.04), 0 10px 26px -14px rgba(20,20,43,.14);
-      --tkt-amber: #b8860b;
-      --tkt-amber-soft: #fdf3dc;
-      --tkt-blue: #2563a8;
-      --tkt-blue-soft: #e7f1ff;
-      --tkt-green: #1b7a3d;
-      --tkt-green-soft: #e6f7ec;
+      --tkt-shadow: 0 1px 2px rgba(20,20,43,.04), 0 10px 26px -16px rgba(30,64,140,.20);
+      --tkt-amber: #b45309;
+      --tkt-amber-soft: #fef3dc;
+      --tkt-blue: #1d4ed8;
+      --tkt-blue-soft: #e7f0ff;
+      --tkt-green: #15803d;
+      --tkt-green-soft: #e5f8ec;
       --tkt-red: #b91c1c;
       --tkt-red-soft: #fdecec;
-      --tkt-gray: #5b6472;
-      --tkt-gray-soft: #eef0f3;
+      --tkt-gray: #52606d;
+      --tkt-gray-soft: #eef1f5;
       --tkt-ease: cubic-bezier(.4,0,.2,1);
     }
 
     * { box-sizing: border-box; }
 
-    body { background: var(--tkt-bg); }
+    body {
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 32rem),
+        var(--tkt-bg);
+    }
 
     /* Make sure SweetAlert's dark backdrop sits above the fixed sidebar/menu,
        otherwise the sidebar stays bright while the rest of the page dims. */
-    .swal2-container {
-      z-index: 99999 !important;
-    }
-    .swal2-popup {
-      z-index: 100000 !important;
-    }
+    .swal2-container { z-index: 99999 !important; }
+    .swal2-popup { z-index: 100000 !important; }
 
     .tkt-page {
-      max-width: 1240px;
+      max-width: 1280px;
+      width: 100%;
+      min-width: 0;
       margin: 0 auto;
-      padding: 24px 24px 60px;
+      padding: 16px 24px 32px;
+      font-family: "Public Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    /* Use the extra width on large monitors instead of leaving it empty */
+    @media (min-width: 1600px) {
+      .tkt-page { max-width: 1560px; }
+      .tkt-layout { grid-template-columns: minmax(0, 1fr) 380px; }
     }
 
-    /* ── Back link (top, always visible) ──────────────────── */
-    .tkt-back-top { margin-bottom: 14px; }
-    .tkt-back-top .tkt-back-link {
-      display: inline-flex;
-      width: auto;
+    /* ── Top bar: breadcrumb + back link ───────────────────── */
+    .tkt-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
     }
+    .tkt-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 600; color: var(--tkt-muted);
+    }
+    .tkt-breadcrumb i { font-size: 15px; color: var(--tkt-faint); }
+    .tkt-breadcrumb-current { color: var(--tkt-text); font-weight: 800; }
+    .tkt-back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 700; color: var(--tkt-primary-deep);
+      background: var(--tkt-surface);
+      border: 1.5px solid var(--tkt-border);
+      border-radius: var(--tkt-radius-sm);
+      padding: 8px 14px;
+      text-decoration: none;
+      transition: border-color .15s var(--tkt-ease), background .15s var(--tkt-ease);
+    }
+    .tkt-back-link:hover { border-color: var(--tkt-primary); background: var(--tkt-primary-soft); }
 
-    /* ── Header ─────────────────────────────────────────────── */
+    /* ── Header card ────────────────────────────────────────── */
     .tkt-header-bar {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 16px;
-      background: var(--tkt-surface);
-      border: 1px solid var(--tkt-border);
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
       border-radius: var(--tkt-radius);
       box-shadow: var(--tkt-shadow);
-      padding: 22px 26px;
-      margin-bottom: 20px;
+      padding: 16px 24px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
     .tkt-id {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 12px;
       font-weight: 800;
       letter-spacing: .04em;
-      color: var(--tkt-primary-deep);
-      background: var(--tkt-primary-soft);
-      padding: 3px 10px;
+      color: #fff;
+      background: rgba(255,255,255,.16);
+      padding: 4px 11px;
       border-radius: 999px;
       margin-bottom: 8px;
     }
     .tkt-subject {
-      font-size: 21px;
+      font-size: 20px;
       font-weight: 800;
-      color: var(--tkt-text);
+      color: #fff;
       margin: 0 0 10px;
       letter-spacing: -.2px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
     }
-    .tkt-meta-row { display: flex; flex-wrap: wrap; gap: 16px; }
+    .tkt-meta-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .tkt-meta {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 13px; color: var(--tkt-muted); font-weight: 500;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 8px;
+      background: rgba(255,255,255,.10);
+      font-size: 12.5px; font-weight: 500;
+      color: rgba(255,255,255,.92);
     }
-    .tkt-meta i { font-size: 15px; color: var(--tkt-faint); }
-    .tkt-header-right { flex-shrink: 0; }
+    .tkt-meta i { font-size: 15px; color: rgba(255,255,255,.75); }
+    .tkt-header-bar > :first-child,
+    .tkt-header-right { min-width: 0; }
+    .tkt-header-right {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
 
     .tkt-status-badge {
       display: inline-flex; align-items: center; gap: 6px;
       font-size: 12.5px; font-weight: 800; letter-spacing: .02em;
       padding: 7px 16px; border-radius: 999px;
+      white-space: nowrap;
     }
     .tkt-status-badge::before {
-      content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+      content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0;
     }
+    /* Standalone (non-header) status colors */
     .status-pending { background: var(--tkt-amber-soft); color: var(--tkt-amber); }
     .status-in-progress { background: var(--tkt-blue-soft); color: var(--tkt-blue); }
     .status-resolved { background: var(--tkt-green-soft); color: var(--tkt-green); }
     .status-cancelled { background: var(--tkt-red-soft); color: var(--tkt-red); }
+    /* On the gradient header, use solid white pills so status reads instantly */
+    .tkt-header-bar .tkt-status-badge { box-shadow: 0 4px 10px -6px rgba(0,0,0,.35); }
+    .tkt-header-bar .tkt-status-badge.status-pending { background: #fff; color: var(--tkt-amber); }
+    .tkt-header-bar .tkt-status-badge.status-in-progress { background: #fff; color: var(--tkt-blue); }
+    .tkt-header-bar .tkt-status-badge.status-resolved { background: #fff; color: var(--tkt-green); }
+    .tkt-header-bar .tkt-status-badge.status-cancelled { background: #fff; color: var(--tkt-red); }
 
-    /* ── Grid ───────────────────────────────────────────────── */
-    .tkt-grid {
+    .tkt-priority-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 800; letter-spacing: .03em;
+      text-transform: uppercase;
+      padding: 5px 12px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.35);
+      background: rgba(255,255,255,.14);
+      color: #fff;
+    }
+    .tkt-priority-badge i { font-size: 13px; }
+
+    /* ── Two-pane layout: conversation (left) + properties (right) ── */
+    .tkt-layout {
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+      grid-template-columns: minmax(0, 1fr) 340px;
       gap: 20px;
       align-items: start;
     }
-    @media (max-width: 960px) {
-      .tkt-grid { grid-template-columns: 1fr; }
+    .tkt-thread { min-width: 0; }
+    .tkt-side { min-width: 0; }
+    @media (min-width: 1041px) {
+      .tkt-side { position: sticky; top: 20px; }
+    }
+    @media (max-width: 1040px) {
+      .tkt-layout { grid-template-columns: 1fr; }
+      .tkt-side { order: -1; }
     }
 
     .tkt-card {
@@ -254,48 +354,127 @@ $status_slug = strtolower(str_replace(' ', '-', $ticket['status']));
       border: 1px solid var(--tkt-border);
       border-radius: var(--tkt-radius);
       box-shadow: var(--tkt-shadow);
-      padding: 20px 24px;
-      margin-bottom: 20px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      overflow: hidden;
     }
+    .tkt-card:last-child { margin-bottom: 0; }
     .tkt-card-title {
       display: flex; align-items: center; gap: 8px;
-      font-size: 14.5px; font-weight: 800; color: var(--tkt-text);
-      margin: 0 0 16px;
-      padding-bottom: 12px;
+      font-size: 13.5px; font-weight: 800; color: var(--tkt-text);
+      text-transform: uppercase; letter-spacing: .03em;
+      margin: 0 0 12px;
+      padding-bottom: 10px;
       border-bottom: 1px solid var(--tkt-border);
     }
-    .tkt-card-title i { font-size: 17px; color: var(--tkt-primary); }
-
-    /* Info rows */
-    .tkt-info-row {
-      display: flex; justify-content: space-between; gap: 12px;
-      padding: 9px 0;
-      border-bottom: 1px solid var(--tkt-border);
-      font-size: 13.5px;
+    .tkt-card-title i { font-size: 16px; color: var(--tkt-primary); }
+    .tkt-panel-copy {
+      margin: -4px 0 14px;
+      color: var(--tkt-muted);
+      font-size: 12px;
+      line-height: 1.5;
     }
-    .tkt-info-row:last-child { border-bottom: none; }
-    .tkt-info-label { color: var(--tkt-muted); font-weight: 600; }
-    .tkt-info-value { color: var(--tkt-text); font-weight: 700; text-align: right; }
-
-    .tkt-description {
-      background: var(--tkt-bg);
+    .tkt-history-count {
+      margin-left: auto;
+      padding: 3px 9px;
       border: 1px solid var(--tkt-border);
-      border-radius: var(--tkt-radius-sm);
-      padding: 16px 18px;
-      font-size: 13.5px;
-      line-height: 1.7;
+      border-radius: 999px;
+      background: var(--tkt-primary-soft);
+      color: var(--tkt-primary-deep);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* ── Message card (the requester's original description) ─ */
+    .tkt-message-card { padding: 0; }
+    .tkt-msg-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 22px 14px;
+    }
+    .tkt-avatar {
+      flex-shrink: 0;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: var(--tkt-primary-soft);
+      color: var(--tkt-primary-deep);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14.5px; font-weight: 800;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px var(--tkt-border);
+    }
+    .tkt-msg-head-text { min-width: 0; }
+    .tkt-msg-name {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      font-size: 14.5px; font-weight: 800; color: var(--tkt-text);
+    }
+    .tkt-msg-role-tag {
+      font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+      color: var(--tkt-primary-deep);
+      background: var(--tkt-primary-soft);
+      padding: 2px 8px; border-radius: 999px;
+    }
+    .tkt-msg-time {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--tkt-faint); font-weight: 500; margin-top: 3px;
+    }
+    .tkt-description {
+      background: #fbfdff;
+      border-top: 1px solid var(--tkt-border);
+      padding: 18px 22px 22px;
+      font-size: 14px;
+      line-height: 1.75;
       color: var(--tkt-text);
       white-space: pre-wrap;
       word-break: break-word;
     }
 
+    /* Info rows (ticket properties list) */
+    .tkt-info-row {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--tkt-border);
+      font-size: 13.5px;
+    }
+    .tkt-info-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .tkt-info-row:first-child { padding-top: 0; }
+    .tkt-info-label {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--tkt-muted); font-weight: 600; flex-shrink: 0;
+    }
+    .tkt-info-label i { font-size: 14px; color: var(--tkt-faint); }
+    .tkt-info-value {
+      color: var(--tkt-text);
+      font-weight: 700;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+    .tkt-info-value.is-muted { color: var(--tkt-faint); font-weight: 600; font-style: italic; }
+
+    .tkt-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11.5px; font-weight: 800; letter-spacing: .01em;
+      padding: 3px 10px; border-radius: 999px;
+    }
+    .tkt-badge.tone-blue  { background: var(--tkt-blue-soft);  color: var(--tkt-blue); }
+    .tkt-badge.tone-green { background: var(--tkt-green-soft); color: var(--tkt-green); }
+    .tkt-badge.tone-amber { background: var(--tkt-amber-soft); color: var(--tkt-amber); }
+    .tkt-badge.tone-red   { background: var(--tkt-red-soft);   color: var(--tkt-red); }
+    .tkt-badge.tone-gray  { background: var(--tkt-gray-soft);  color: var(--tkt-gray); }
+
     /* ── Timeline (History Logs) ───────────────────────────── */
-    .tkt-timeline { position: relative; padding-left: 6px; }
+    .tkt-timeline {
+      position: relative;
+      max-height: 420px;
+      overflow-y: auto;
+      padding: 4px 4px 4px 6px;
+    }
     .tkt-timeline-item {
       position: relative;
       display: flex;
       gap: 14px;
-      padding-bottom: 22px;
+      padding-bottom: 20px;
     }
     .tkt-timeline-item:last-child { padding-bottom: 0; }
     .tkt-timeline-item::before {
@@ -323,8 +502,23 @@ $status_slug = strtolower(str_replace(' ', '-', $ticket['status']));
     .tkt-timeline-dot.tone-red    { background: var(--tkt-red-soft);   color: var(--tkt-red); }
     .tkt-timeline-dot.tone-gray   { background: var(--tkt-gray-soft);  color: var(--tkt-gray); }
 
-    .tkt-timeline-content { padding-top: 4px; }
-    .tkt-timeline-action { font-size: 13.5px; font-weight: 700; color: var(--tkt-text); margin-bottom: 3px; }
+    .tkt-timeline-content {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 13px;
+      border: 1px solid var(--tkt-border);
+      border-radius: var(--tkt-radius-sm);
+      background: var(--tkt-bg);
+    }
+    .tkt-timeline-action {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tkt-text);
+      line-height: 1.6;
+      margin-bottom: 4px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
     .tkt-timeline-time { font-size: 12px; color: var(--tkt-faint); font-weight: 500; }
 
     .tkt-empty {
@@ -332,70 +526,135 @@ $status_slug = strtolower(str_replace(' ', '-', $ticket['status']));
     }
     .tkt-empty i { font-size: 28px; display: block; margin-bottom: 8px; opacity: .5; }
 
-    /* ── Sidebar / Actions ──────────────────────────────────── */
+    /* ── Side panel: assignment badge + workspace form ─────── */
     .tkt-assigned-badge {
-      display: inline-flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; gap: 10px;
       font-size: 13.5px; font-weight: 700; color: var(--tkt-primary-deep);
       background: var(--tkt-primary-soft);
-      padding: 8px 14px; border-radius: var(--tkt-radius-sm);
+      padding: 10px 14px; border-radius: var(--tkt-radius-sm);
       width: 100%;
+      overflow-wrap: anywhere;
     }
-    .tkt-assigned-badge i { font-size: 16px; }
+    .tkt-assigned-badge i { font-size: 18px; flex-shrink: 0; }
+    .tkt-assigned-badge.is-unassigned {
+      background: var(--tkt-gray-soft); color: var(--tkt-gray);
+    }
 
-    .tkt-field { margin-bottom: 16px; }
+    .tkt-field { margin-bottom: 12px; position: relative; }
     .tkt-field:last-of-type { margin-bottom: 0; }
     .tkt-field label {
-      display: block; font-size: 12px; font-weight: 800;
+      display: block; font-size: 11.5px; font-weight: 800;
       text-transform: uppercase; letter-spacing: .04em;
       color: var(--tkt-muted); margin-bottom: 6px;
+    }
+    .tkt-field-hint {
+      margin: 6px 0 0;
+      color: var(--tkt-faint);
+      font-size: 11.5px;
+      line-height: 1.45;
+    }
+    .tkt-field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
     .tkt-field select,
     .tkt-field textarea {
       width: 100%;
       border: 1.5px solid var(--tkt-border);
       border-radius: var(--tkt-radius-sm);
-      padding: 9px 12px;
+      padding: 10px 12px;
       font-size: 13.5px;
       font-family: inherit;
       color: var(--tkt-text);
-      background: var(--tkt-surface);
+      background: #fbfdff;
       transition: border-color .15s var(--tkt-ease), box-shadow .15s var(--tkt-ease);
     }
+    .tkt-field select { min-height: 42px; cursor: pointer; }
     .tkt-field select:focus,
     .tkt-field textarea:focus {
       outline: none;
       border-color: var(--tkt-primary);
       box-shadow: 0 0 0 3px var(--tkt-primary-soft);
+      background: var(--tkt-surface);
     }
-    .tkt-field textarea { resize: vertical; min-height: 90px; }
+    .tkt-field textarea {
+      display: block;
+      height: 120px;
+      min-height: 120px;
+      max-height: 120px;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
 
+    .tkt-side .tkt-card.tkt-workspace-card {
+      border-color: var(--tkt-border-strong);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+    .tkt-side .tkt-card.tkt-details-card { background: var(--tkt-surface); }
+
+    .tkt-submit-row { padding-top: 10px; }
     .tkt-btn-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
       width: 100%;
-      background: var(--tkt-primary);
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
       color: #fff;
       border: none;
       font-weight: 700;
       font-size: 13.5px;
-      padding: 11px 16px;
+      padding: 12px 16px;
       border-radius: var(--tkt-radius-sm);
       cursor: pointer;
-      transition: background .15s var(--tkt-ease), transform .12s var(--tkt-ease);
+      box-shadow: 0 7px 14px -8px rgba(37,99,168,.8);
+      transition: background .15s var(--tkt-ease), box-shadow .15s var(--tkt-ease), transform .12s var(--tkt-ease);
     }
-    .tkt-btn-submit:hover { background: var(--tkt-primary-deep); }
+    .tkt-btn-submit i { font-size: 17px; }
+    .tkt-btn-submit:hover {
+      background: linear-gradient(135deg, #4f8ef7, #1d4ed8);
+      box-shadow: 0 9px 18px -8px rgba(37,99,168,.75);
+    }
     .tkt-btn-submit:active { transform: scale(.98); }
     .tkt-btn-submit:focus-visible { outline: 2px solid var(--tkt-primary-deep); outline-offset: 2px; }
 
-    .tkt-back-link {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      font-size: 13.5px; font-weight: 700; color: var(--tkt-primary-deep);
-      background: var(--tkt-primary-soft);
-      border: 1.5px solid var(--tkt-border);
-      border-radius: var(--tkt-radius-sm);
-      padding: 10px 16px;
-      text-decoration: none;
-      transition: border-color .15s var(--tkt-ease), background .15s var(--tkt-ease);
+    /* Small screens: preserve the full ticket details without horizontal clipping. */
+    @media (max-width: 767.98px) {
+      .tkt-page { padding: 16px 16px 40px; }
+      .tkt-header-bar { padding: 18px; margin-bottom: 16px; }
+      .tkt-card { padding: 18px; margin-bottom: 16px; }
+      .tkt-subject { font-size: 19px; }
+      .tkt-meta-row { gap: 9px 14px; }
+      .tkt-meta { align-items: flex-start; }
+      .tkt-layout { gap: 16px; }
+      .tkt-field-grid { grid-template-columns: 1fr; gap: 16px; }
     }
-    .tkt-back-link:hover { border-color: var(--tkt-primary); background: #e3ecff; }
+
+    @media (max-width: 479.98px) {
+      .tkt-page { padding: 14px 12px 32px; }
+      .tkt-back-link { width: 100%; justify-content: center; }
+      .tkt-topbar { flex-direction: column; align-items: stretch; gap: 10px; }
+      .tkt-header-bar { padding: 16px; gap: 12px; }
+      .tkt-header-right { width: 100%; align-items: flex-start; }
+      .tkt-card { padding: 16px 14px; border-radius: 12px; }
+      .tkt-card-title { font-size: 13px; margin-bottom: 14px; }
+      .tkt-subject { font-size: 18px; line-height: 1.3; }
+      .tkt-msg-head { padding: 16px 16px 12px; }
+      .tkt-description { padding: 14px 16px 16px; font-size: 13.5px; }
+      .tkt-info-row { flex-direction: column; gap: 4px; }
+      .tkt-info-value { text-align: left; }
+      .tkt-timeline { padding-left: 0; }
+      .tkt-timeline-item { gap: 10px; padding-bottom: 18px; }
+      .tkt-timeline-item::before { left: 13px; top: 28px; }
+      .tkt-timeline-dot { width: 28px; height: 28px; font-size: 14px; }
+      .tkt-timeline-action { font-size: 13px; }
+      .tkt-assigned-badge { align-items: flex-start; padding: 8px 10px; }
+      .tkt-field select,
+      .tkt-field textarea { font-size: 16px; }
+      .tkt-field textarea { height: 160px; min-height: 140px; }
+    }
   </style>
 
 </head>
@@ -444,48 +703,37 @@ $status_slug = strtolower(str_replace(' ', '-', $ticket['status']));
 
   <div class="tkt-page">
 
-    <!-- Back to Dashboard: kept at the top so it's always visible without scrolling -->
-    <div class="tkt-back-top">
-      <a href="ticketRequest.php" class="tkt-back-link">
-        <i class="bx bx-arrow-back"></i> Back to Dashboard
-      </a>
-    </div>
 
-    <!-- Header -->
-    <div class="tkt-header-bar">
-      <div>
-        <span class="tkt-id">TICKET #<?= htmlspecialchars($ticket['id']); ?></span>
-        <h1 class="tkt-subject"><?= htmlspecialchars($ticket['subject']); ?></h1>
-        <div class="tkt-meta-row">
-          <span class="tkt-meta"><i class="bx bx-user"></i> <?= htmlspecialchars($ticket['user_name']); ?></span>
-          <span class="tkt-meta"><i class="bx bx-buildings"></i> <?= htmlspecialchars($ticket['user_department']); ?></span>
-          <span class="tkt-meta">
-            <i class="bx bx-time-five"></i>
-            <?= isset($ticket['created_at']) && !empty($ticket['created_at'])
-              ? 'Created ' . date('F d, Y h:i A', strtotime($ticket['created_at']))
-              : 'No creation record'; ?>
-          </span>
-        </div>
-      </div>
-      <div class="tkt-header-right">
-        <span class="tkt-status-badge status-<?= htmlspecialchars($status_slug); ?>">
-          <?= htmlspecialchars($ticket['status']); ?>
-        </span>
-      </div>
-    </div>
 
-    <div class="tkt-grid">
+    <div class="tkt-layout">
 
-      <!-- ── Main column: description + history timeline ── -->
-      <div class="tkt-main">
+      <!-- ── Thread column: the request itself + activity timeline ── -->
+      <div class="tkt-thread">
 
-        <div class="tkt-card">
-          <h3 class="tkt-card-title"><i class="bx bx-message-square-detail"></i> Description</h3>
+        <div class="tkt-card tkt-message-card">
+          <div class="tkt-msg-head">
+            <div class="tkt-avatar"><?= htmlspecialchars(tkt_initials($ticket['user_name'])); ?></div>
+            <div class="tkt-msg-head-text">
+              <div class="tkt-msg-name">
+                <?= htmlspecialchars($ticket['user_name']); ?>
+                <span class="tkt-msg-role-tag">Requester</span>
+              </div>
+              <div class="tkt-msg-time">
+                <i class="bx bx-time-five"></i>
+                <?= isset($ticket['created_at']) && !empty($ticket['created_at'])
+                  ? date('F d, Y \a\t h:i A', strtotime($ticket['created_at']))
+                  : 'No creation record'; ?>
+              </div>
+            </div>
+          </div>
           <div class="tkt-description"><?= nl2br(htmlspecialchars($ticket['description'])); ?></div>
         </div>
 
         <div class="tkt-card">
-          <h3 class="tkt-card-title"><i class="bx bx-history"></i> Activity Timeline</h3>
+          <h3 class="tkt-card-title">
+            <i class="bx bx-history"></i> Activity Timeline
+            <span class="tkt-history-count"><?= count($history_logs) ?> event<?= count($history_logs) === 1 ? '' : 's' ?></span>
+          </h3>
           <?php if (!empty($history_logs)): ?>
             <div class="tkt-timeline">
               <?php foreach ($history_logs as $log):
@@ -511,54 +759,104 @@ $status_slug = strtolower(str_replace(' ', '-', $ticket['status']));
 
       </div>
 
-      <!-- ── Sidebar: assignment + status/feedback form ── -->
-      <div class="tkt-sidebar">
+      <!-- ── Side column: ticket properties + workspace form ── -->
+      <div class="tkt-side">
 
-        <div class="tkt-card">
-          <h3 class="tkt-card-title"><i class="bx bx-user-check"></i> Assigned To</h3>
-          <div class="tkt-assigned-badge">
-            <i class="bx bx-headphone"></i>
-            <?= $ticket['mis_name'] ? htmlspecialchars($ticket['mis_name']) : 'Unassigned'; ?>
+        <div class="tkt-card tkt-details-card">
+          <h3 class="tkt-card-title"><i class="bx bx-detail"></i> Ticket Details</h3>
+
+          <div class="tkt-info-row">
+            <span class="tkt-info-label"><i class="bx bx-buildings"></i> Department</span>
+            <span class="tkt-info-value"><?= htmlspecialchars($ticket['user_department']); ?></span>
+          </div>
+          <?php if (!empty($ticket['email'])): ?>
+            <div class="tkt-info-row">
+              <span class="tkt-info-label"><i class="bx bx-envelope"></i> Email</span>
+              <span class="tkt-info-value"><?= htmlspecialchars($ticket['email']); ?></span>
+            </div>
+          <?php endif; ?>
+          <?php if ($has_category): ?>
+            <div class="tkt-info-row">
+              <span class="tkt-info-label"><i class="bx bx-category"></i> Category</span>
+              <span class="tkt-info-value"><?= htmlspecialchars($ticket['category']); ?></span>
+            </div>
+          <?php endif; ?>
+          <?php if ($has_priority): ?>
+            <div class="tkt-info-row">
+              <span class="tkt-info-label"><i class="bx bx-flag"></i> Priority</span>
+              <span class="tkt-info-value">
+                <span class="tkt-badge tone-<?= $priority_tone; ?>"><?= htmlspecialchars($ticket['priority']); ?></span>
+              </span>
+            </div>
+          <?php endif; ?>
+          <div class="tkt-info-row">
+            <span class="tkt-info-label"><i class="bx bx-flag-alt"></i> Status</span>
+            <span class="tkt-info-value">
+              <span class="tkt-status-badge status-<?= htmlspecialchars($status_slug); ?>"><?= htmlspecialchars($ticket['status']); ?></span>
+            </span>
+          </div>
+          <div class="tkt-info-row">
+            <span class="tkt-info-label"><i class="bx bx-time-five"></i> Created</span>
+            <span class="tkt-info-value">
+              <?= isset($ticket['created_at']) && !empty($ticket['created_at'])
+                ? date('M d, Y h:i A', strtotime($ticket['created_at']))
+                : '—'; ?>
+            </span>
           </div>
         </div>
 
         <div class="tkt-card">
-          <h3 class="tkt-card-title"><i class="bx bx-cog"></i> Update Ticket</h3>
+          <h3 class="tkt-card-title"><i class="bx bx-user-check"></i> Assigned To</h3>
+          <div class="tkt-assigned-badge <?= $ticket['mis_name'] ? '' : 'is-unassigned'; ?>">
+            <i class="bx <?= $ticket['mis_name'] ? 'bx-headphone' : 'bx-user-x'; ?>"></i>
+            <?= $ticket['mis_name'] ? htmlspecialchars($ticket['mis_name']) : 'Unassigned'; ?>
+          </div>
+        </div>
+
+        <div class="tkt-card tkt-workspace-card">
+          <h3 class="tkt-card-title"><i class="bx bx-edit-alt"></i> Ticket Workspace</h3>
+          
           <form id="updateTicketForm" action="./ticket/update_ticket.php" method="POST">
             <input type="hidden" name="ticket_id" value="<?php echo $ticket['id']; ?>" />
+            <input type="hidden" name="return_to" value="viewticket_superadmin" />
 
-            <div class="tkt-field">
-              <label for="assigned_to">Assign MIS Personnel</label>
-              <select name="assigned_to" id="assigned_to">
-                <option value="">Unassigned</option>
-                <?php foreach ($mis_personnel as $mis):
-                  $selected = ($ticket['assigned_to'] == $mis['id']) ? 'selected' : ''; ?>
-                  <option value="<?php echo $mis['id']; ?>" <?php echo $selected; ?>>
-                    <?php echo htmlspecialchars($mis['name']); ?>
+            <div class="tkt-field-grid">
+              <div class="tkt-field">
+                <label for="assigned_to">Assign MIS Personnel</label>
+                <select name="assigned_to" id="assigned_to">
+                  <option value="">Unassigned</option>
+                  <?php foreach ($mis_personnel as $mis):
+                    $selected = ($ticket['assigned_to'] == $mis['id']) ? 'selected' : ''; ?>
+                    <option value="<?php echo $mis['id']; ?>" <?php echo $selected; ?>>
+                      <?php echo htmlspecialchars($mis['name']); ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <div class="tkt-field">
+                <label for="status">Update Status</label>
+                <select name="status" id="status">
+                  <option value="Pending" <?php echo ($ticket['status'] == 'Pending' ? 'selected' : ''); ?>>Pending</option>
+                  <option value="In Progress" <?php echo ($ticket['status'] == 'In Progress' ? 'selected' : ''); ?>>In
+                    Progress</option>
+                  <option value="Resolved" <?php echo ($ticket['status'] == 'Resolved' ? 'selected' : ''); ?>>Resolved
                   </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-
-            <div class="tkt-field">
-              <label for="status">Update Status</label>
-              <select name="status" id="status">
-                <option value="Pending" <?php echo ($ticket['status'] == 'Pending' ? 'selected' : ''); ?>>Pending</option>
-                <option value="In Progress" <?php echo ($ticket['status'] == 'In Progress' ? 'selected' : ''); ?>>In
-                  Progress</option>
-                <option value="Resolved" <?php echo ($ticket['status'] == 'Resolved' ? 'selected' : ''); ?>>Resolved
-                </option>
-                <!--<option value="Cancelled" <?php echo ($ticket['status'] == 'Cancelled' ? 'selected' : ''); ?>>Cancelled</option> -->
-              </select>
+                  <!--<option value="Cancelled" <?php echo ($ticket['status'] == 'Cancelled' ? 'selected' : ''); ?>>Cancelled</option> -->
+                </select>
+              </div>
             </div>
 
             <div class="tkt-field">
               <label for="feedback">Feedback</label>
               <textarea name="feedback" id="feedback"
                 placeholder="Write your feedback..."><?php echo htmlspecialchars($ticket['feedback']); ?></textarea>
+              
             </div>
 
-            <button type="submit" class="tkt-btn-submit">Update Ticket</button>
+            <div class="tkt-submit-row">
+              <button type="submit" class="tkt-btn-submit"><i class="bx bx-save"></i> Update Ticket</button>
+            </div>
           </form>
         </div>
 
@@ -598,7 +896,7 @@ $status_slug = strtolower(str_replace(' ', '-', $ticket['status']));
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Yes, update it',
-            confirmButtonColor: '#4f7cff'
+            confirmButtonColor: '#4e96f0'
           }).then((result) => {
             if (result.isConfirmed) {
               updateForm.submit();

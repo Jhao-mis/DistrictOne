@@ -22,10 +22,11 @@ $query->fetch();
 $query->close();
 
 $_SESSION['user_id'] = $user_id;
-$_SESSION['role'] = $role;
+$_SESSION['role'] = access_normalize_role($role);
+$role = $_SESSION['role'];
 
 // ✅ Restrict access
-if (!in_array($role, ['Admin', 'Super Admin', 'mis'])) {
+if (!access_can('special.room_reservation')) {
   $_SESSION['error'] = "Access Denied.";
   header("Location: ../login.php");
   exit();
@@ -310,6 +311,8 @@ $result = $conn->query($sql);
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="../assets/vendor/js/bootstrap.js"></script>
+  <script src="../assets/vendor/js/menu.js"></script>
+  <script src="../assets/js/main.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

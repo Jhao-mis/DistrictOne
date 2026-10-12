@@ -35,12 +35,12 @@ $_SESSION['firstname'] = $firstname;
 $_SESSION['lastname'] = $lastname;
 $_SESSION['role'] = $role;
 
-$normalizedRole = trim(strtolower($role));
-
-if (!in_array($normalizedRole, ['admin', 'super admin', 'mis'])) {
+if (!access_can('special.live_report')) {
   header("Location: ../login.php");
   exit;
 }
+
+$normalizedRole = access_normalize_role($role);
 
 /* =================================
    FETCH COUNTS (REAL-TIME)
@@ -355,16 +355,16 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
   <?php
   /* ROLE BASED SIDEBAR */
   switch ($normalizedRole) {
-    case 'user':
+    case 'User':
       include '../user/sidebar.php';
       break;
     case 'mis':
       include '../mis/sidebar.php';
       break;
-    case 'admin':
+    case 'Admin':
       include '../admin/sidebar.php';
       break;
-    case 'super admin':
+    case 'Super Admin':
       include '../super_admin/sidebar.php';
       break;
     default:

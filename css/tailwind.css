@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	html {
+		min-width: 320px;
+	}
+
+	body {
+		overflow-x: hidden;
+	}
+
+	img,
+	svg,
+	video,
+	canvas {
+		max-width: 100%;
+	}
+
+	input,
+	select,
+	textarea,
+	button {
+		max-width: 100%;
+	}
+}
+
+@layer components {
+	/* Shared shell rules keep legacy module markup usable during migration. */
+	.layout-wrapper,
+	.layout-container {
+		min-height: 100vh;
+	}
+
+	.layout-page,
+	.content-wrapper {
+		min-width: 0;
+		width: 100%;
+	}
+
+	.container,
+	.container-xxl,
+	.container-xl,
+	.container-lg,
+	.container-md,
+	.container-sm {
+		width: 100%;
+		max-width: 100%;
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+
+	.table-responsive,
+	.dataTables_wrapper,
+	.responsive-table {
+		max-width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.table-responsive table,
+	.dataTables_wrapper table,
+	.responsive-table table {
+		min-width: 42rem;
+	}
+
+	@media (max-width: 767px) {
+		.layout-page,
+		.content-wrapper {
+			padding-left: 0 !important;
+			padding-right: 0 !important;
+		}
+
+		.card,
+		.modal-content,
+		.container,
+		.container-xxl,
+		.container-xl,
+		.container-lg,
+		.container-md,
+		.container-sm {
+			border-radius: 0.75rem;
+		}
+
+		.row {
+			--bs-gutter-x: 1rem;
+			--bs-gutter-y: 1rem;
+		}
+
+		.modal-dialog {
+			margin: 0.75rem;
+		}
+
+		.modal-dialog,
+		.modal-content {
+			max-width: calc(100vw - 1.5rem);
+		}
+	}
+}
