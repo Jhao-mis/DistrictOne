@@ -298,7 +298,7 @@
               <h5 class="fw-bold text-dark mb-1">Engr. Jonathan Dave A. Fajarda</h5>
               <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Engr. Dave"
               </p>
-              <p class="text-primary fw-semibold small mb-2">MIS Design Specialist A</p>
+              <p class="text-primary fw-semibold small mb-2">Management Information Design Specialist A</p>
               <span class="badge bg-primary text-white px-3 py-1.5 rounded-pill small mt-auto">Supervising Lead</span>
             </div>
           </div>
@@ -594,7 +594,7 @@
           </p>
 
           <span class="badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm mb-3">
-            <i class="fa-solid fa-user-shield me-1"></i> MIS Design Specialist A / Supervising Lead
+            <i class="fa-solid fa-user-shield me-1"></i> Management Information Design Specialist A / Supervising Lead
           </span>
 
           <div class="bg-light p-3 rounded-4 text-start mb-3 border border-slate-100">
