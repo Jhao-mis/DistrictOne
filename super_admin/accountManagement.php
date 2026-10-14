@@ -31,6 +31,19 @@ $query->bind_result($user_id, $profile_picture, $cover_photo, $department, $firs
 $query->fetch();
 $query->close();
 
+// MIS group access is department-based; remove stale assignments from employees outside MIS.
+$clearStaleMisPermissions = $conn->prepare(
+  "DELETE up
+   FROM user_permissions up
+   JOIN users u ON u.id = up.user_id
+   JOIN permissions p ON p.id = up.permission_id
+   WHERE p.group_name = 'MIS Access'
+     AND p.permission_key <> 'mis.personnel'
+     AND LOWER(p.label) <> 'it personnel'
+     AND (u.department IS NULL OR u.department <> 'Management Information Services Section')"
+);
+$clearStaleMisPermissions->execute();
+$clearStaleMisPermissions->close();
 
 // Fetch all users 
 $result = $conn->query("
@@ -70,9 +83,38 @@ $permissionGroups = [
   'MIS Access' => [],
   'Special Access' => []
 ];
-$permissionResult = $conn->query("SELECT permission_key, label, group_name, module_path FROM permissions WHERE group_name IN ('Default Access', 'MIS Access', 'Special Access') ORDER BY FIELD(group_name, 'Default Access', 'MIS Access', 'Special Access'), display_order");
+$allPermissionAccounts = array_merge($activeUsers, $unverifiedUsers);
+$permissionGroupAnalytics = [];
+$accountPermissionsByGroup = [];
+$permissionResult = $conn->query("SELECT permission_key, label, group_name, module_path FROM permissions ORDER BY FIELD(group_name, 'Default Access', 'MIS Access', 'Special Access'), group_name, display_order, label");
 while ($permission = $permissionResult->fetch_assoc()) {
+  if (!isset($permissionGroups[$permission['group_name']])) {
+    $permissionGroups[$permission['group_name']] = [];
+  }
   $permissionGroups[$permission['group_name']][] = $permission;
+
+  if (!isset($permissionGroupAnalytics[$permission['group_name']])) {
+    $permissionGroupAnalytics[$permission['group_name']] = ['accounts' => []];
+  }
+  foreach ($allPermissionAccounts as $account) {
+    if (in_array($permission['permission_key'], $account['permissions'], true)) {
+      $permissionGroupAnalytics[$permission['group_name']]['accounts'][$account['id']] = $account;
+      $accountPermissionsByGroup[$account['id']][$permission['group_name']][] = $permission;
+    }
+  }
+}
+
+foreach ($permissionGroups as $groupName => $permissions) {
+  if (!isset($permissionGroupAnalytics[$groupName])) {
+    $permissionGroupAnalytics[$groupName] = ['accounts' => []];
+  }
+  $permissionGroupAnalytics[$groupName]['user_count'] = count($permissionGroupAnalytics[$groupName]['accounts']);
+}
+$misPermissionKeys = [];
+foreach ($permissionGroups['MIS Access'] as $misPermission) {
+  if ($misPermission['permission_key'] !== 'mis.personnel' && strtolower(trim($misPermission['label'])) !== 'it personnel') {
+    $misPermissionKeys[] = $misPermission['permission_key'];
+  }
 }
 ?>
 
@@ -573,6 +615,105 @@ while ($permission = $permissionResult->fetch_assoc()) {
       margin-bottom: 3px;
     }
 
+    .permission-group-card {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 18px;
+      border: 1px solid var(--tk-border);
+      border-radius: 14px;
+      background: var(--tk-surface);
+      color: var(--tk-text);
+      text-align: left;
+      box-shadow: var(--tk-shadow);
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+
+    .permission-group-card:hover,
+    .permission-group-card:focus-visible {
+      border-color: var(--tk-primary);
+      box-shadow: var(--tk-shadow-lg);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .permission-group-card[aria-pressed="true"] {
+      border-color: var(--tk-primary);
+      background: var(--tk-primary-soft);
+      box-shadow: 0 0 0 2px var(--tk-primary-soft);
+    }
+
+    .permission-group-card .permission-analytics-label {
+      color: var(--tk-text-muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .permission-group-card strong {
+      color: var(--tk-primary-deep);
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .permission-employee-details {
+      padding: 10px 12px;
+      border: 1px solid var(--tk-border);
+      border-radius: 10px;
+      background: var(--tk-surface);
+    }
+
+    .permission-employee-details[open] {
+      background: var(--tk-bg);
+    }
+
+    .permission-employee-details summary {
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .permission-employee-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .permission-employee-details summary::after {
+      content: "View permissions +";
+      float: right;
+      color: var(--tk-primary-deep);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .permission-employee-details[open] summary::after {
+      content: "Hide permissions −";
+    }
+
+    .permission-employee-access {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--tk-border);
+    }
+
+    .permission-employee-access h6 {
+      margin-bottom: 6px;
+      color: var(--tk-text-muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .permission-employee-access ul {
+      margin: 0;
+      padding-left: 16px;
+      color: var(--tk-text);
+      font-size: 12px;
+    }
+
     /* ── Modal ──────────────────────────────────────────────── */
     .tk-modal .modal-content {
       border: none;
@@ -714,10 +855,16 @@ while ($permission = $permissionResult->fetch_assoc()) {
                 Unverified (<?= $unverifiedCount ?>)
               </button>
             </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="permission-summary-tab" data-bs-toggle="tab" data-bs-target="#permission-summary"
+                type="button" role="tab">
+                Permission Summary
+              </button>
+            </li>
           </ul>
 
           <!-- Search Bar -->
-          <div class="tk-search">
+          <div class="tk-search" id="accountSearchWrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
               stroke-linejoin="round">
               <circle cx="11" cy="11" r="7" />
@@ -876,6 +1023,97 @@ while ($permission = $permissionResult->fetch_assoc()) {
             <?php endif; ?>
           </div>
 
+          <!-- Read-only permission overview -->
+          <div class="tab-pane fade" id="permission-summary" role="tabpanel" aria-labelledby="permission-summary-tab">
+            <div class="tk-card-body">
+              <div class="row g-3 mb-4" aria-label="Total users with access by permission group">
+                <?php foreach (['Default Access', 'MIS Access', 'Special Access'] as $groupName): ?>
+                  <?php $groupUserCount = $permissionGroupAnalytics[$groupName]['user_count'] ?? 0; ?>
+                  <div class="col-sm-6 col-xl-4">
+                    <div class="h-100">
+                      <button type="button" class="permission-group-card permission-group-filter"
+                        data-group="<?= htmlspecialchars($groupName, ENT_QUOTES) ?>"
+                        aria-pressed="false">
+                        <span class="permission-analytics-label">Total Number of Users with <?= htmlspecialchars($groupName) ?></span>
+                        <strong><?= $groupUserCount ?></strong>
+                      </button>
+                    </div>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+
+              <div class="row g-2 align-items-center mb-3">
+                <div class="col-md-8">
+                  <label class="visually-hidden" for="permissionEmployeeSearch">Search employees</label>
+                  <input class="form-control" type="search" id="permissionEmployeeSearch"
+                    placeholder="Search employee, username, or department">
+                </div>
+                <div class="col-md-4 text-md-end">
+                  <small class="text-muted" id="permissionEmployeeCount" aria-live="polite"></small>
+                </div>
+              </div>
+
+              <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                <table class="tk-table d-none" id="permissionEmployeeTable">
+                  <thead>
+                    <tr>
+                      <th>Employee / Permissions</th>
+                      <th>Department</th>
+                      <th>Account status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($allPermissionAccounts as $account): ?>
+                      <?php
+                      $accountGroupPermissions = $accountPermissionsByGroup[$account['id']] ?? [];
+                      $accountGroupNames = array_keys($accountGroupPermissions);
+                      $accountName = trim($account['firstname'] . ' ' . $account['middlename'] . ' ' . $account['lastname']);
+                      $accountSummarySearch = strtolower($accountName . ' ' . $account['username'] . ' ' . $account['department']);
+                      ?>
+                      <tr data-groups="<?= htmlspecialchars(implode('|', $accountGroupNames), ENT_QUOTES) ?>"
+                        data-search="<?= htmlspecialchars($accountSummarySearch, ENT_QUOTES) ?>" hidden>
+                        <td>
+                          <details class="permission-employee-details">
+                            <summary>
+                              <strong><?= htmlspecialchars($accountName) ?></strong>
+                              <small class="d-block text-muted"><?= htmlspecialchars($account['username']) ?></small>
+                            </summary>
+                            <div class="permission-employee-access">
+                              <?php foreach ($permissionGroups as $groupName => $permissions): ?>
+                                <?php $employeePermissions = $accountGroupPermissions[$groupName] ?? []; ?>
+                                <?php if (empty($employeePermissions)) continue; ?>
+                                <section>
+                                  <h6><?= htmlspecialchars($groupName) ?></h6>
+                                  <ul>
+                                    <?php foreach ($employeePermissions as $employeePermission): ?>
+                                      <li>
+                                        <?= htmlspecialchars($employeePermission['label']) ?>
+                                        <small class="d-block text-muted"><?= htmlspecialchars($employeePermission['module_path']) ?></small>
+                                      </li>
+                                    <?php endforeach; ?>
+                                  </ul>
+                                </section>
+                              <?php endforeach; ?>
+                            </div>
+                          </details>
+                        </td>
+                        <td><?= htmlspecialchars($account['department']) ?></td>
+                        <td>
+                          <span class="tk-status <?= $account['isVerified'] ? 'verified' : 'unverified' ?>">
+                            <?= $account['isVerified'] ? 'Verified' : 'Unverified' ?>
+                          </span>
+                        </td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+                <div class="tk-empty d-none" id="permissionEmployeeEmpty">
+                  <strong>No employees found</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -996,6 +1234,9 @@ while ($permission = $permissionResult->fetch_assoc()) {
               <label class="form-label">Access</label>
               <?php foreach ($permissionGroups as $groupName => $permissions): ?>
                 <?php if (empty($permissions)) continue; ?>
+                <?php $isMisAccessGroup = $groupName === 'MIS Access'; ?>
+                <section class="edit-permission-group <?= $isMisAccessGroup ? 'd-none' : '' ?>"
+                  data-mis-access-panel="<?= $isMisAccessGroup ? '1' : '0' ?>">
                 <h6 class="text-muted mt-3 mb-2 fw-bold" style="font-size:11px; text-transform:uppercase; letter-spacing:.4px;">
                   <?= htmlspecialchars($groupName) ?>
                 </h6>
@@ -1008,10 +1249,13 @@ while ($permission = $permissionResult->fetch_assoc()) {
                       </h6>
                       <div class="row g-2">
                     <?php endif; ?>
+                    <?php if ($permission['permission_key'] === 'mis.personnel' || strtolower(trim($permission['label'])) === 'it personnel') continue; ?>
+                    <?php $isMisGroupPermission = $isMisAccessGroup; ?>
                     <div class="col-md-6">
                       <label class="form-check">
                         <input class="form-check-input edit-permission" type="checkbox" name="permissions[]"
-                          value="<?= htmlspecialchars($permission['permission_key']) ?>">
+                          value="<?= htmlspecialchars($permission['permission_key']) ?>"
+                          data-mis-permission="<?= $isMisGroupPermission ? '1' : '0' ?>">
                         <span class="form-check-label">
                           <?= htmlspecialchars($permission['label']) ?>
                           <small class="d-block text-muted"><?= htmlspecialchars($permission['module_path']) ?></small>
@@ -1020,8 +1264,13 @@ while ($permission = $permissionResult->fetch_assoc()) {
                     </div>
                   <?php endforeach; ?>
                 </div>
+                </section>
               <?php endforeach; ?>
             </div>
+            <?php foreach ($misPermissionKeys as $misPermissionKey): ?>
+              <input type="hidden" name="permissions[]" class="edit-mis-permission-hidden"
+                value="<?= htmlspecialchars($misPermissionKey, ENT_QUOTES) ?>" disabled>
+            <?php endforeach; ?>
           </div>
 
           <div class="modal-footer">
@@ -1094,16 +1343,74 @@ while ($permission = $permissionResult->fetch_assoc()) {
     // Unified search input for both Active and Unverified tables
     (function () {
       const searchInput = document.getElementById("searchInput");
+      const accountSearchWrap = document.getElementById("accountSearchWrap");
+      const summaryTab = document.getElementById("permission-summary-tab");
       if (!searchInput) return;
 
       searchInput.addEventListener("input", function () {
         const value = this.value.trim().toLowerCase();
-        document.querySelectorAll(".tk-card table tbody").forEach(tbody => {
+        document.querySelectorAll("#active table tbody, #unverified table tbody").forEach(tbody => {
           tbody.querySelectorAll("tr").forEach(row => {
             row.style.display = row.textContent.toLowerCase().includes(value) ? "" : "none";
           });
         });
       });
+
+      summaryTab.addEventListener("shown.bs.tab", () => {
+        accountSearchWrap.classList.add("d-none");
+      });
+      document.querySelectorAll("#active-tab, #unverified-tab").forEach(tab => {
+        tab.addEventListener("shown.bs.tab", () => accountSearchWrap.classList.remove("d-none"));
+      });
+    })();
+  </script>
+
+  <script>
+    // Show employees assigned to the selected permission group.
+    (function () {
+      const table = document.getElementById("permissionEmployeeTable");
+      const searchInput = document.getElementById("permissionEmployeeSearch");
+      const resultCount = document.getElementById("permissionEmployeeCount");
+      const emptyMessage = document.getElementById("permissionEmployeeEmpty");
+      const groupCards = Array.from(document.querySelectorAll(".permission-group-filter"));
+      if (!table || !searchInput || !resultCount || !emptyMessage || groupCards.length === 0) return;
+
+      const rows = Array.from(table.tBodies[0].rows);
+      let selectedGroup = "";
+      const applyFilters = function () {
+        const search = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+          const rowGroups = row.dataset.groups ? row.dataset.groups.split("|") : [];
+          const matchesGroup = selectedGroup !== "" && rowGroups.includes(selectedGroup);
+          const matchesSearch = !search || row.dataset.search.includes(search);
+          row.hidden = !(matchesGroup && matchesSearch);
+          if (!row.hidden) visibleCount++;
+        });
+
+        table.classList.toggle("d-none", !selectedGroup || visibleCount === 0);
+        emptyMessage.classList.toggle("d-none", !selectedGroup || visibleCount > 0);
+        if (!selectedGroup) {
+          resultCount.textContent = "";
+        } else {
+          const groupLabel = groupCards.find(card => card.dataset.group === selectedGroup)
+            .querySelector(".permission-analytics-label").textContent.replace("Total Number of Users with ", "");
+          resultCount.textContent = `${visibleCount} employee${visibleCount === 1 ? "" : "s"} with ${groupLabel}`;
+        }
+      };
+
+      groupCards.forEach(card => {
+        card.addEventListener("click", function () {
+          selectedGroup = this.dataset.group;
+          groupCards.forEach(groupCard => {
+            groupCard.setAttribute("aria-pressed", groupCard === this ? "true" : "false");
+          });
+          applyFilters();
+        });
+      });
+      searchInput.addEventListener("input", applyFilters);
+      applyFilters();
     })();
   </script>
 
@@ -1114,7 +1421,7 @@ while ($permission = $permissionResult->fetch_assoc()) {
         const ths = table.querySelectorAll("thead th");
         ths.forEach((th, index) => {
           const headerText = th.textContent.trim().toLowerCase();
-          if (headerText === "" || headerText.includes("action")) return;
+          if (headerText === "" || headerText.includes("action") || th.classList.contains("non-sortable")) return;
 
           th.classList.add("sortable");
 
@@ -1126,13 +1433,17 @@ while ($permission = $permissionResult->fetch_assoc()) {
 
             const dir = asc ? 1 : -1;
             rows.sort((a, b) => {
-              const aCell = (a.cells[index] && a.cells[index].innerText) ? a.cells[index].innerText.trim() : "";
-              const bCell = (b.cells[index] && b.cells[index].innerText) ? b.cells[index].innerText.trim() : "";
+              const aCell = a.cells[index]
+                ? (a.cells[index].dataset.sortValue || a.cells[index].innerText.trim())
+                : "";
+              const bCell = b.cells[index]
+                ? (b.cells[index].dataset.sortValue || b.cells[index].innerText.trim())
+                : "";
 
               const aNum = parseFloat(aCell.replace(/[^0-9.\-]+/g, ""));
               const bNum = parseFloat(bCell.replace(/[^0-9.\-]+/g, ""));
-              const aIsNum = !isNaN(aNum) && aCell !== "";
-              const bIsNum = !isNaN(bNum) && bCell !== "";
+              const aIsNum = th.dataset.sortType === "number" || (!isNaN(aNum) && aCell !== "");
+              const bIsNum = th.dataset.sortType === "number" || (!isNaN(bNum) && bCell !== "");
 
               if (aIsNum && bIsNum) {
                 return (aNum - bNum) * dir;
@@ -1159,6 +1470,34 @@ while ($permission = $permissionResult->fetch_assoc()) {
       const editModal = new bootstrap.Modal(editModalEl);
       const editForm = document.getElementById('editAccountForm');
       const editSaveBtn = document.getElementById('editSaveBtn');
+      const departmentInput = document.getElementById('edit_department');
+      const misPermissionCheckboxes = Array.from(document.querySelectorAll('.edit-permission[data-mis-permission="1"]'));
+      const misPermissionPanel = document.querySelector('.edit-permission-group[data-mis-access-panel="1"]');
+      const misPermissionHiddenInputs = Array.from(document.querySelectorAll('.edit-mis-permission-hidden'));
+      let previousDepartmentWasMis = false;
+
+      const syncMisDepartmentAccess = function () {
+        const isMisDepartment = departmentInput.value === 'Management Information Services Section';
+        if (!isMisDepartment && previousDepartmentWasMis) {
+          misPermissionCheckboxes.forEach(input => {
+            input.checked = false;
+          });
+        }
+
+        misPermissionCheckboxes.forEach(input => {
+          if (isMisDepartment) input.checked = true;
+          input.disabled = isMisDepartment;
+        });
+        if (misPermissionPanel) {
+          misPermissionPanel.classList.toggle('d-none', !isMisDepartment);
+        }
+        misPermissionHiddenInputs.forEach(input => {
+          input.disabled = !isMisDepartment;
+        });
+        previousDepartmentWasMis = isMisDepartment;
+      };
+
+      departmentInput.addEventListener('change', () => syncMisDepartmentAccess());
 
       window.openEditModal = function (id) {
         fetch(`acc_management/edit_account.php?id=${id}`, { credentials: 'same-origin' })
@@ -1190,6 +1529,8 @@ while ($permission = $permissionResult->fetch_assoc()) {
             document.querySelectorAll('.edit-permission').forEach(input => {
               input.checked = Array.isArray(u.permissions) && u.permissions.includes(input.value);
             });
+            previousDepartmentWasMis = false;
+            syncMisDepartmentAccess();
             editModal.show();
           })
           .catch(err => {
