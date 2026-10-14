@@ -278,90 +278,102 @@
         </span>
         <h2 class="display-5 font-extrabold text-slate-900">Management Information Services Section</h2>
         <p class="text-muted max-w-2xl mx-auto fs-6 mb-1">
-          The dedicated 5-member team managing Calamba Water District's IT operations, system architecture, network
+          The 5-member team managing Calamba Water District's IT operations, system architecture, network
           infrastructure, and digital solutions.
         </p>
         <small class="text-primary fw-semibold"><i class="fa-solid fa-circle-info me-1"></i> Click on any team member
           card to view their full profile.</small>
       </div>
 
-      <div class="row g-4 justify-content-center">
+      <!-- 3-LAYER HIERARCHICAL CARD LAYOUT -->
+      <div class="d-flex flex-column align-items-center gap-4">
 
-        <!-- Member 1: Dave Fajarda -->
-        <div class="col-xl-4 col-md-6">
-          <div
-            class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
-            data-bs-toggle="modal" data-bs-target="#misModal1">
-            <img src="assets/img/avatars/picture1.jpg" alt="Engr. Jonathan Dave A. Fajarda" class="mis-avatar mb-3">
-            <h5 class="fw-bold text-dark mb-1">Engr. Jonathan Dave A. Fajarda</h5>
-            <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Dave"
-            </p>
-            <p class="text-primary fw-semibold small mb-2">MIS Design Specialist A</p>
-            <span class="badge bg-primary text-white px-3 py-1.5 rounded-pill small mt-auto">Supervising Lead</span>
+        <!-- LAYER 1 (TOP): Engr. Dave Fajarda -->
+        <div class="w-100 d-flex justify-content-center">
+          <div style="max-width: 380px; width: 100%;">
+            <div
+              class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
+              data-bs-toggle="modal" data-bs-target="#misModal1">
+              <img src="assets/img/avatars/pic1.png" alt="Engr. Jonathan Dave A. Fajarda" class="mis-avatar mb-3">
+              <h5 class="fw-bold text-dark mb-1">Engr. Jonathan Dave A. Fajarda</h5>
+              <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Engr. Dave"
+              </p>
+              <p class="text-primary fw-semibold small mb-2">MIS Design Specialist A</p>
+              <span class="badge bg-primary text-white px-3 py-1.5 rounded-pill small mt-auto">Supervising Lead</span>
+            </div>
           </div>
         </div>
 
-        <!-- Member 2: Lenard Tancangco -->
-        <div class="col-xl-4 col-md-6">
-          <div
-            class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
-            data-bs-toggle="modal" data-bs-target="#misModal2">
-            <img src="assets/img/avatars/lt.png" alt="Mr. Lenard Martin G. Tancangco" class="mis-avatar mb-3">
-            <h5 class="fw-bold text-dark mb-1">Mr. Lenard Martin G. Tancangco</h5>
-            <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Lenard"
-            </p>
-            <p class="text-muted fw-semibold small mb-2">Data Controller</p>
-            <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill small mt-auto">Technical
-              Lead</span>
+        <!-- LAYER 2 (MIDDLE): Mr. Lenard Tancangco -->
+        <div class="w-100 d-flex justify-content-center">
+          <div style="max-width: 380px; width: 100%;">
+            <div
+              class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
+              data-bs-toggle="modal" data-bs-target="#misModal2">
+              <img src="assets/img/avatars/lt.png" alt="Mr. Lenard Martin G. Tancangco" class="mis-avatar mb-3">
+              <h5 class="fw-bold text-dark mb-1">Mr. Lenard Martin G. Tancangco</h5>
+              <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Lenard"
+              </p>
+              <p class="text-muted fw-semibold small mb-2">Data Controller</p>
+              <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill small mt-auto">Technical Lead</span>
+            </div>
           </div>
         </div>
 
-        <!-- Member 3: Jhao Glaraga -->
-        <div class="col-xl-4 col-md-6">
-          <div
-            class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
-            data-bs-toggle="modal" data-bs-target="#misModal3">
-            <img src="assets/img/avatars/jg.png" alt="Mr. Joshua Scieryl G. Glaraga" class="mis-avatar mb-3">
-            <h5 class="fw-bold text-dark mb-1">Mr. Joshua Scieryl G. Glaraga</h5>
-            <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Jhao"
-            </p>
-            <p class="text-muted fw-semibold small mb-2">Job Order Support</p>
-            <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill small mt-auto">Systems &
-              Infrastructure</span>
-          </div>
-        </div>
+        <!-- LAYER 3 (BOTTOM): Sir Jhao, Sir Carlo, and Sir Sasik -->
+        <div class="w-100">
+          <div class="row g-4 justify-content-center">
 
-        <!-- Member 4: Carlo Oboza -->
-        <div class="col-xl-4 col-md-6">
-          <div
-            class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
-            data-bs-toggle="modal" data-bs-target="#misModal4">
-            <img src="assets/img/avatars/co.png" alt="Mr. John Carlo E. Oboza" class="mis-avatar mb-3">
-            <h5 class="fw-bold text-dark mb-1">Mr. John Carlo E. Oboza</h5>
-            <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Carlo"
-            </p>
-            <p class="text-muted fw-semibold small mb-2">Job Order Support</p>
-            <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill small mt-auto">Hardware & Network
-              Support</span>
-          </div>
-        </div>
+            <!-- Bottom Left: Jhao Glaraga -->
+            <div class="col-xl-4 col-md-6">
+              <div
+                class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
+                data-bs-toggle="modal" data-bs-target="#misModal3">
+                <img src="assets/img/avatars/jg.png" alt="Mr. Joshua Scieryl G. Glaraga" class="mis-avatar mb-3">
+                <h5 class="fw-bold text-dark mb-1">Mr. Joshua Scieryl G. Glaraga</h5>
+                <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Jhao"
+                </p>
+                <p class="text-muted fw-semibold small mb-2">Job Order Support</p>
+                <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill small mt-auto">Systems &
+                  Infrastructure</span>
+              </div>
+            </div>
 
-        <!-- Member 5: Sasik Marvida -->
-        <div class="col-xl-4 col-md-6">
-          <div
-            class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
-            data-bs-toggle="modal" data-bs-target="#misModal5">
-            <img src="assets/img/avatars/dm.png" alt="Mr. Dranreb A. Marvida" class="mis-avatar mb-3">
-            <h5 class="fw-bold text-dark mb-1">Mr. Dranreb A. Marvida</h5>
-            <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Sasik"
-            </p>
-            <p class="text-muted fw-semibold small mb-2">Job Order Support</p>
-            <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill small mt-auto">Web Dev &
-              Multimedia</span>
+            <!-- Bottom Middle: Carlo Oboza -->
+            <div class="col-xl-4 col-md-6">
+              <div
+                class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
+                data-bs-toggle="modal" data-bs-target="#misModal4">
+                <img src="assets/img/avatars/co.png" alt="Mr. John Carlo E. Oboza" class="mis-avatar mb-3">
+                <h5 class="fw-bold text-dark mb-1">Mr. John Carlo E. Oboza</h5>
+                <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Carlo"
+                </p>
+                <p class="text-muted fw-semibold small mb-2">Job Order Support</p>
+                <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill small mt-auto">Hardware & Network
+                  Support</span>
+              </div>
+            </div>
+
+            <!-- Bottom Right: Sasik Marvida -->
+            <div class="col-xl-4 col-md-6">
+              <div
+                class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
+                data-bs-toggle="modal" data-bs-target="#misModal5">
+                <img src="assets/img/avatars/dm.png" alt="Mr. Dranreb A. Marvida" class="mis-avatar mb-3">
+                <h5 class="fw-bold text-dark mb-1">Mr. Dranreb A. Marvida</h5>
+                <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Sasik"
+                </p>
+                <p class="text-muted fw-semibold small mb-2">Job Order Support</p>
+                <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill small mt-auto">Web Dev &
+                  Multimedia</span>
+              </div>
+            </div>
+
           </div>
         </div>
 
       </div>
+
     </div>
   </section>
 
@@ -487,7 +499,7 @@
       <!-- Team Minimalist Thumbnails -->
       <div class="team-carousel grid grid-cols-2 sm:grid-cols-4 gap-6 pt-2">
         <div class="team-member active-thumb cursor-pointer text-center" data-index="0">
-          <img src="assets/img/avatars/picture1.jpg" alt="Jonathan Dave Aquino Fajarda" class="w-20 h-20 mx-auto rounded-full object-cover mb-2.5" />
+          <img src="assets/img/avatars/pic1.png" alt="Jonathan Dave Aquino Fajarda" class="w-20 h-20 mx-auto rounded-full object-cover mb-2.5" />
           <p class="name font-bold text-xs text-slate-900 line-clamp-1">Engr. Jonathan Dave A. Fajarda</p>
           <p class="text-[11px] font-bold text-blue-600">MPA, ECE</p>
           <p class="title text-[11px] text-slate-500 line-clamp-1 mt-0.5">Project Manager / SCRUM Master</p>
@@ -572,13 +584,13 @@
 
         <div class="modal-body text-center pt-0 px-4 pb-4">
           <div class="modal-avatar-wrapper mb-3">
-            <img src="assets/img/avatars/picture1.jpg" alt="Engr. Jonathan Dave A. Fajarda"
+            <img src="assets/img/avatars/pic1.png" alt="Engr. Jonathan Dave A. Fajarda"
               class="upgraded-modal-avatar">
           </div>
 
           <h4 class="fw-bold text-slate-900 mb-1">Engr. Jonathan Dave A. Fajarda</h4>
           <p class="text-muted fw-semibold small mb-2"><i class="fa-solid fa-user-tag me-1"></i> Preferred Name:
-            <strong>Dave</strong>
+            <strong>Engr. Dave</strong>
           </p>
 
           <span class="badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm mb-3">
@@ -587,7 +599,7 @@
 
           <div class="bg-light p-3 rounded-4 text-start mb-3 border border-slate-100">
             <p class="text-secondary small leading-relaxed mb-0" style="text-align: justify;">
-              Engr. Jonathan Dave A. Fajarda serves as the Supervising Lead of the Management Information Services
+              Serves as the Supervising Lead of the Management Information Services
               Section at Calamba Water District. He directs agency-wide IT strategy, system architecture planning,
               project lifecycles, and oversees team development efforts across all digital software initiatives.
             </p>
@@ -638,9 +650,7 @@
 
           <div class="bg-light p-3 rounded-4 text-start mb-3 border border-slate-100">
             <p class="text-secondary small leading-relaxed mb-0" style="text-align: justify;">
-              Bringing over 15 years of dedicated service to Calamba Water District, Mr. Lenard Martin G. Tancangco
-              serves as the section's overall technical expert. He manages comprehensive network administration,
-              infrastructure maintenance, and provides senior technical direction.
+              Manages comprehensive network administration, telephony, infrastructure maintenance, and provides over all technical support. 
             </p>
           </div>
 
@@ -690,9 +700,7 @@
 
           <div class="bg-light p-3 rounded-4 text-start mb-3 border border-slate-100">
             <p class="text-secondary small leading-relaxed mb-0" style="text-align: justify;">
-              Mr. Joshua Scieryl G. Glaraga manages in-house server maintenance and backend system architecture. He is
-              instrumental in ensuring high system uptime, executing database backups, overseeing server administration,
-              and optimizing PHP application performance.
+              Maintains server and backend system architecture. He is instrumental in ensuring high system uptime, executing database backups, server administration, and optimizing PHP application performance.
             </p>
           </div>
 
@@ -740,8 +748,7 @@
 
           <div class="bg-light p-3 rounded-4 text-start mb-3 border border-slate-100">
             <p class="text-secondary small leading-relaxed mb-0" style="text-align: justify;">
-              Mr. John Carlo E. Oboza provides key technical support in network administration and directly supervises
-              system, workstation, and device maintenance and repairs to keep agency operations running smoothly.
+              Provides technical support in network administration and performs system, workstation, and device maintenance and repairs to keep agency operations running smoothly
             </p>
           </div>
 
@@ -791,9 +798,7 @@
 
           <div class="bg-light p-3 rounded-4 text-start mb-3 border border-slate-100">
             <p class="text-secondary small leading-relaxed mb-0" style="text-align: justify;">
-              Mr. Dranreb A. Marvida engineered the front-end architecture and interface for the new CWD Official
-              Website. He also leads graphic design, video editing, and official photography coverage for major CWD
-              events and official initiatives.
+              Designed the front-end architecture and interface for the new CWD Official Website. He also performs graphic design, video editing, and official photography coverage for major CWD events and official initiatives.
             </p>
           </div>
 
@@ -826,7 +831,6 @@
       const prevBtn = document.getElementById('prevBtn');
       const nextBtn = document.getElementById('nextBtn');
       let currentIndex = 0;
-      let autoSlideInterval;
 
       function showSlide(index) {
         slides.forEach((slide, i) => {
@@ -866,36 +870,23 @@
         thumb.addEventListener('click', function() {
           const index = parseInt(this.getAttribute('data-index'));
           showSlide(index);
-          resetTimer();
         });
       });
 
       if (prevBtn) {
         prevBtn.addEventListener('click', () => {
           prevSlide();
-          resetTimer();
         });
       }
 
       if (nextBtn) {
         nextBtn.addEventListener('click', () => {
           nextSlide();
-          resetTimer();
         });
       }
 
-      function startTimer() {
-        autoSlideInterval = setInterval(nextSlide, 6000);
-      }
-
-      function resetTimer() {
-        clearInterval(autoSlideInterval);
-        startTimer();
-      }
-
-      // Initialize
+      // Initialize (Manual slide lang, walang auto-timer)
       showSlide(0);
-      startTimer();
     });
   </script>
 
