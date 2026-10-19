@@ -522,8 +522,8 @@ $result = $stmt->get_result();
                                                 aria-label="Slide 4"></button>
                                             <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="4"
                                                 aria-label="Slide 5"></button>
-                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="5"
-                                                aria-label="Slide 6"></button>
+                                            <!-- <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="5"
+                                                aria-label="Slide 6"></button> -->
                                         </div>
 
                                         <!-- Carousel Items -->
@@ -551,10 +551,10 @@ $result = $stmt->get_result();
                                                 <img src="../assets/img/carousel/1.png" class="d-block w-100 h-100"
                                                     style="object-fit: cover;" alt="Cover 3">
                                             </div>
-                                            <div class="carousel-item" style="height: 100%;">
+                                            <!-- <div class="carousel-item" style="height: 100%;">
                                                 <img src="../assets/img/carousel/3.png" class="d-block w-100 h-100"
                                                     style="object-fit: cover;" alt="Cover 3">
-                                            </div>
+                                            </div> -->
                                         </div>
                                         <!-- Carousel Controls -->
                                         <button class="carousel-control-prev" type="button" data-bs-target="#coverCarousel"

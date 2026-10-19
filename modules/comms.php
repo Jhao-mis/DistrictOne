@@ -463,8 +463,8 @@ $emp_id = $emp_id ?? '—';
                                                 aria-label="Slide 4"></button>
                                             <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="4"
                                                 aria-label="Slide 5"></button>
-                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="5"
-                                                aria-label="Slide 6"></button>
+                                            <!-- <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="5"
+                                                aria-label="Slide 6"></button> -->
                                         </div>
                                         <div class="carousel-inner" style="height: 100%;">
                                             <div class="carousel-item active" style="height: 100%;">
@@ -488,10 +488,10 @@ $emp_id = $emp_id ?? '—';
                                                 <img src="../assets/img/carousel/1.png" class="d-block w-100 h-100"
                                                     style="object-fit: cover;" alt="Cover 5">
                                             </div>
-                                            <div class="carousel-item" style="height: 100%;">
+                                            <!-- <div class="carousel-item" style="height: 100%;">
                                                 <img src="../assets/img/carousel/3.png" class="d-block w-100 h-100"
                                                     style="object-fit: cover;" alt="Cover 6">
-                                            </div>
+                                            </div> -->
                                         </div>
                                         <button class="carousel-control-prev" type="button"
                                             data-bs-target="#coverCarousel" data-bs-slide="prev">
