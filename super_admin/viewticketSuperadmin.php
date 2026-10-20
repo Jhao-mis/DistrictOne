@@ -822,7 +822,7 @@ $priority_tone = $has_priority ? tkt_priority_tone($ticket['priority']) : '';
 
             <div class="tkt-field-grid">
               <div class="tkt-field">
-                <label for="assigned_to">Assign MIS Personnel</label>
+                <label for="assigned_to">Assigned to</label>
                 <select name="assigned_to" id="assigned_to">
                   <option value="">Unassigned</option>
                   <?php foreach ($mis_personnel as $mis):

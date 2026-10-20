@@ -22,107 +22,170 @@ $query->bind_result($user_id, $profile_picture, $cover_photo, $department, $firs
 $query->fetch();
 $query->close();
 
-// 📅 Fetch activities
-$stmt = $pdo->query("SELECT * FROM activities ORDER BY start_datetime");
-$activities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$pageSizeOptions = [25, 50, 100];
+$pageSize = isset($_GET['page_size']) ? (int) $_GET['page_size'] : 25;
+if (!in_array($pageSize, $pageSizeOptions, true)) {
+  $pageSize = 25;
+}
 
-// 🎫 Fetch tickets by status (Admin Approved)
+$page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+$search = trim((string) ($_GET['search'] ?? ''));
+$search = substr($search, 0, 100);
+$requestedStatus = (string) ($_GET['status'] ?? 'all');
+$allowedStatuses = ['Pending', 'In Progress', 'Resolved'];
+$status = in_array($requestedStatus, $allowedStatuses, true) ? $requestedStatus : 'all';
+$sortColumns = [
+  'id' => 't.id',
+  'name' => 'user_name',
+  'subject' => 't.subject',
+  'status' => 't.status',
+  'assigned' => 'assigned_to',
+  'created' => 't.created_at',
+  'updated' => 'last_update',
+];
+$sort = (string) ($_GET['sort'] ?? 'created');
+if (!isset($sortColumns[$sort])) {
+  $sort = 'created';
+}
+$direction = strtolower((string) ($_GET['direction'] ?? 'desc')) === 'asc' ? 'ASC' : 'DESC';
 
-// ✅ Pending Tickets
-$sql_new = "
-SELECT 
-    t.id, 
-    t.description, 
-    CONCAT(u.firstname, ' ', u.middlename, ' ', u.lastname) AS user_name, 
-    t.subject, 
+$statsResult = $conn->query("
+  SELECT status, COUNT(*) AS ticket_count
+  FROM tickets
+  WHERE admin_approved = 1
+    AND status IN ('Pending', 'In Progress', 'Resolved')
+  GROUP BY status
+");
+if (!$statsResult) {
+  throw new RuntimeException('Unable to load ticket counts: ' . $conn->error);
+}
+
+$ticketCounts = ['Pending' => 0, 'In Progress' => 0, 'Resolved' => 0];
+while ($countRow = $statsResult->fetch_assoc()) {
+  $ticketCounts[$countRow['status']] = (int) $countRow['ticket_count'];
+}
+$statsResult->free();
+$totalCount = array_sum($ticketCounts);
+
+$where = "t.admin_approved = 1 AND t.status IN ('Pending', 'In Progress', 'Resolved')";
+$parameterTypes = '';
+$parameters = [];
+if ($status !== 'all') {
+  $where .= ' AND t.status = ?';
+  $parameterTypes .= 's';
+  $parameters[] = $status;
+}
+if ($search !== '') {
+  $where .= " AND (
+    CAST(t.id AS CHAR) LIKE ?
+    OR CONCAT_WS(' ', u.firstname, u.middlename, u.lastname) LIKE ?
+    OR t.subject LIKE ?
+    OR t.description LIKE ?
+    OR t.status LIKE ?
+    OR DATE_FORMAT(t.created_at, '%Y-%m-%d %h:%i %p') LIKE ?
+    OR DATE_FORMAT((
+      SELECT th_search.timestamp
+      FROM ticket_history th_search
+      WHERE th_search.ticket_id = t.id
+      ORDER BY th_search.timestamp DESC
+      LIMIT 1
+    ), '%Y-%m-%d %h:%i %p') LIKE ?
+    OR COALESCE(NULLIF(TRIM(REPLACE((
+      SELECT SUBSTRING_INDEX(th_assigned.action, ' by ', 1)
+      FROM ticket_history th_assigned
+      WHERE th_assigned.ticket_id = t.id
+        AND th_assigned.action LIKE 'Ticket assigned to%'
+      ORDER BY th_assigned.timestamp DESC
+      LIMIT 1
+    ), 'Ticket assigned to', '')), ''), 'Pending Assignment') LIKE ?
+  )";
+  $searchTerm = '%' . $search . '%';
+  $parameterTypes .= 'ssssssss';
+  array_push($parameters, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+}
+
+$bindParameters = static function (mysqli_stmt $statement, string $types, array &$values): void {
+  if ($types === '') {
+    return;
+  }
+
+  $bindings = [$types];
+  foreach ($values as $key => &$value) {
+    $bindings[] = &$value;
+  }
+  call_user_func_array([$statement, 'bind_param'], $bindings);
+};
+
+$countStatement = $conn->prepare("
+  SELECT COUNT(*) AS matching_count
+  FROM tickets t
+  JOIN users u ON t.user_id = u.id
+  WHERE $where
+");
+if (!$countStatement) {
+  throw new RuntimeException('Unable to prepare ticket count query: ' . $conn->error);
+}
+$countParameters = $parameters;
+$bindParameters($countStatement, $parameterTypes, $countParameters);
+if (!$countStatement->execute()) {
+  throw new RuntimeException('Unable to count tickets: ' . $countStatement->error);
+}
+$matchingCount = (int) $countStatement->get_result()->fetch_assoc()['matching_count'];
+$countStatement->close();
+
+$totalPages = max(1, (int) ceil($matchingCount / $pageSize));
+$page = min($page, $totalPages);
+$offset = ($page - 1) * $pageSize;
+
+$ticketStatement = $conn->prepare("
+  SELECT
+    t.id,
+    t.description,
+    CONCAT(u.firstname, ' ', u.middlename, ' ', u.lastname) AS user_name,
+    t.subject,
     t.status,
     t.created_at,
     (
-        SELECT th.timestamp 
-        FROM ticket_history th 
-        WHERE th.ticket_id = t.id 
-        ORDER BY th.timestamp DESC 
-        LIMIT 1
+      SELECT th.timestamp
+      FROM ticket_history th
+      WHERE th.ticket_id = t.id
+      ORDER BY th.timestamp DESC
+      LIMIT 1
     ) AS last_update,
     TRIM(REPLACE(
-        (SELECT SUBSTRING_INDEX(th2.action, ' by ', 1) 
-         FROM ticket_history th2 
-         WHERE th2.ticket_id = t.id 
-           AND th2.action LIKE 'Ticket assigned to%'
-         ORDER BY th2.timestamp DESC 
-         LIMIT 1), 'Ticket assigned to', '')
-    ) AS assigned_to
-FROM tickets t
-JOIN users u ON t.user_id = u.id
-WHERE t.status = 'Pending'
-  AND t.admin_approved = 1
-ORDER BY t.created_at DESC";
-$result_new = $conn->query($sql_new);
-
-// ✅ In Progress Tickets
-$sql_active = "
-SELECT 
-    t.id, 
-    t.description, 
-    CONCAT(u.firstname, ' ', u.middlename, ' ', u.lastname) AS user_name, 
-    t.subject, 
-    t.status,
-    t.created_at,
-    (
-        SELECT th.timestamp 
-        FROM ticket_history th 
-        WHERE th.ticket_id = t.id 
-        ORDER BY th.timestamp DESC 
+      (
+        SELECT SUBSTRING_INDEX(th2.action, ' by ', 1)
+        FROM ticket_history th2
+        WHERE th2.ticket_id = t.id
+          AND th2.action LIKE 'Ticket assigned to%'
+        ORDER BY th2.timestamp DESC
         LIMIT 1
-    ) AS last_update,
-    TRIM(REPLACE(
-        (SELECT SUBSTRING_INDEX(th2.action, ' by ', 1) 
-         FROM ticket_history th2 
-         WHERE th2.ticket_id = t.id 
-           AND th2.action LIKE 'Ticket assigned to%'
-         ORDER BY th2.timestamp DESC 
-         LIMIT 1), 'Ticket assigned to', '')
+      ), 'Ticket assigned to', '')
     ) AS assigned_to
-FROM tickets t
-JOIN users u ON t.user_id = u.id
-WHERE t.status = 'In Progress'
-  AND t.admin_approved = 1
-ORDER BY t.created_at DESC";
-$result_active = $conn->query($sql_active);
-
-// ✅ Resolved Tickets
-$sql_resolved = "
-SELECT 
-    t.id, 
-    t.description, 
-    CONCAT(u.firstname, ' ', u.middlename, ' ', u.lastname) AS user_name, 
-    t.subject, 
-    t.status,
-    t.created_at,
-    (
-        SELECT th.timestamp 
-        FROM ticket_history th 
-        WHERE th.ticket_id = t.id 
-        ORDER BY th.timestamp DESC 
-        LIMIT 1
-    ) AS last_update,
-    TRIM(REPLACE(
-        (SELECT SUBSTRING_INDEX(th2.action, ' by ', 1) 
-         FROM ticket_history th2 
-         WHERE th2.ticket_id = t.id 
-           AND th2.action LIKE 'Ticket assigned to%'
-         ORDER BY th2.timestamp DESC 
-         LIMIT 1), 'Ticket assigned to', '')
-    ) AS assigned_to
-FROM tickets t
-JOIN users u ON t.user_id = u.id
-WHERE t.status = 'Resolved'
-  AND t.admin_approved = 1
-ORDER BY t.created_at DESC";
-$result_resolved = $conn->query($sql_resolved);
-
-
+  FROM tickets t
+  JOIN users u ON t.user_id = u.id
+  WHERE $where
+  ORDER BY {$sortColumns[$sort]} $direction, t.id DESC
+  LIMIT ? OFFSET ?
+");
+if (!$ticketStatement) {
+  throw new RuntimeException('Unable to prepare ticket list query: ' . $conn->error);
+}
+$ticketParameters = $parameters;
+$ticketTypes = $parameterTypes . 'ii';
+$ticketParameters[] = $pageSize;
+$ticketParameters[] = $offset;
+$bindParameters($ticketStatement, $ticketTypes, $ticketParameters);
+if (!$ticketStatement->execute()) {
+  throw new RuntimeException('Unable to load tickets: ' . $ticketStatement->error);
+}
+$tickets = $ticketStatement->get_result()->fetch_all(MYSQLI_ASSOC);
+$ticketStatement->close();
 $conn->close();
+
+$pageUrl = static function (array $changes): string {
+  return '?' . http_build_query(array_merge($_GET, $changes));
+};
 ?>
 
 <!DOCTYPE html>
@@ -234,6 +297,7 @@ $conn->close();
     .tk-table { width: 100%; border-collapse: collapse; }
     .tk-table thead th { position: sticky; top: 0; z-index: 1; background: var(--tk-bg); font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; font-weight: 800; color: var(--tk-text-muted); padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--tk-border); white-space: nowrap; user-select: none; }
     .tk-table thead th.sortable:hover { color: var(--tk-primary-deep); cursor: pointer; }
+    .tk-table thead th.sortable a { color: inherit; text-decoration: none; }
     .tk-table thead th.asc::after { content: " ▲"; font-size: 9px; }
     .tk-table thead th.desc::after { content: " ▼"; font-size: 9px; }
     .tk-table tbody td { padding: 11px 16px; font-size: 13px; color: var(--tk-text); border-bottom: 1px solid var(--tk-border); vertical-align: middle; }
@@ -287,6 +351,7 @@ $conn->close();
     }
     .tk-page-btn:hover:not(:disabled) { border-color: var(--tk-primary); color: var(--tk-primary-deep); background: var(--tk-primary-soft); }
     .tk-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .tk-page-btn[aria-disabled="true"] { opacity: .4; pointer-events: none; cursor: not-allowed; }
     .tk-page-indicator { font-size: 12.5px; font-weight: 700; color: var(--tk-text); white-space: nowrap; min-width: 90px; text-align: center; }
 
     /* ── Modal ──────────────────────────────────────────────── */
@@ -334,33 +399,6 @@ $conn->close();
       exit;
   }
 
-  // Combine all ticket results into one dataset
-  $all_tickets = [];
-  while ($row = $result_new->fetch_assoc())
-    $all_tickets[] = $row;
-  while ($row = $result_active->fetch_assoc())
-    $all_tickets[] = $row;
-  while ($row = $result_resolved->fetch_assoc())
-    $all_tickets[] = $row;
-
-  $totalCount = count($all_tickets);
-  $pendingCount = 0;
-  $inProgressCount = 0;
-  $resolvedCount = 0;
-  foreach ($all_tickets as $t) {
-    switch (strtolower($t['status'])) {
-      case 'pending':
-        $pendingCount++;
-        break;
-      case 'in progress':
-        $inProgressCount++;
-        break;
-      case 'resolved':
-        $resolvedCount++;
-        break;
-    }
-  }
-
   // Map a status string to the CSS modifier class used by .tk-status
   function statusClass(string $status): string
   {
@@ -388,15 +426,15 @@ $conn->close();
             <span class="lbl">Total</span>
           </div>
           <div class="tk-stat-chip is-warn">
-            <span class="num"><?= $pendingCount ?></span>
+            <span class="num"><?= $ticketCounts['Pending'] ?></span>
             <span class="lbl">Pending</span>
           </div>
           <div class="tk-stat-chip is-info">
-            <span class="num"><?= $inProgressCount ?></span>
+            <span class="num"><?= $ticketCounts['In Progress'] ?></span>
             <span class="lbl">In Progress</span>
           </div>
           <div class="tk-stat-chip is-success">
-            <span class="num"><?= $resolvedCount ?></span>
+            <span class="num"><?= $ticketCounts['Resolved'] ?></span>
             <span class="lbl">Resolved</span>
           </div>
         </div>
@@ -405,37 +443,48 @@ $conn->close();
       <div class="tk-card">
         <div class="tk-card-body">
           <h5>All Tickets</h5>
-          <div class="tk-toolbar">
+          <form class="tk-toolbar" method="get" id="ticketFilters">
             <div class="tk-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-              <input type="text" id="searchInput" placeholder="Search ticket...">
+              <input type="search" name="search" id="searchInput" placeholder="Search ticket..." value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
             </div>
-            <select class="tk-select" id="statusFilter">
-              <option value="all">All Statuses</option>
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
+            <select class="tk-select" name="status" id="statusFilter">
+              <option value="all" <?= $status === 'all' ? 'selected' : '' ?>>All Statuses</option>
+              <option value="Pending" <?= $status === 'Pending' ? 'selected' : '' ?>>Pending</option>
+              <option value="In Progress" <?= $status === 'In Progress' ? 'selected' : '' ?>>In Progress</option>
+              <option value="Resolved" <?= $status === 'Resolved' ? 'selected' : '' ?>>Resolved</option>
             </select>
-          </div>
+            <input type="hidden" name="page_size" value="<?= $pageSize ?>">
+          </form>
         </div>
 
-        <?php if ($totalCount > 0): ?>
+        <?php if ($matchingCount > 0): ?>
           <div class="tk-table-wrap">
             <table class="tk-table" id="ticketTable">
               <thead>
                 <tr>
-                  <th data-column="0" class="sortable">Ticket #</th>
-                  <th data-column="1" class="sortable">Name</th>
-                  <th data-column="2" class="sortable">Subject</th>
-                  <th data-column="3" class="sortable">Status</th>
-                  <th data-column="4" class="sortable">Assigned To</th>
-                  <th data-column="5" class="sortable">Created At</th>
-                  <th data-column="6" class="sortable">Last Updated</th>
+                  <?php
+                  $sortLabels = [
+                    'id' => 'Ticket #',
+                    'name' => 'Name',
+                    'subject' => 'Subject',
+                    'status' => 'Status',
+                    'assigned' => 'Assigned To',
+                    'created' => 'Created At',
+                    'updated' => 'Last Updated',
+                  ];
+                  foreach ($sortLabels as $sortKey => $label):
+                    $nextDirection = $sort === $sortKey && $direction === 'ASC' ? 'desc' : 'asc';
+                    ?>
+                    <th class="sortable <?= $sort === $sortKey ? strtolower($direction) : '' ?>">
+                      <a href="<?= htmlspecialchars($pageUrl(['sort' => $sortKey, 'direction' => $nextDirection, 'page' => 1]), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></a>
+                    </th>
+                  <?php endforeach; ?>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                <?php foreach ($all_tickets as $row):
+                <?php foreach ($tickets as $row):
                   $statusCls = statusClass($row['status']);
                   $createdDisplay = htmlspecialchars(date('Y-m-d h:i A', strtotime($row['created_at'])));
                   $updatedDisplay = $row['last_update'] ? htmlspecialchars(date('Y-m-d h:i A', strtotime($row['last_update']))) : '—';
@@ -468,23 +517,23 @@ $conn->close();
           </div>
 
           <div class="tk-pagination" id="tkPagination">
-            <span class="tk-pagination-info" id="paginationInfo"></span>
+            <span class="tk-pagination-info">
+              Showing <?= $offset + 1 ?>–<?= min($offset + count($tickets), $matchingCount) ?> of <?= $matchingCount ?> matching tickets
+            </span>
             <div class="tk-pagination-right">
               <div class="tk-pagesize-group">
                 <span>Show</span>
-                <select class="tk-select" id="pageSizeSelect">
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                  <option value="all">All</option>
+                <select class="tk-select" name="page_size" id="pageSizeSelect" form="ticketFilters">
+                  <?php foreach ($pageSizeOptions as $option): ?>
+                    <option value="<?= $option ?>" <?= $pageSize === $option ? 'selected' : '' ?>><?= $option ?></option>
+                  <?php endforeach; ?>
                 </select>
                 <span>entries</span>
               </div>
               <div class="tk-pagination-controls">
-                <button type="button" class="tk-page-btn" id="prevPageBtn" aria-label="Previous page">‹</button>
-                <span class="tk-page-indicator" id="pageIndicator"></span>
-                <button type="button" class="tk-page-btn" id="nextPageBtn" aria-label="Next page">›</button>
+                <a class="tk-page-btn" href="<?= htmlspecialchars($pageUrl(['page' => max(1, $page - 1)]), ENT_QUOTES, 'UTF-8') ?>" aria-label="Previous page" <?= $page <= 1 ? 'aria-disabled="true" tabindex="-1"' : '' ?>>‹</a>
+                <span class="tk-page-indicator">Page <?= $page ?> of <?= $totalPages ?></span>
+                <a class="tk-page-btn" href="<?= htmlspecialchars($pageUrl(['page' => min($totalPages, $page + 1)]), ENT_QUOTES, 'UTF-8') ?>" aria-label="Next page" <?= $page >= $totalPages ? 'aria-disabled="true" tabindex="-1"' : '' ?>>›</a>
               </div>
             </div>
           </div>
@@ -562,26 +611,10 @@ $conn->close();
   <script src="../assets/js/main.js"></script>
 
   <script>
-    // Ticket modal + search/filter/sort/pagination — single consolidated script (vanilla JS, no jQuery needed)
+    // Ticket modal and server-side ticket filters.
     (function () {
       const table = document.getElementById('ticketTable');
-      if (!table) return; // no tickets rendered, nothing to wire up
-
-      const tbody = table.querySelector('tbody');
-      const rows = Array.from(tbody.querySelectorAll('tr'));
-      const searchInput = document.getElementById('searchInput');
-      const statusFilter = document.getElementById('statusFilter');
-      const pageSizeSelect = document.getElementById('pageSizeSelect');
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-      const pageIndicator = document.getElementById('pageIndicator');
-      const paginationInfo = document.getElementById('paginationInfo');
-      const sortDirections = {};
-      let currentPage = 1;
-
-      // ── Ticket details modal ────────────────────────────────
       const modalEl = document.getElementById('ticketModal');
-      const modal = new bootstrap.Modal(modalEl);
       const statusModifier = {
         'pending': 'pending',
         'in progress': 'in-progress',
@@ -589,117 +622,41 @@ $conn->close();
         'rejected': 'rejected'
       };
 
-      rows.forEach(row => {
-        row.addEventListener('click', () => {
-          document.getElementById('modalTicketId').textContent = row.dataset.id;
-          document.getElementById('modalTicketName').textContent = row.dataset.name;
-          document.getElementById('modalTicketSubject').textContent = row.dataset.subject;
-          document.getElementById('modalTicketAssigned').textContent = row.dataset.assigned;
-          document.getElementById('modalTicketCreated').textContent = row.dataset.created;
-          document.getElementById('modalTicketUpdated').textContent = row.dataset.updated;
-          document.getElementById('modalTicketDescription').textContent = row.dataset.description || 'No description provided.';
-          document.getElementById('viewTicketLink').href = row.dataset.link;
+      if (table) {
+        const modal = new bootstrap.Modal(modalEl);
+        table.querySelectorAll('tbody tr').forEach(row => {
+          row.addEventListener('click', () => {
+            document.getElementById('modalTicketId').textContent = row.dataset.id;
+            document.getElementById('modalTicketName').textContent = row.dataset.name;
+            document.getElementById('modalTicketSubject').textContent = row.dataset.subject;
+            document.getElementById('modalTicketAssigned').textContent = row.dataset.assigned;
+            document.getElementById('modalTicketCreated').textContent = row.dataset.created;
+            document.getElementById('modalTicketUpdated').textContent = row.dataset.updated;
+            document.getElementById('modalTicketDescription').textContent = row.dataset.description || 'No description provided.';
+            document.getElementById('viewTicketLink').href = row.dataset.link;
 
-          const status = row.dataset.status;
-          const badge = document.getElementById('modalTicketStatus');
-          badge.textContent = status;
-          badge.className = 'tk-status ' + (statusModifier[status.toLowerCase()] || 'other');
+            const status = row.dataset.status;
+            const badge = document.getElementById('modalTicketStatus');
+            badge.textContent = status;
+            badge.className = 'tk-status ' + (statusModifier[status.toLowerCase()] || 'other');
 
-          modal.show();
-        });
-      });
-
-      // ── Search + status filter (returns the rows that match, in current DOM/sort order) ──
-      function getFilteredRows() {
-        const query = searchInput.value.trim().toLowerCase();
-        const status = statusFilter.value;
-
-        return rows.filter(row => {
-          const matchesSearch = row.textContent.toLowerCase().includes(query);
-          const matchesStatus = status === 'all' || row.dataset.status === status;
-          return matchesSearch && matchesStatus;
-        });
-      }
-
-      // ── Pagination: shows only the current page's slice of the filtered rows ──
-      function renderPage() {
-        const filtered = getFilteredRows();
-        const totalItems = filtered.length;
-        const pageSizeRaw = pageSizeSelect.value;
-        const pageSize = pageSizeRaw === 'all' ? Math.max(totalItems, 1) : parseInt(pageSizeRaw, 10);
-        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-
-        if (currentPage > totalPages) currentPage = totalPages;
-        if (currentPage < 1) currentPage = 1;
-
-        const start = (currentPage - 1) * pageSize;
-        const end = pageSizeRaw === 'all' ? totalItems : start + pageSize;
-        const visibleSet = new Set(filtered.slice(start, end));
-
-        rows.forEach(row => {
-          row.style.display = visibleSet.has(row) ? '' : 'none';
-        });
-
-        if (totalItems === 0) {
-          paginationInfo.textContent = 'No matching tickets';
-        } else {
-          paginationInfo.textContent = `Showing ${start + 1}–${Math.min(end, totalItems)} of ${totalItems}`;
-        }
-
-        pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
-        prevBtn.disabled = currentPage <= 1;
-        nextBtn.disabled = currentPage >= totalPages;
-      }
-
-      function applyFilters() {
-        currentPage = 1; // reset to page 1 whenever the result set changes
-        renderPage();
-      }
-
-      searchInput.addEventListener('input', applyFilters);
-      statusFilter.addEventListener('change', applyFilters);
-      pageSizeSelect.addEventListener('change', applyFilters);
-
-      prevBtn.addEventListener('click', () => {
-        currentPage -= 1;
-        renderPage();
-      });
-      nextBtn.addEventListener('click', () => {
-        currentPage += 1;
-        renderPage();
-      });
-
-      // ── Sorting ──────────────────────────────────────────────
-      table.querySelectorAll('th.sortable').forEach(th => {
-        th.addEventListener('click', () => {
-          const columnIndex = Number(th.dataset.column);
-          const isAsc = !sortDirections[columnIndex];
-          sortDirections[columnIndex] = isAsc;
-
-          rows.sort((a, b) => {
-            const aText = a.cells[columnIndex].innerText.trim().toLowerCase();
-            const bText = b.cells[columnIndex].innerText.trim().toLowerCase();
-
-            const aNum = parseFloat(aText);
-            const bNum = parseFloat(bText);
-            const bothNumeric = !isNaN(aNum) && !isNaN(bNum) && aText !== '' && bText !== '';
-
-            if (bothNumeric) return isAsc ? aNum - bNum : bNum - aNum;
-            return isAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
+            modal.show();
           });
-
-          rows.forEach(row => tbody.appendChild(row));
-
-          table.querySelectorAll('th.sortable').forEach(el => el.classList.remove('asc', 'desc'));
-          th.classList.add(isAsc ? 'asc' : 'desc');
-
-          currentPage = 1;
-          renderPage();
         });
-      });
+      }
 
-      // Initial paint
-      renderPage();
+      const filterForm = document.getElementById('ticketFilters');
+      const searchInput = document.getElementById('searchInput');
+      const statusFilter = document.getElementById('statusFilter');
+      const pageSizeSelect = document.getElementById('pageSizeSelect');
+      let searchTimeout;
+
+      searchInput.addEventListener('input', () => {
+        window.clearTimeout(searchTimeout);
+        searchTimeout = window.setTimeout(() => filterForm.requestSubmit(), 350);
+      });
+      statusFilter.addEventListener('change', () => filterForm.requestSubmit());
+      pageSizeSelect.addEventListener('change', () => filterForm.requestSubmit());
     })();
   </script>
 
