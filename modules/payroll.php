@@ -566,9 +566,15 @@ $netPay = $income - $deduction;
         }
         .pr-leave-range button:hover { border-color: var(--pr-primary); background: var(--pr-primary-soft); }
         .pr-leave-count { margin: 0 0 8px; color: var(--pr-text-muted); font-size: 11px; }
+        /* Fits the header + 4 records; anything beyond scrolls. */
         .pr-leave-table-wrap {
-            max-height: 420px;
-            overflow: auto;
+            --pr-leave-head-h: 40px;
+            --pr-leave-row-h: 44px;
+            max-height: calc(var(--pr-leave-head-h) + (var(--pr-leave-row-h) * 4) + 2px);
+            overflow-x: auto;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
             border: 1px solid var(--pr-border);
             border-radius: 10px;
         }
@@ -579,7 +585,9 @@ $netPay = $income - $deduction;
             font-variant-numeric: tabular-nums;
         }
         .pr-leave-table th,
-        .pr-leave-table td { padding: 10px 14px; border-bottom: 1px solid var(--pr-border); white-space: nowrap; }
+        .pr-leave-table td { padding: 0 14px; border-bottom: 1px solid var(--pr-border); white-space: nowrap; }
+        .pr-leave-table thead th { height: var(--pr-leave-head-h); box-sizing: border-box; }
+        .pr-leave-table tbody td { height: var(--pr-leave-row-h); box-sizing: border-box; }
         .pr-leave-table thead th {
             position: sticky;
             top: 0;

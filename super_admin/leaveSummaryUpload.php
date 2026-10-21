@@ -582,7 +582,7 @@ $firstMonthKey = array_key_first($months);
         .lsu-table-wrap { max-height: 560px; overflow: auto; border: 1px solid var(--lsu-border); border-radius: 10px; }
         .lsu-table { width: 100%; margin: 0; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
         .lsu-table th, .lsu-table td { padding: 9px 14px; border-bottom: 1px solid var(--lsu-border); white-space: nowrap; text-align: right; }
-        .lsu-table th:first-child, .lsu-table td:first-child { text-align: left; }
+        .lsu-table th:nth-child(-n+2), .lsu-table td:nth-child(-n+2) { text-align: left; }
         .lsu-table thead th { position: sticky; top: 0; z-index: 2; background: var(--lsu-head); color: var(--lsu-muted); font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }
         .lsu-table tr.lsu-group td { background: var(--lsu-primary-soft); color: var(--lsu-text); font-size: 12px; font-weight: 800; text-align: left; }
         .lsu-table tr.lsu-group small { margin-left: 8px; color: var(--lsu-muted); font-weight: 600; }
@@ -651,22 +651,23 @@ $firstMonthKey = array_key_first($months);
                             </div>
                             <button type="button" id="lsuAll">All months</button>
                         </div>
-                        <input type="search" class="lsu-search" id="lsuSearch" placeholder="Search employee #" autocomplete="off">
+                        <input type="search" class="lsu-search" id="lsuSearch" placeholder="Search name or employee #" autocomplete="off">
                     </div>
                     <div class="lsu-meta" id="lsuCount" aria-live="polite"></div>
                     <div class="lsu-table-wrap">
                         <table class="lsu-table" id="lsuTable">
                             <thead>
-                                <tr><th>Employee #</th><th>Vacation Leave</th><th>Sick Leave</th><th>Total Leave</th><th>Amount</th></tr>
+                                <tr><th>Employee #</th><th>Name</th><th>Vacation Leave</th><th>Sick Leave</th><th>Total Leave</th><th>Amount</th></tr>
                             </thead>
                             <tbody>
                             <?php foreach ($months as $key => $month): ?>
                                 <tr class="lsu-group" data-period="<?= $key ?>">
-                                    <td colspan="5"><?= htmlspecialchars($month['label'], ENT_QUOTES, 'UTF-8') ?><small><?= count($month['rows']) ?> employees &middot; imported <?= htmlspecialchars(date('M j, Y g:i A', strtotime($month['imported'])), ENT_QUOTES, 'UTF-8') ?></small></td>
+                                    <td colspan="6"><?= htmlspecialchars($month['label'], ENT_QUOTES, 'UTF-8') ?><small><?= count($month['rows']) ?> employees &middot; imported <?= htmlspecialchars(date('M j, Y g:i A', strtotime($month['imported'])), ENT_QUOTES, 'UTF-8') ?></small></td>
                                 </tr>
                                 <?php foreach ($month['rows'] as $row): ?>
-                                    <tr class="lsu-row" data-period="<?= $key ?>" data-search="<?= htmlspecialchars(strtolower((string) $row['emp_id']), ENT_QUOTES, 'UTF-8') ?>">
+                                    <tr class="lsu-row" data-period="<?= $key ?>" data-search="<?= htmlspecialchars(strtolower($row['emp_id'] . ' ' . $row['employee_name']), ENT_QUOTES, 'UTF-8') ?>">
                                         <td><?= htmlspecialchars($row['emp_id'], ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars($row['employee_name'], ENT_QUOTES, 'UTF-8') ?></td>
                                         <td><?= number_format((float) $row['vacation_leave'], 3) ?></td>
                                         <td><?= number_format((float) $row['sick_leave'], 3) ?></td>
                                         <td class="lsu-strong"><?= number_format((float) $row['total_leave'], 3) ?></td>
@@ -674,7 +675,7 @@ $firstMonthKey = array_key_first($months);
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endforeach; ?>
-                                <tr id="lsuNoMatch" hidden><td colspan="5" class="lsu-empty" style="text-align:center">No records in this range.</td></tr>
+                                <tr id="lsuNoMatch" hidden><td colspan="6" class="lsu-empty" style="text-align:center">No records in this range.</td></tr>
                             </tbody>
                         </table>
                     </div>
