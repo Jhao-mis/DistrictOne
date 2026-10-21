@@ -181,7 +181,6 @@ if (!$ticketStatement->execute()) {
 }
 $tickets = $ticketStatement->get_result()->fetch_all(MYSQLI_ASSOC);
 $ticketStatement->close();
-$conn->close();
 
 $pageUrl = static function (array $changes): string {
   return '?' . http_build_query(array_merge($_GET, $changes));

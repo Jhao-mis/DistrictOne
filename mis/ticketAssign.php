@@ -107,7 +107,6 @@ function ticketStatusBreakdown($res)
 $requestsStats = ticketStatusBreakdown($result_all);
 $assignedStats = ticketStatusBreakdown($result);
 
-$conn->close();
 ?>
 
 <!DOCTYPE html>

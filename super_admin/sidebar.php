@@ -1,7 +1,7 @@
 <?php
-require '../vendor/autoload.php';
-include '../db.php';
-require 'login_verification.php';
+require_once '../vendor/autoload.php';
+include_once '../db.php';
+require_once 'login_verification.php';
 
 // ── Counts for badge pills ──────────────────────────────────────────
 $approveCount     = $conn->query("SELECT COUNT(*) AS total FROM tickets WHERE status='Pending' AND admin_approved=0")->fetch_assoc()['total'] ?? 0;
@@ -477,34 +477,35 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
             <i class="menu-icon tf-icons bx bx-dock-top"></i><div>Account</div>
           </a>
           <ul class="menu-sub">
-            <?php if (access_can('module.account_settings')): ?><li class="menu-item"><a href="../modules/accountSettings.php" class="menu-link"><div>Account Settings</div></a></li><?php endif; ?>
-            <?php if (access_can('module.personaldata_sheet')): ?><li class="menu-item"><a href="../modules/personaldataSheet.php" class="menu-link"><div>Personal Data Sheet</div></a></li><?php endif; ?>
+            <?php if (access_can('module.account_settings')): ?><li class="menu-item <?= $currentPage === 'accountSettings.php' ? 'active' : '' ?>"><a href="../modules/accountSettings.php" class="menu-link"><div>Account Settings</div></a></li><?php endif; ?>
+            <?php if (access_can('module.personaldata_sheet')): ?><li class="menu-item <?= $currentPage === 'personaldataSheet.php' ? 'active' : '' ?>"><a href="../modules/personaldataSheet.php" class="menu-link"><div>Personal Data Sheet</div></a></li><?php endif; ?>
             <?php if (access_can('module.payroll')): ?><li class="menu-item"><a href="../modules/payroll.php" class="menu-link"><div>My Payslip</div></a></li><?php endif; ?>
           </ul>
         </li><?php endif; ?>
 
-        <?php if (access_can('module.announcements')): ?><li class="menu-item"><a href="../modules/announcement.php" class="menu-link"><i class="menu-icon tf-icons bx bx-bell"></i><div>Announcements</div></a></li><?php endif; ?>
-        <?php if (access_can('module.calendar')): ?><li class="menu-item"><a href="../modules/calendar.php" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar"></i><div>Calendar Activity</div></a></li><?php endif; ?>
-        <?php if (access_can('module.room_reservation')): ?><li class="menu-item"><a href="../modules/roomReservation.php" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar-event"></i><div>Room Reservation</div></a></li><?php endif; ?>
-        <?php if (access_can('module.saln')): ?><li class="menu-item"><a href="../modules/fileSaln.php" class="menu-link"><i class="menu-icon bx bx-detail"></i><div>File SALN</div></a></li><?php endif; ?>
-        <?php if (access_can('module.leave')): ?><li class="menu-item"><a href="../modules/leaveRequest.php" class="menu-link"><i class="menu-icon bx bx-receipt"></i><div>Leave Request</div></a></li><?php endif; ?>
-        <?php if (access_can('module.notice_of_meeting')): ?><li class="menu-item"><a href="../modules/noticeofMeeting.php" class="menu-link"><i class="menu-icon bx bx-group"></i><div>Notice of Meeting</div></a></li><?php endif; ?>
-        <?php if (access_can('module.service_request')): ?><li class="menu-item"><a href="../modules/serviceRequest.php" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>IT Service Request</div></a></li><?php endif; ?>
+        <?php if (access_can('module.announcements')): ?><li class="menu-item <?= $currentPage === 'announcement.php' ? 'active' : '' ?>"><a href="../modules/announcement.php" class="menu-link"><i class="menu-icon tf-icons bx bx-bell"></i><div>Announcements</div></a></li><?php endif; ?>
+        <?php if (access_can('module.calendar')): ?><li class="menu-item <?= $currentPage === 'calendar.php' ? 'active' : '' ?>"><a href="../modules/calendar.php" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar"></i><div>Calendar Activity</div></a></li><?php endif; ?>
+        <?php if (access_can('module.room_reservation')): ?><li class="menu-item <?= $currentPage === 'roomReservation.php' ? 'active' : '' ?>"><a href="../modules/roomReservation.php" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar-event"></i><div>Room Reservation</div></a></li><?php endif; ?>
+        <?php if (access_can('module.saln')): ?><li class="menu-item <?= $currentPage === 'fileSaln.php' ? 'active' : '' ?>"><a href="../modules/fileSaln.php" class="menu-link"><i class="menu-icon bx bx-detail"></i><div>File SALN</div></a></li><?php endif; ?>
+        <?php if (access_can('module.leave')): ?><li class="menu-item <?= $currentPage === 'leaveRequest.php' ? 'active' : '' ?>"><a href="../modules/leaveRequest.php" class="menu-link"><i class="menu-icon bx bx-receipt"></i><div>Leave Request</div></a></li><?php endif; ?>
+        <?php if (access_can('module.notice_of_meeting')): ?><li class="menu-item <?= $currentPage === 'noticeofMeeting.php' ? 'active' : '' ?>"><a href="../modules/noticeofMeeting.php" class="menu-link"><i class="menu-icon bx bx-group"></i><div>Notice of Meeting</div></a></li><?php endif; ?>
+        <?php if (access_can('module.service_request')): ?><li class="menu-item <?= $currentPage === 'serviceRequest.php' ? 'active' : '' ?>"><a href="../modules/serviceRequest.php" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>IT Service Request</div></a></li><?php endif; ?>
 
         <!-- Admin Panel -->
-        <?php if (access_can_any(['special.live_report', 'special.ticket_request', 'special.ticket_approval', 'special.add_announcements', 'special.add_calendar_activity', 'special.room_reservation', 'special.payroll_management', 'special.account_management'])): ?><li class="menu-item <?= in_array($currentPage, ['monitoring.php','ticketRequest.php','approveTicket.php','addAnnouncement.php','addEvents.php','approveRoom.php','accountManagement.php','payrollmng.php']) ? 'active open' : '' ?>">
+        <?php if (access_is_super_admin()): ?><li class="menu-item <?= in_array($currentPage, ['monitoring.php','ticketRequest.php','approveTicket.php','addAnnouncement.php','addEvents.php','approveRoom.php','accountManagement.php','payrollmng.php','leaveSummaryUpload.php'], true) ? 'active open' : '' ?>">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-shield-quarter"></i><div>Admin Panel</div>
           </a>
           <ul class="menu-sub">
-            <?php if (access_can('special.live_report')): ?><li class="menu-item"><a href="../super_admin/monitoring.php" class="menu-link"><div>Live Report</div></a></li><?php endif; ?>
-            <?php if (access_can('special.ticket_request')): ?><li class="menu-item"><a href="../super_admin/ticketRequest.php" class="menu-link"><div>Ticket Request</div></a></li><?php endif; ?>
-            <?php if (access_can('special.ticket_approval')): ?><li class="menu-item"><a href="../super_admin/approveTicket.php" class="menu-link"><div>Ticket Approval</div></a></li><?php endif; ?>
-            <?php if (access_can('special.add_announcements')): ?><li class="menu-item"><a href="../super_admin/addAnnouncement.php" class="menu-link"><div>Add Announcements</div></a></li><?php endif; ?>
-            <?php if (access_can('special.add_calendar_activity')): ?><li class="menu-item"><a href="../super_admin/addEvents.php" class="menu-link"><div>Add Calendar Activity</div></a></li><?php endif; ?>
-            <?php if (access_can('special.room_reservation')): ?><li class="menu-item"><a href="../super_admin/approveRoom.php" class="menu-link"><div>Room Reservation</div></a></li><?php endif; ?>
+            <?php if (access_can('special.live_report')): ?><li class="menu-item <?= $currentPage === 'monitoring.php' ? 'active' : '' ?>"><a href="../super_admin/monitoring.php" class="menu-link"><div>Live Report</div></a></li><?php endif; ?>
+            <?php if (access_can('special.ticket_request')): ?><li class="menu-item <?= $currentPage === 'ticketRequest.php' ? 'active' : '' ?>"><a href="../super_admin/ticketRequest.php" class="menu-link"><div>Ticket Request</div></a></li><?php endif; ?>
+            <?php if (access_can('special.ticket_approval')): ?><li class="menu-item <?= $currentPage === 'approveTicket.php' ? 'active' : '' ?>"><a href="../super_admin/approveTicket.php" class="menu-link"><div>Ticket Approval</div></a></li><?php endif; ?>
+            <?php if (access_can('special.add_announcements')): ?><li class="menu-item <?= $currentPage === 'addAnnouncement.php' ? 'active' : '' ?>"><a href="../super_admin/addAnnouncement.php" class="menu-link"><div>Add Announcements</div></a></li><?php endif; ?>
+            <?php if (access_can('special.add_calendar_activity')): ?><li class="menu-item <?= $currentPage === 'addEvents.php' ? 'active' : '' ?>"><a href="../super_admin/addEvents.php" class="menu-link"><div>Add Calendar Activity</div></a></li><?php endif; ?>
+            <?php if (access_can('special.room_reservation')): ?><li class="menu-item <?= $currentPage === 'approveRoom.php' ? 'active' : '' ?>"><a href="../super_admin/approveRoom.php" class="menu-link"><div>Room Reservation</div></a></li><?php endif; ?>
             <?php if (access_can('special.payroll_management')): ?><li class="menu-item <?= $currentPage === 'payrollmng.php' ? 'active' : '' ?>"><a href="../super_admin/payrollmng.php" class="menu-link"><div>Payroll Management</div></a></li><?php endif; ?>
-            <?php if (access_can('special.account_management')): ?><li class="menu-item"><a href="../super_admin/accountManagement.php" class="menu-link"><div>Account Management</div></a></li><?php endif; ?>
+            <?php if (access_can('special.leave_summary_upload')): ?><li class="menu-item <?= $currentPage === 'leaveSummaryUpload.php' ? 'active' : '' ?>"><a href="../super_admin/leaveSummaryUpload.php" class="menu-link"><div>Leave Summary Import</div></a></li><?php endif; ?>
+            <?php if (access_can('special.account_management')): ?><li class="menu-item <?= $currentPage === 'accountManagement.php' ? 'active' : '' ?>"><a href="../super_admin/accountManagement.php" class="menu-link"><div>Account Management</div></a></li><?php endif; ?>
           </ul>
         </li>
         <?php endif; ?>

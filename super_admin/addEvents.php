@@ -106,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit();
 }
 
-$conn->close();
 ?>
 
 <!DOCTYPE html>

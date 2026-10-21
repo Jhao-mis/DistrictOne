@@ -169,7 +169,6 @@ foreach ($all_tickets as $t) {
 }
 $total = count($all_tickets);
 
-$conn->close();
 ?>
 
 <!DOCTYPE html>

@@ -109,7 +109,8 @@ function access_permission_for_request(): ?string
         'addAnnouncement.php' => 'special.add_announcements',
         'addEvents.php' => 'special.add_calendar_activity',
         'payrollmng.php' => 'special.payroll_management',
-        'accountManagement.php' => 'special.account_management'
+        'accountManagement.php' => 'special.account_management',
+        'leaveSummaryUpload.php' => 'special.leave_summary_upload'
     ];
     if (strpos($script, '/super_admin/') !== false && isset($specialPermissions[$file])) {
         return $specialPermissions[$file];

@@ -1,6 +1,8 @@
 <?php
-session_start();
-include '../db.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include_once '../db.php';
 
 /* =====================
    AUTH CHECK
@@ -37,6 +39,33 @@ if (!$user) {
 
 $empID = (int)$user['emp_ID'];
 $department = $user['department'] ?? '';
+
+/* =====================
+   LEAVE SUMMARY (uploaded by Super Admin via leaveSummaryUpload.php)
+   Keyed on users.emp_ID. The importer stores the ID as a plain integer
+   string ("497", never "0497"), so normalise the same way here.
+===================== */
+$leaveSummaries = [];
+$leaveSummaryError = null;
+$leaveEmpID = (string)(int)$user['emp_ID'];
+if ($leaveEmpID !== '0') {
+    try {
+        $leaveStmt = $conn->prepare("
+            SELECT leave_year, leave_month, vacation_leave, sick_leave, total_leave, basic_pay, rate_per_day, leave_amount
+            FROM employee_leave_summaries
+            WHERE emp_id = ?
+            ORDER BY leave_year DESC, leave_month DESC
+        ");
+        $leaveStmt->bind_param('s', $leaveEmpID);
+        $leaveStmt->execute();
+        $leaveSummaries = $leaveStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $leaveStmt->close();
+    } catch (Throwable $e) {
+        // A leave-table problem must never take the whole payslip page down.
+        error_log('Leave summary load failed for emp ' . $leaveEmpID . ': ' . $e->getMessage());
+        $leaveSummaryError = 'Your leave summary could not be loaded right now.';
+    }
+}
 
 /* =====================
    SELECTED BATCH
@@ -440,6 +469,145 @@ $netPay = $income - $deduction;
             cursor: not-allowed;
         }
         .pr-btn-print svg { width: 15px; height: 15px; }
+        .pr-leave-summary { margin: 22px 0; }
+        .pr-leave-summary .pr-card-head { padding: 18px 22px; }
+        .pr-leave-body { padding: 22px; }
+        .pr-leave-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .pr-leave-stat {
+            position: relative;
+            overflow: hidden;
+            min-height: 118px;
+            padding: 18px 20px;
+            border: 1px solid var(--pr-border);
+            border-radius: 13px;
+            background: linear-gradient(145deg, #fff 0%, #f8faff 100%);
+            box-shadow: 0 4px 14px -10px rgba(20, 35, 60, .3);
+        }
+        .pr-leave-stat::after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #7cb9ff;
+            content: "";
+        }
+        .pr-leave-stat.is-vacation::after { background: #2f9e74; }
+        .pr-leave-stat.is-sick::after { background: #6c7ce5; }
+        .pr-leave-stat-label {
+            margin-bottom: 9px;
+            color: var(--pr-text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .55px;
+            text-transform: uppercase;
+        }
+        .pr-leave-stat-value {
+            color: var(--pr-text);
+            font-size: clamp(20px, 2.5vw, 26px);
+            font-weight: 800;
+            line-height: 1.2;
+            font-variant-numeric: tabular-nums;
+        }
+        .pr-leave-stat-unit { margin-left: 4px; color: var(--pr-text-muted); font-size: 12px; font-weight: 600; }
+        .pr-leave-stat.is-total::after { background: #4e96f0; }
+        .pr-leave-history-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .pr-leave-history-title {
+            margin: 0;
+            color: var(--pr-text);
+            font-size: 13px;
+            font-weight: 800;
+        }
+        .pr-leave-range {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        .pr-leave-range label {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--pr-text-muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+        .pr-leave-range input[type="month"] {
+            padding: 6px 10px;
+            border: 1.5px solid var(--pr-border);
+            border-radius: 8px;
+            background: var(--pr-surface);
+            color: var(--pr-text);
+            font-size: 12px;
+        }
+        .pr-leave-range input[type="month"]:focus { outline: none; border-color: var(--pr-primary); }
+        .pr-leave-range button {
+            padding: 7px 14px;
+            border: 1.5px solid var(--pr-border);
+            border-radius: 8px;
+            background: var(--pr-surface);
+            color: var(--pr-text);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .pr-leave-range button:hover { border-color: var(--pr-primary); background: var(--pr-primary-soft); }
+        .pr-leave-count { margin: 0 0 8px; color: var(--pr-text-muted); font-size: 11px; }
+        .pr-leave-table-wrap {
+            max-height: 420px;
+            overflow: auto;
+            border: 1px solid var(--pr-border);
+            border-radius: 10px;
+        }
+        .pr-leave-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+            font-variant-numeric: tabular-nums;
+        }
+        .pr-leave-table th,
+        .pr-leave-table td { padding: 10px 14px; border-bottom: 1px solid var(--pr-border); white-space: nowrap; }
+        .pr-leave-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #f3f6fb;
+            color: var(--pr-text-muted);
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: .5px;
+            text-align: right;
+            text-transform: uppercase;
+        }
+        .pr-leave-table th:first-child,
+        .pr-leave-table td:first-child { text-align: left; }
+        .pr-leave-table td { text-align: right; color: var(--pr-text); }
+        .pr-leave-table td:first-child { font-weight: 700; }
+        .pr-leave-table tbody tr:last-child td { border-bottom: 0; }
+        .pr-leave-table tbody tr:hover td { background: var(--pr-primary-soft); }
+        .pr-leave-table td.is-total { font-weight: 800; }
+        .pr-leave-empty td { padding: 22px; color: var(--pr-text-muted); text-align: center !important; }
+        @media (max-width: 480px) {
+            .pr-leave-body { padding: 16px; }
+            .pr-leave-overview { grid-template-columns: 1fr; gap: 10px; }
+            .pr-leave-stat { min-height: auto; padding: 15px 18px; }
+            .pr-leave-range { width: 100%; }
+            .pr-leave-range > div { flex: 1 1 120px; }
+            .pr-leave-range input[type="month"] { width: 100%; }
+        }
     </style>
 
 </head>
@@ -497,6 +665,86 @@ $netPay = $income - $deduction;
             </div>
         </div>
     </div>
+
+    <?php if ($leaveSummaries): ?>
+    <?php
+        // Shown only to employees who actually have an uploaded leave summary.
+        $latestLeave = $leaveSummaries[0];
+        $oldestLeave = $leaveSummaries[count($leaveSummaries) - 1];
+        $leaveMin = sprintf('%04d-%02d', (int)$oldestLeave['leave_year'], (int)$oldestLeave['leave_month']);
+        $leaveMax = sprintf('%04d-%02d', (int)$latestLeave['leave_year'], (int)$latestLeave['leave_month']);
+    ?>
+    <section class="pr-card pr-leave-summary" aria-labelledby="leaveSummaryHeading">
+        <div class="pr-card-head" id="leaveSummaryHeading">Summary of Vacation Leave and Sick Leave</div>
+        <div class="pr-card-body pr-leave-body">
+            <div class="pr-leave-overview">
+                <div class="pr-leave-stat">
+                    <div class="pr-leave-stat-label">Latest report</div>
+                    <div class="pr-leave-stat-value"><?= date('F Y', mktime(0, 0, 0, (int)$latestLeave['leave_month'], 1, (int)$latestLeave['leave_year'])) ?></div>
+                </div>
+                <div class="pr-leave-stat is-vacation">
+                    <div class="pr-leave-stat-label">Vacation leave</div>
+                    <div class="pr-leave-stat-value"><?= number_format((float)$latestLeave['vacation_leave'], 3) ?><span class="pr-leave-stat-unit">days</span></div>
+                </div>
+                <div class="pr-leave-stat is-sick">
+                    <div class="pr-leave-stat-label">Sick leave</div>
+                    <div class="pr-leave-stat-value"><?= number_format((float)$latestLeave['sick_leave'], 3) ?><span class="pr-leave-stat-unit">days</span></div>
+                </div>
+                <div class="pr-leave-stat is-total">
+                    <div class="pr-leave-stat-label">Total leave</div>
+                    <div class="pr-leave-stat-value"><?= number_format((float)$latestLeave['total_leave'], 3) ?><span class="pr-leave-stat-unit">days</span></div>
+                </div>
+            </div>
+
+            <div class="pr-leave-history-head">
+                <h3 class="pr-leave-history-title">Monthly leave history</h3>
+                <div class="pr-leave-range" id="leaveRange">
+                    <div>
+                        <label for="leaveFrom">From</label>
+                        <input type="month" id="leaveFrom" min="<?= $leaveMin ?>" max="<?= $leaveMax ?>" value="<?= $leaveMin ?>">
+                    </div>
+                    <div>
+                        <label for="leaveTo">To</label>
+                        <input type="month" id="leaveTo" min="<?= $leaveMin ?>" max="<?= $leaveMax ?>" value="<?= $leaveMax ?>">
+                    </div>
+                    <button type="button" id="leaveReset">Reset</button>
+                </div>
+            </div>
+            <p class="pr-leave-count" id="leaveCount" aria-live="polite"></p>
+            <div class="pr-leave-table-wrap">
+                <table class="pr-leave-table" id="leaveTable">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Vacation Leave</th>
+                            <th>Sick Leave</th>
+                            <th>Total Leave</th>
+                            <th>Basic Pay</th>
+                            <th>Rate/Day</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($leaveSummaries as $summary): ?>
+                            <tr data-period="<?= sprintf('%04d-%02d', (int)$summary['leave_year'], (int)$summary['leave_month']) ?>">
+                                <td><?= date('F Y', mktime(0, 0, 0, (int)$summary['leave_month'], 1, (int)$summary['leave_year'])) ?></td>
+                                <td><?= number_format((float)$summary['vacation_leave'], 3) ?></td>
+                                <td><?= number_format((float)$summary['sick_leave'], 3) ?></td>
+                                <td class="is-total"><?= number_format((float)$summary['total_leave'], 3) ?></td>
+                                <td>₱<?= number_format((float)$summary['basic_pay'], 2) ?></td>
+                                <td>₱<?= number_format((float)$summary['rate_per_day'], 2) ?></td>
+                                <td>₱<?= number_format((float)$summary['leave_amount'], 2) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <tr class="pr-leave-empty" id="leaveEmpty" hidden>
+                            <td colspan="7">No leave records in the selected range.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
 
     <div class="row g-4">
 
@@ -629,9 +877,7 @@ $netPay = $income - $deduction;
                     <!-- PRINT -->
                     <div class="pr-print-row">
                         <?php if ($selectedBatch && $netPay > 0): ?>
-                            <a href="print_payslip.php?batch=<?= urlencode($selectedBatch) ?>
-                                &payroll_from=<?= urlencode($currentPayrollFrom) ?>
-                                &payroll_to=<?= urlencode($currentPayrollTo) ?>"
+                            <a href="print_payslip.php?batch=<?= urlencode($selectedBatch) ?>&payroll_from=<?= urlencode($currentPayrollFrom) ?>&payroll_to=<?= urlencode($currentPayrollTo) ?>"
                                target="_blank"
                                class="pr-btn-print">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -668,5 +914,41 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script>
+(function () {
+    var table = document.getElementById('leaveTable');
+    if (!table) return;
+    var from = document.getElementById('leaveFrom');
+    var to = document.getElementById('leaveTo');
+    var count = document.getElementById('leaveCount');
+    var empty = document.getElementById('leaveEmpty');
+    var rows = Array.prototype.slice.call(table.querySelectorAll('tbody tr[data-period]'));
+    var defaults = { from: from.value, to: to.value };
+
+    function apply() {
+        var lo = from.value || defaults.from;
+        var hi = to.value || defaults.to;
+        if (lo > hi) { var t = lo; lo = hi; hi = t; }   // tolerate From > To
+        var shown = 0;
+        rows.forEach(function (row) {
+            var p = row.getAttribute('data-period');   // YYYY-MM sorts as text
+            var visible = p >= lo && p <= hi;
+            row.hidden = !visible;
+            if (visible) shown++;
+        });
+        empty.hidden = shown !== 0;
+        count.textContent = 'Showing ' + shown + ' of ' + rows.length + ' month' + (rows.length === 1 ? '' : 's');
+    }
+
+    from.addEventListener('change', apply);
+    to.addEventListener('change', apply);
+    document.getElementById('leaveReset').addEventListener('click', function () {
+        from.value = defaults.from;
+        to.value = defaults.to;
+        apply();
+    });
+    apply();
+})();
+</script>
 </body>
 </html>

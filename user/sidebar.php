@@ -259,19 +259,19 @@ if (!$sb_name) $sb_name = $sb_username;
             <i class="menu-icon tf-icons bx bx-dock-top"></i><div>Account</div>
           </a>
           <ul class="menu-sub">
-            <?php if (access_can('module.account_settings')): ?><li class="menu-item <?= $currentPage=='accountSettings.php' ? 'active' : '' ?>"><a href="../modules/accountSettings.php" class="menu-link"><div>Account Settings</div></a></li><?php endif; ?>
-            <?php if (access_can('module.personaldata_sheet')): ?><li class="menu-item <?= $currentPage=='personaldataSheet.php' ? 'active' : '' ?>"><a href="../modules/personaldataSheet.php" class="menu-link"><div>Personal Data Sheet</div></a></li><?php endif; ?>
+            <?php if (access_can('module.account_settings')): ?><li class="menu-item <?= $currentPage === 'accountSettings.php' ? 'active' : '' ?>"><a href="../modules/accountSettings.php" class="menu-link"><div>Account Settings</div></a></li><?php endif; ?>
+            <?php if (access_can('module.personaldata_sheet')): ?><li class="menu-item <?= $currentPage === 'personaldataSheet.php' ? 'active' : '' ?>"><a href="../modules/personaldataSheet.php" class="menu-link"><div>Personal Data Sheet</div></a></li><?php endif; ?>
             <?php if (access_can('module.payroll')): ?><li class="menu-item <?= $currentPage=='payroll.php' ? 'active' : '' ?>"><a href="../modules/payroll.php" class="menu-link"><div>My Payslip</div></a></li><?php endif; ?>
           </ul>
         </li><?php endif; ?>
 
-        <?php if (access_can('module.announcements')): ?><li class="menu-item <?= $currentPage=='announcement.php' ? 'active' : '' ?>"><a href="../modules/announcement.php" class="menu-link"><i class="menu-icon tf-icons bx bx-bell"></i><div>Announcements</div></a></li><?php endif; ?>
-        <?php if (access_can('module.calendar')): ?><li class="menu-item <?= $currentPage=='calendar.php' ? 'active' : '' ?>"><a href="../modules/calendar.php" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar"></i><div>Calendar Activity</div></a></li><?php endif; ?>
-        <?php if (access_can('module.room_reservation')): ?><li class="menu-item <?= $currentPage=='roomReservation.php' ? 'active' : '' ?>"><a href="../modules/roomReservation.php" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar-event"></i><div>Room Reservation</div></a></li><?php endif; ?>
+        <?php if (access_can('module.announcements')): ?><li class="menu-item <?= $currentPage === 'announcement.php' ? 'active' : '' ?>"><a href="../modules/announcement.php" class="menu-link"><i class="menu-icon tf-icons bx bx-bell"></i><div>Announcements</div></a></li><?php endif; ?>
+        <?php if (access_can('module.calendar')): ?><li class="menu-item <?= $currentPage === 'calendar.php' ? 'active' : '' ?>"><a href="../modules/calendar.php" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar"></i><div>Calendar Activity</div></a></li><?php endif; ?>
+        <?php if (access_can('module.room_reservation')): ?><li class="menu-item <?= $currentPage === 'roomReservation.php' ? 'active' : '' ?>"><a href="../modules/roomReservation.php" class="menu-link"><i class="menu-icon tf-icons bx bx-calendar-event"></i><div>Room Reservation</div></a></li><?php endif; ?>
         <?php if (access_can('module.saln')): ?><li class="menu-item <?= $currentPage=='fileSaln.php' ? 'active' : '' ?>"><a href="../modules/fileSaln.php" class="menu-link"><i class="menu-icon bx bx-detail"></i><div>File SALN</div></a></li><?php endif; ?>
         <?php if (access_can('module.leave')): ?><li class="menu-item <?= $currentPage=='leaveRequest.php' ? 'active' : '' ?>"><a href="../modules/leaveRequest.php" class="menu-link"><i class="menu-icon bx bx-receipt"></i><div>Leave Request</div></a></li><?php endif; ?>
         <?php if (access_can('module.notice_of_meeting')): ?><li class="menu-item <?= $currentPage=='noticeofMeeting.php' ? 'active' : '' ?>"><a href="../modules/noticeofMeeting.php" class="menu-link"><i class="menu-icon bx bx-group"></i><div>Notice of Meeting</div></a></li><?php endif; ?>
-        <?php if (access_can('module.service_request')): ?><li class="menu-item <?= $currentPage=='serviceRequest.php' ? 'active' : '' ?>"><a href="../modules/serviceRequest.php" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>IT Service Request</div></a></li><?php endif; ?>
+        <?php if (access_can('module.service_request')): ?><li class="menu-item <?= $currentPage === 'serviceRequest.php' ? 'active' : '' ?>"><a href="../modules/serviceRequest.php" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>IT Service Request</div></a></li><?php endif; ?>
 
         <?php include '../lib/assigned_access_menu.php'; ?>
       </ul>
