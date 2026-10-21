@@ -620,10 +620,10 @@ $firstMonthKey = array_key_first($months);
                         <label for="leave_file" class="lsu-label">Workbook (.xlsx, .xls, .csv)</label>
                         <input type="file" class="form-control" id="leave_file" name="leave_file" accept=".xlsx,.xls,.csv" required>
                     </div>
-                    <label class="lsu-check" for="replace_existing">
+                    <!-- <label class="lsu-check" for="replace_existing">
                         <input type="checkbox" id="replace_existing" name="replace_existing" value="1">
                         Replace existing records
-                    </label>
+                    </label> -->
                     <button type="submit" class="btn btn-primary" id="lsuImportBtn">Import</button>
                 </form>
             </div>
