@@ -151,6 +151,7 @@ $result = $stmt->get_result();
       box-shadow: var(--tk-shadow);
       padding: 22px 24px;
       margin-bottom: 16px;
+      scroll-margin-top: 24px;
       transition: border-color .12s ease, transform .12s ease, box-shadow .12s ease;
     }
     .ann-card:hover {
@@ -190,25 +191,19 @@ $result = $stmt->get_result();
     /* File attachment */
     .ann-attach { margin-top: 14px; }
     .ann-attach img { border-radius: 10px; border: 1px solid var(--tk-border); max-width: 100%; }
-    .ann-btn-pdf {
+    .ann-btn-pdf,
+    .ann-btn-download {
       display: inline-flex; align-items: center; gap: 6px;
       background: var(--tk-primary-soft); color: #2563a8;
       border: 1.5px solid var(--tk-primary); font-weight: 600;
       font-size: 13px; padding: 7px 14px; border-radius: 8px;
+      font-family: inherit; line-height: 1.4;
       cursor: pointer; text-decoration: none; margin-right: 8px;
-      transition: background .12s ease;
+      transition: background .12s ease, color .12s ease;
     }
-    .ann-btn-pdf:hover { background: var(--tk-primary); color: #fff; }
-    .ann-btn-pdf svg { width: 15px; height: 15px; }
-    .ann-btn-download {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: var(--tk-bg); color: var(--tk-text-muted);
-      border: 1.5px solid var(--tk-border); font-weight: 600;
-      font-size: 13px; padding: 7px 14px; border-radius: 8px;
-      cursor: pointer; text-decoration: none;
-      transition: border-color .12s ease, color .12s ease;
-    }
-    .ann-btn-download:hover { border-color: var(--tk-primary); color: var(--tk-primary); }
+    .ann-btn-pdf:hover,
+    .ann-btn-download:hover { background: var(--tk-primary); color: #fff; }
+    .ann-btn-pdf svg,
     .ann-btn-download svg { width: 15px; height: 15px; }
 
     /* ── Recent posts sidebar ──────────────────────────────────── */
@@ -350,7 +345,7 @@ $result = $stmt->get_result();
                   $file_ext = $file_path ? strtolower(pathinfo($file_path, PATHINFO_EXTENSION)) : '';
                   $poster = trim($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']);
                 ?>
-                  <div class="ann-card announcement-card">
+                  <div class="ann-card announcement-card" id="announcement-<?php echo (int) $row['id']; ?>">
                     <span class="ann-card-dept">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>
                       <?php echo htmlspecialchars($row['department']); ?>
@@ -576,6 +571,20 @@ $result = $stmt->get_result();
         showPage(currentPage);
         renderPagination(paginationTop);
         renderPagination(paginationBottom);
+      }
+
+      const targetId = window.location.search
+        ? new URLSearchParams(window.location.search).get('announcement_id')
+        : null;
+      const targetCard = targetId ? document.getElementById(`announcement-${targetId}`) : null;
+      if (targetCard) {
+        const cards = getVisibleCards();
+        const targetIndex = cards.indexOf(targetCard);
+        if (targetIndex !== -1) {
+          currentPage = Math.floor(targetIndex / cardsPerPage) + 1;
+          update();
+          requestAnimationFrame(() => targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        }
       }
 
       // Search filter

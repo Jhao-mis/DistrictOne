@@ -907,10 +907,10 @@ $result = $stmt->get_result();
                                 $client_department = $department;
 
                                 if ($client_department == "All Departments") {
-                                    $recent_query = "SELECT title, department, created_at FROM announcements ORDER BY created_at DESC LIMIT 3";
+                                    $recent_query = "SELECT id, title, department, created_at FROM announcements ORDER BY created_at DESC LIMIT 3";
                                     $stmt = $conn->prepare($recent_query);
                                 } else {
-                                    $recent_query = "SELECT title, department, created_at FROM announcements 
+                                    $recent_query = "SELECT id, title, department, created_at FROM announcements
                                      WHERE department = ? OR department = 'All Departments' 
                                      ORDER BY created_at DESC LIMIT 3";
                                     $stmt = $conn->prepare($recent_query);
@@ -925,7 +925,7 @@ $result = $stmt->get_result();
                                         ?>
                                         <div class="pf-announcement">
                                             <span class="pf-announcement-dept"><?php echo htmlspecialchars($recent['department']); ?></span>
-                                            <a href="#" class="pf-announcement-title">
+                                            <a href="announcement.php?announcement_id=<?php echo (int) $recent['id']; ?>#announcement-<?php echo (int) $recent['id']; ?>" class="pf-announcement-title">
                                                 <?php echo htmlspecialchars($recent['title']); ?>
                                             </a>
                                             <div class="pf-announcement-date">
