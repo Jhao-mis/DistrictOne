@@ -677,46 +677,6 @@ $emp_id = $emp_id ?? '—';
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
-
-        /* ===== Org Chart View (Balkan) ===== */
-        #balkan-tree-container,
-        #modalTreeContainer {
-            width: 100%;
-            background-color: #f8fafc;
-            background-image: radial-gradient(#dbe3ee 1px, transparent 1px);
-            background-size: 22px 22px;
-            border: 1px solid #e2e8f0;
-            border-radius: 1rem;
-            overflow: hidden;
-            position: relative;
-        }
-
-        #balkan-tree-container {
-            height: min(600px, 70vh);
-        }
-
-        #modalTreeContainer {
-            height: min(560px, 62vh);
-        }
-
-        #balkan-tree-container svg,
-        #modalTreeContainer svg {
-            background: transparent !important;
-        }
-
-        #balkan-tree-container [data-n-id] {
-            cursor: pointer;
-        }
-
-        /* Same as the website: departments and secretaries are not clickable */
-        #balkan-tree-container [data-n-id="admin"],
-        #balkan-tree-container [data-n-id="finance"],
-        #balkan-tree-container [data-n-id="commercial"],
-        #balkan-tree-container [data-n-id="tsd"],
-        #balkan-tree-container [data-n-id="ops"],
-        #balkan-tree-container [data-n-id$="_sec"] {
-            cursor: default;
-        }
     </style>
 </head>
 
@@ -904,17 +864,251 @@ $emp_id = $emp_id ?? '—';
                                         and headcount</p>
                                 </div>
 
-                                <!-- Organizational Chart -->
-                                <div id="balkan-tree-container"></div>
+                                <!-- Executive Level (Top) -->
+                                <div class="d-flex flex-column align-items-center">
 
+                                    <!-- BOD Button -->
+                                    <button onclick="openOrgModal('BOD')"
+                                        class="btn org-card-exec p-3 rounded-4 shadow-sm text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="width: 100%; max-width: 320px;">
+                                        <div class="badge bg-primary rounded-circle mb-2 badge-avatar d-flex align-items-center justify-content-center fw-bold fs-6"
+                                            style="width: 48px; height: 48px;">
+                                            BOD
+                                        </div>
+                                        <h5 class="fw-bold text-dark mb-0">Board of Directors</h5>
+                                        <small class="text-primary fw-bold text-uppercase"
+                                            style="font-size: 10px; letter-spacing: 0.5px;">Office of the B.O.D</small>
+                                    </button>
 
+                                    <!-- Vertical Line Connector -->
+                                    <div class="exec-connector-line"></div>
+
+                                    <!-- OGM Button -->
+                                    <button onclick="openOrgModal('OGM')"
+                                        class="btn org-card-exec p-3 rounded-4 shadow-sm text-center d-flex flex-column align-items-center justify-content-center"
+                                        style="width: 100%; max-width: 320px;">
+                                        <div class="badge bg-primary rounded-circle mb-2 badge-avatar d-flex align-items-center justify-content-center fw-bold fs-6"
+                                            style="width: 48px; height: 48px;">
+                                            OGM
+                                        </div>
+                                        <h5 class="fw-bold text-dark mb-0">General Manager</h5>
+                                        <small class="text-primary fw-bold text-uppercase"
+                                            style="font-size: 10px; letter-spacing: 0.5px;">Office of the General
+                                            Manager</small>
+                                    </button>
+
+                                    <!-- Vertical Line Connector -->
+                                    <div class="exec-connector-line"></div>
+
+                                    <!-- MIS Pill Button -->
+                                    <button onclick="openOrgModal('MIS')"
+                                        class="btn org-card-exec p-2 px-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between"
+                                        style="width: 100%; max-width: 340px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span
+                                                class="badge bg-success rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                                style="width: 32px; height: 32px; font-size: 10px;">MIS</span>
+                                            <span class="fw-bold text-dark text-start"
+                                                style="font-size: 11px; line-height: 1.2;">MANAGEMENT INFORMATION
+                                                SERVICES SECTION</span>
+                                        </div>
+                                        <i class="bx bx-chevron-right text-muted fs-5"></i>
+                                    </button>
+
+                                </div>
+
+                                <hr class="my-5 opacity-10">
+
+                                <!-- Departments Title -->
+                                <div class="text-center mb-4">
+                                    <h6 class="fw-bold text-uppercase tracking-wider fs-5">Departments &
+                                        Divisions</h6>
+                                </div>
+
+                                <!-- Top Departments Row (3 Columns) -->
+                                <div class="row g-4 mb-4">
+
+                                    <!-- Administrative Department -->
+                                    <div class="col-12 col-md-4">
+                                        <div class="card h-100 p-3 dept-card shadow-sm rounded-4">
+                                            <button onclick="openOrgModal('ADMIN')"
+                                                class="btn btn-dept-header d-flex align-items-center justify-content-between p-3 rounded-3 mb-3 text-start fw-bold shadow-sm">
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <i class="bx bx-briefcase fs-5"></i>
+                                                    <span>Administrative</span>
+                                                </span>
+                                                <i class="bx bx-chevron-right fs-5"></i>
+                                            </button>
+                                            <div class="d-flex flex-column gap-2">
+                                                <button onclick="openOrgModal('HRD')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-user"></i></span>
+                                                        <span>Human Resource Division</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                                <button onclick="openOrgModal('PMMD')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-package"></i></span>
+                                                        <span>Property & Materials Mgmt</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                                <button onclick="openOrgModal('GSD')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-wrench"></i></span>
+                                                        <span>General Services Division</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Finance Department -->
+                                    <div class="col-12 col-md-4">
+                                        <div class="card h-100 p-3 dept-card shadow-sm rounded-4">
+                                            <button onclick="openOrgModal('FINANCE')"
+                                                class="btn btn-dept-header d-flex align-items-center justify-content-between p-3 rounded-3 mb-3 text-start fw-bold shadow-sm">
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <i class="bx bx-dollar-circle fs-5"></i>
+                                                    <span>Finance</span>
+                                                </span>
+                                                <i class="bx bx-chevron-right fs-5"></i>
+                                            </button>
+                                            <div class="d-flex flex-column gap-2">
+                                                <button onclick="openOrgModal('BUDGET')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i
+                                                                class="bx bx-pie-chart-alt-2"></i></span>
+                                                        <span>Budget Division</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                                <button onclick="openOrgModal('gad')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-calculator"></i></span>
+                                                        <span>General Accounting Division</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Commercial Department -->
+                                    <div class="col-12 col-md-4">
+                                        <div class="card h-100 p-3 dept-card shadow-sm rounded-4">
+                                            <button onclick="openOrgModal('COMMERCIAL')"
+                                                class="btn btn-dept-header d-flex align-items-center justify-content-between p-3 rounded-3 mb-3 text-start fw-bold shadow-sm">
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <i class="bx bx-store-alt fs-5"></i>
+                                                    <span>Commercial</span>
+                                                </span>
+                                                <i class="bx bx-chevron-right fs-5"></i>
+                                            </button>
+                                            <div class="d-flex flex-column gap-2">
+                                                <button onclick="openOrgModal('BILLING')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-receipt"></i></span>
+                                                        <span>Billing & Meter Reading</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                                <button onclick="openOrgModal('cad')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-group"></i></span>
+                                                        <span>Customer Accounts Division</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                                <button onclick="openOrgModal('CUSTOMER_CARE')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-support"></i></span>
+                                                        <span>Customer Care Division</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Bottom Departments Row (2 Columns) -->
+                                <div class="row g-4">
+
+                                    <!-- Technical Services Department -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="card h-100 p-3 dept-card shadow-sm rounded-4">
+                                            <button onclick="openOrgModal('TECHNICAL')"
+                                                class="btn btn-dept-header d-flex align-items-center justify-content-between p-3 rounded-3 mb-3 text-start fw-bold shadow-sm">
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <i class="bx bx-cog fs-5"></i>
+                                                    <span>Technical Services</span>
+                                                </span>
+                                                <i class="bx bx-chevron-right fs-5"></i>
+                                            </button>
+                                            <div class="d-flex flex-column gap-2">
+                                                <button onclick="openOrgModal('eamd')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-chip"></i></span>
+                                                        <span>Engineering & Maintenance</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                                <button onclick="openOrgModal('PIPELINE')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-git-commit"></i></span>
+                                                        <span>Pipeline & Appurtenances Maint.</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Operations Department -->
+                                    <div class="col-12 col-md-6">
+                                        <div class="card h-100 p-3 dept-card shadow-sm rounded-4">
+                                            <button onclick="openOrgModal('OPERATIONS')"
+                                                class="btn btn-dept-header d-flex align-items-center justify-content-between p-3 rounded-3 mb-3 text-start fw-bold shadow-sm">
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <i class="bx bx-buildings fs-5"></i>
+                                                    <span>Operations</span>
+                                                </span>
+                                                <i class="bx bx-chevron-right fs-5"></i>
+                                            </button>
+                                            <div class="d-flex flex-column gap-2">
+                                                <button onclick="openOrgModal('PRODUCTION')"
+                                                    class="btn btn-division-item p-2 px-3 rounded-3 d-flex align-items-center justify-content-between text-start small fw-semibold">
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <span class="icon-box"><i class="bx bx-water"></i></span>
+                                                        <span>Production Division</span>
+                                                    </span>
+                                                    <i class="bx bx-right-arrow-alt text-muted fs-5"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
 
                                 <!-- External Website Redirect Link Section -->
                                 <div class="mt-4 pt-2 text-center border-top">
                                     <div class="p-4 rounded-4 bg-light d-inline-block text-center shadow-xs"
                                         style="max-width: 500px; width: 100%;">
-                                        <p class="text-muted small mb-3 fw-semibold">Looking for the public
-                                            Organizational Chart?</p>
+                                        <p class="text-muted small mb-3 fw-semibold">Looking for the public Organizational Chart?</p>
                                         <a href="https://cwd.com.ph/about_us" target="_blank" rel="noopener noreferrer"
                                             class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm">
                                             <i class="bx bx-globe fs-5"></i>
@@ -929,7 +1123,7 @@ $emp_id = $emp_id ?? '—';
 
                         <!-- Dynamic Org Chart Modal -->
                         <div id="orgChartModal" class="modal fade" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+                            <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
                                 <div class="modal-content border-0 shadow-lg">
 
                                     <!-- Modal Header (Inalisan ng Left Icon) -->
@@ -945,14 +1139,12 @@ $emp_id = $emp_id ?? '—';
                                     </div>
 
                                     <!-- Dynamic Modal Body -->
-                                    <div id="modalBody" class="modal-body p-3 p-md-4 bg-light">
+                                    <div id="modalBody" class="modal-body p-4 bg-light">
                                         <!-- Dito mai-inject ang Javascript output -->
                                     </div>
 
                                     <!-- Modal Footer -->
                                     <div class="modal-footer bg-white border-top px-4 py-2">
-                                        <small class="text-muted me-auto d-none d-md-inline">Scroll to zoom &middot;
-                                            Drag to pan</small>
                                         <button type="button" class="btn btn-sm btn-secondary px-4 rounded-3 fw-bold"
                                             onclick="closeOrgModal()">Close</button>
                                     </div>
@@ -971,351 +1163,8 @@ $emp_id = $emp_id ?? '—';
     </div>
     </div>
 
-    <!-- JAVASCRIPT FOR ORG CHART (Balkan OrgChart + modal) -->
-    <script src="https://balkan.app/js/OrgChart.js"></script>
+    <!-- JAVASCRIPT FOR ORG CHART MODAL -->
     <script>
-        let modalOrgChartInstance = null;
-        let mainOrgChartInstance = null;
-        let pendingModalNodes = null;
-
-        const BALKAN_READY = (typeof OrgChart !== 'undefined');
-        const MAIN_CHART_START_SCALE = 1.0;   // 1.0 = real card size; lower = farther, higher = closer
-
-        // Chart node id -> code used by the existing DistrictOne modal / API
-        const ORG_CODE_MAP = {
-            bod: 'BOD', ogm: 'OGM', mis: 'MIS',
-            admin: 'ADMIN', hrd: 'HRD', pmmd: 'PMMD', gsd: 'GSD',
-            finance: 'FINANCE', budget: 'BUDGET', accounting: 'gad',
-            commercial: 'COMMERCIAL', bmrd: 'BILLING', cad: 'cad', ccd: 'CUSTOMER_CARE',
-            tsd: 'TECHNICAL', eamd: 'eamd', pamd: 'PIPELINE',
-            ops: 'OPERATIONS', production: 'PRODUCTION'
-        };
-
-        // ==========================================
-        // CARD TEMPLATES (two-tone, color-coded by level)
-        // ==========================================
-        function buildCardTemplate(c) {
-            const t = Object.assign({}, OrgChart.templates.ana);
-            t.size = [290, 105];
-
-            t.node = `
-                <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
-                    <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
-                    <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.08"/>
-                </filter>
-                <rect x="0" y="0" width="290" height="105" fill="${c.body}" rx="16" ry="16" filter="url(#card-shadow)" stroke="${c.stroke}" stroke-width="1.5"></rect>
-                <path d="M 0 16 A 16 16 0 0 1 16 0 L 274 0 A 16 16 0 0 1 290 16 L 290 50 L 0 50 Z" fill="#f8fafc" />
-                <line x1="0" y1="50" x2="290" y2="50" stroke="#e2e8f0" stroke-width="1" />
-            `;
-            t.field_0 = `
-                <foreignObject x="12" y="6" width="266" height="40">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; font-size: 10.5px; font-weight: 800; color: #0f172a; font-family: 'Inter', system-ui, sans-serif; text-transform: uppercase; line-height: 1.2; overflow: hidden; word-break: break-word; text-rendering: geometricPrecision; -webkit-font-smoothing: antialiased;">
-                        {val}
-                    </div>
-                </foreignObject>
-            `;
-            t.field_1 = `<text style="font-size: 11.5px; font-weight: 700; font-family: 'Inter', system-ui, sans-serif;" fill="#ffffff" x="145" y="72" text-anchor="middle">{val}</text>`;
-            t.field_2 = `<text style="font-size: 10px; font-weight: 600; font-family: 'Inter', system-ui, sans-serif;" fill="${c.sub}" x="145" y="90" text-anchor="middle">{val}</text>`;
-            t.img_0 = '';
-
-            if (typeof OrgChart.templates.ana.link === 'string') {
-                t.link = OrgChart.templates.ana.link
-                    .replace(/stroke="[^"]*"/, 'stroke="#94a3b8"')
-                    .replace(/stroke-width="[^"]*"/, 'stroke-width="2px"');
-            }
-            return t;
-        }
-
-        if (BALKAN_READY) {
-            OrgChart.SEARCH_PLACEHOLDER = "Search for department, division or plantilla...";
-            OrgChart.templates.twoToneTemplate = buildCardTemplate({ body: "#1e3a8a", stroke: "#3b82f6", sub: "#bfdbfe" });
-            OrgChart.templates.topTemplate = buildCardTemplate({ body: "#0f2a5c", stroke: "#38bdf8", sub: "#bae6fd" }); // BOD / OGM
-            OrgChart.templates.deptTemplate = buildCardTemplate({ body: "#1e3a8a", stroke: "#3b82f6", sub: "#bfdbfe" }); // Departments
-            OrgChart.templates.divisionTemplate = buildCardTemplate({ body: "#2563eb", stroke: "#93c5fd", sub: "#dbeafe" }); // Divisions
-            OrgChart.templates.staffTemplate = buildCardTemplate({ body: "#475569", stroke: "#94a3b8", sub: "#e2e8f0" }); // Secretaries
-            OrgChart.templates.sectionTemplate = buildCardTemplate({ body: "#0f766e", stroke: "#2dd4bf", sub: "#ccfbf1" }); // MIS section
-        }
-
-        // ==========================================
-        // HELPERS
-        // ==========================================
-        // Only cosmetic border changes. Do NOT touch placeholder/padding/font-size:
-        // Balkan draws its own placeholder layer behind the input (text would overlap).
-        function styleChartSearch(container) {
-            if (!container) return;
-            const searchInput = container.querySelector('input');
-            if (searchInput) {
-                searchInput.style.borderRadius = "20px";
-                searchInput.style.border = "1px solid #cbd5e1";
-                searchInput.style.outline = "none";
-            }
-        }
-
-        // ==========================================
-        // CHART HINT (Injected dynamically below search bar)
-        // ==========================================
-        function addChartHint(container) {
-            if (!container) return;
-
-            let hint = container.querySelector('#orgchart-hint');
-            if (!hint) {
-                hint = document.createElement('p');
-                hint.id = 'orgchart-hint';
-                hint.style.cssText = "position:absolute;margin:0;font-size:12px;line-height:1.5;color:#64748b;pointer-events:none;z-index:1;font-family:'Inter', system-ui, sans-serif;";
-                hint.innerHTML = 'Click a card for details &middot; Scroll to zoom &middot; Drag to pan';
-                container.appendChild(hint);
-            }
-
-            const input = container.querySelector('input');
-
-            const position = function () {
-                const cr = container.getBoundingClientRect();
-                const ir = input ? input.getBoundingClientRect() : null;
-                if (ir && ir.width > 0) {
-                    hint.style.top = (ir.bottom - cr.top + 8) + 'px';
-                    hint.style.left = (ir.left - cr.left + 12) + 'px';
-                    hint.style.right = 'auto';
-                    hint.style.width = Math.max(ir.width - 12, 220) + 'px';
-                } else {
-                    hint.style.top = '70px';
-                    hint.style.right = '16px';
-                    hint.style.left = 'auto';
-                    hint.style.width = '320px';
-                }
-            };
-            position();
-
-            // Hide hint kapag nag-type ang user sa search input
-            if (input && !input.dataset.hintBound) {
-                input.dataset.hintBound = '1';
-                input.addEventListener('input', function () {
-                    hint.style.display = input.value ? 'none' : 'block';
-                });
-            }
-
-            if (!container.dataset.hintResizeBound) {
-                container.dataset.hintResizeBound = '1';
-                window.addEventListener('resize', function () { setTimeout(position, 100); });
-            }
-        }
-
-        // Close-up on the BOD + OGM cards (Balkan's center() has no scale option -> set viewBox).
-        // Retries a few times because the layout may not be ready right after init.
-        function focusOnTopNodes(chart, container, attempt) {
-            attempt = attempt || 0;
-            if (!chart || !container) return;
-            try {
-                const cw = container.clientWidth;
-                const ch = container.clientHeight;
-                const bod = chart.getNode ? chart.getNode("bod") : null;
-                const ready = cw && ch && bod && typeof bod.x === 'number' && typeof bod.y === 'number';
-
-                if (!ready) {
-                    if (attempt < 6) {
-                        setTimeout(() => focusOnTopNodes(chart, container, attempt + 1), 150);
-                    } else {
-                        chart.fit();
-                        chart.center("bod");
-                    }
-                    return;
-                }
-                const vw = cw / MAIN_CHART_START_SCALE;
-                const vh = ch / MAIN_CHART_START_SCALE;
-                const x = bod.x + (bod.w || 290) / 2 - vw / 2;
-                const y = bod.y - 40;
-                chart.setViewBox([x, y, vw, vh]);
-            } catch (e) {
-                console.error("focusOnTopNodes error:", e);
-                try { chart.fit(); chart.center("bod"); } catch (_) { }
-            }
-        }
-
-        // ==========================================
-        // MAIN ORG CHART (Chart View tab)
-        // ==========================================
-        function renderBalkanOrgChart() {
-            const container = document.getElementById("balkan-tree-container");
-            if (!container) return;
-
-            if (!BALKAN_READY) {
-                container.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-muted small p-4 text-center">The chart library could not be loaded. Please check your connection and refresh the page, or use the Cards View.</div>';
-                return;
-            }
-
-            if (mainOrgChartInstance) {
-                setTimeout(() => {
-                    focusOnTopNodes(mainOrgChartInstance, container);
-                    styleChartSearch(container);
-                    addChartHint(container);
-                }, 50);
-                return;
-            }
-
-            const orgChartData = [
-        { id: "bod", pid: null, tags: ["top"], name: "OFFICE OF THE BOARD OF DIRECTORS", title: "Board of Directors", sg: "" },
-        { id: "ogm", pid: "bod", tags: ["top"], name: "OFFICE OF THE GENERAL MANAGER", title: "Exequiel A. Aguilar, Jr.", sg: "SG 26" },
-        { id: "mis", pid: "ogm", tags: ["assistant", "section"], name: "Management Info Services", title: "MIS Section", sg: "SG 19" },
-        
-        // Administrative Department & Divisions
-        { id: "admin", pid: "ogm", tags: ["dept"], name: "ADMINISTRATIVE DEPARTMENT", title: "Edwin L. Cartago", sg: "SG 26" },
-        { id: "admin_sec", pid: "admin", tags: ["assistant", "staff"], name: "Janine S. Bercasio", title: "Secretary B", sg: "SG 7" },
-        { id: "hrd", pid: "admin", tags: ["division"], name: "HUMAN RESOURCE DIVISION", title: "Elenita V. Panganiban", sg: "SG 24" },
-        { id: "pmmd", pid: "admin", tags: ["division"], name: "PROPERTY & MATERIALS MGT.", title: "Rolando M. Pizzara (OIC)", sg: "SG 24" },
-        { id: "gsd", pid: "admin", tags: ["division"], name: "GENERAL SERVICES DIVISION", title: "Emmanuel T. Salvador", sg: "SG 24" },
-        
-        // Finance Department & Divisions
-        { id: "finance", pid: "ogm", tags: ["dept"], name: "FINANCE DEPARTMENT", title: "Mercedes A. Carreon (OIC)", sg: "SG 26" },
-        { id: "finance_sec", pid: "finance", tags: ["assistant", "staff"], name: "Vacant", title: "Secretary B", sg: "SG 7" },
-        { id: "budget", pid: "finance", tags: ["division"], name: "BUDGET DIVISION", title: "Mercedes A. Carreon", sg: "SG 24" },
-        { id: "accounting", pid: "finance", tags: ["division"], name: "GENERAL ACCOUNTING DIV.", title: "Junsy Y. Nieron, CPA (OIC)", sg: "SG 24" },
-        
-        // Commercial Department & Divisions
-        { id: "commercial", pid: "ogm", tags: ["dept"], name: "COMMERCIAL DEPARTMENT", title: "Ma. Carmela M. Elepaño", sg: "SG 26" },
-        { id: "commercial_sec", pid: "commercial", tags: ["assistant", "staff"], name: "Verra Mae Mariano", title: "Secretary B", sg: "SG 7" },
-        { id: "bmrd", pid: "commercial", tags: ["division"], name: "BILLING & METER READING", title: "Basilisa Gillera (OIC)", sg: "SG 24" },
-        { id: "cad", pid: "commercial", tags: ["division"], name: "CUSTOMER ACCOUNTS DIV.", title: "Henry B. Junio", sg: "SG 24" },
-        { id: "ccd", pid: "commercial", tags: ["division"], name: "CUSTOMER CARE DIVISION", title: "Ronnie G. Sierva", sg: "SG 24" },
-        
-        // Technical Services Department & Divisions
-        { id: "tsd", pid: "ogm", tags: ["dept"], name: "TECHNICAL SERVICES DEPT.", title: "Engr. Ranely S. Cartago", sg: "SG 26" },
-        { id: "tsd_sec", pid: "tsd", tags: ["assistant", "staff"], name: "Joana Leana May V. Villanueva", title: "Secretary B", sg: "SG 7" },
-        { id: "eamd", pid: "tsd", tags: ["division"], name: "ENGINEERING & MAINTENANCE", title: "Engr. Rolando V. Baro", sg: "SG 24" },
-        { id: "pamd", pid: "tsd", tags: ["division"], name: "PIPELINE & APPURTENANCES", title: "Engr. Bernard Joseph Rodriguez (OIC)", sg: "SG 24" },
-        
-        // Operations Department & Divisions
-        { id: "ops", pid: "ogm", tags: ["dept"], name: "OPERATIONS DEPARTMENT", title: "Engr. Joselito A. Gillera", sg: "SG 26" },
-        { id: "ops_sec", pid: "ops", tags: ["assistant", "staff"], name: "Vacant", title: "Secretary B", sg: "SG 7" },
-        { id: "production", pid: "ops", tags: ["division"], name: "PRODUCTION DIVISION", title: "Engr. Elizaldy D. Novillos", sg: "SG 24" }
-    ];
-
-            try {
-                mainOrgChartInstance = new OrgChart(container, {
-                    nodes: orgChartData,
-                    enableSearch: true,
-                    mouseScrool: OrgChart.action.zoom,   // scroll = zoom, no Ctrl
-                    scaleMin: 0.2,
-                    scaleMax: 3,
-                    scaleInitial: 1,
-                    nodeMouseClick: OrgChart.action.none,
-                    layout: OrgChart.top,
-                    template: "twoToneTemplate",
-                    tags: {
-                        top: { template: "topTemplate" },
-                        dept: { template: "deptTemplate" },
-                        division: { template: "divisionTemplate" },
-                        staff: { template: "staffTemplate" },
-                        section: { template: "sectionTemplate" }
-                    },
-                    nodeBinding: { field_0: "name", field_1: "title", field_2: "sg" }
-                });
-
-                mainOrgChartInstance.onNodeClick(function (args) {
-                    const nodeId = args.node.id;
-                    const nonClickableIds = ['admin', 'finance', 'commercial', 'tsd', 'ops'];
-                    if (nonClickableIds.includes(nodeId) || nodeId.endsWith('_sec')) return false;   // same as website
-                    const code = ORG_CODE_MAP[nodeId];
-                    if (code) openOrgModal(code);
-                    return false;
-                });
-
-                mainOrgChartInstance.onInit(function () {
-                    focusOnTopNodes(mainOrgChartInstance, container);
-                    styleChartSearch(container);
-                    addChartHint(container);
-                });
-
-                setTimeout(() => {
-                    if (mainOrgChartInstance) {
-                        focusOnTopNodes(mainOrgChartInstance, container);
-                        styleChartSearch(container);
-                        addChartHint(container);
-                    }
-                }, 150);
-            } catch (err) {
-                console.error("OrgChart error:", err);
-            }
-        }
-
-        // ==========================================
-        // MODAL: nodes for the sub-chart
-        // ==========================================
-        function buildModalNodes(key, data) {
-            let subNodes = [];
-
-            if (key === 'bod') {
-                subNodes.push({ id: "bod_root", pid: null, name: "OFFICE OF THE BOARD OF DIRECTORS", title: "Board of Directors", sg: "" });
-                subNodes.push({ id: "bod_chair", pid: "bod_root", name: "RONALDO J. PUA", title: "Chairperson", sg: "" });
-                subNodes.push({ id: "bod_vice", pid: "bod_root", name: "ATTY. DANTE M. MANGUIAT", title: "Vice-Chairperson", sg: "" });
-                subNodes.push({ id: "bod_sec", pid: "bod_root", name: "SATURNINO J. LAJARA", title: "Corporate Secretary", sg: "" });
-                subNodes.push({ id: "bod_treas", pid: "bod_root", name: "ALICIA V. LLAMAS", title: "Treasurer", sg: "" });
-                subNodes.push({ id: "bod_pro", pid: "bod_root", name: "BRYAN A. ERCIA", title: "Public Relations Officer", sg: "" });
-
-                subNodes.push({ id: "agenda_officer", pid: "bod_chair", tags: ["assistant"], name: "AMIE B. MENDOZA", title: "Minutes/Agenda Officer B", sg: "SG 11" });
-                subNodes.push({ id: "tech_assist", pid: "bod_chair", tags: ["assistant"], name: "VACANT", title: "Technical Assistant B", sg: "SG 20" });
-                subNodes.push({ id: "admin_assist", pid: "agenda_officer", name: "VACANT", title: "Admin Services Assistant C", sg: "SG 8" });
-            } else if (key === 'ogm') {
-                let gm = data.manager;
-                subNodes.push({ id: "ogm_root", pid: null, name: gm ? gm.employee_name : 'Exequiel A. Aguilar, Jr.', title: gm ? gm.position_title : 'General Manager A', sg: gm ? `SG ${gm.salary_grade}` : 'SG 26' });
-
-                let dbPositions = [];
-                if (data.positions && Array.isArray(data.positions)) dbPositions = dbPositions.concat(data.positions);
-                if (data.sections && Array.isArray(data.sections)) {
-                    data.sections.forEach(sec => { if (sec.positions) dbPositions = dbPositions.concat(sec.positions); });
-                }
-
-                let privSec = dbPositions.find(p => p.position_title.toLowerCase().includes('private secretary'));
-                let driver = dbPositions.find(p => p.position_title.toLowerCase().includes('driver'));
-
-                if (privSec) subNodes.push({ id: "priv_sec", pid: "ogm_root", tags: ["assistant"], name: privSec.employee_name, title: privSec.position_title, sg: `SG ${privSec.salary_grade}` });
-                if (driver) subNodes.push({ id: "driver_node", pid: "ogm_root", tags: ["assistant"], name: driver.employee_name, title: driver.position_title, sg: `SG ${driver.salary_grade}` });
-
-                let filteredPositions = dbPositions.filter(p => (!gm || p.id !== gm.id) && (!privSec || p.id !== privSec.id) && (!driver || p.id !== driver.id));
-
-                let col1 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('executive assistant') || p.position_title.toLowerCase().includes('customer service'));
-                let col2 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('plan'));
-                let col3 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('internal control'));
-                let col4 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('attorney') || p.position_title.toLowerCase().includes('legal'));
-                let col5 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('mis') || p.position_title.toLowerCase().includes('computer') || p.position_title.toLowerCase().includes('encoder') || p.position_title.toLowerCase().includes('data') || p.employee_name.toLowerCase().includes('fajarda') || p.employee_name.toLowerCase().includes('dave'));
-
-                col5.sort((a, b) => (a.employee_name.toLowerCase().includes('fajarda') || a.employee_name.toLowerCase().includes('dave')) ? -1 : 1);
-
-                function addColumnNodes(colArray, colPrefix) {
-                    let parentId = "ogm_root";
-                    colArray.forEach((pos, idx) => {
-                        let nodeId = `${colPrefix}_${idx}`;
-                        subNodes.push({ id: nodeId, pid: parentId, name: pos.employee_name, title: pos.position_title, sg: `SG ${pos.salary_grade}` });
-                        parentId = nodeId;
-                    });
-                }
-                addColumnNodes(col1, "col1"); addColumnNodes(col2, "col2"); addColumnNodes(col3, "col3"); addColumnNodes(col4, "col4"); addColumnNodes(col5, "col5");
-            } else {
-                let rootId = "dept_root";
-                subNodes.push({ id: rootId, pid: null, name: data.manager ? (data.manager.employee_name || 'Vacant') : (data.title || 'Office'), title: data.manager ? data.manager.position_title : 'Department Manager', sg: data.manager?.salary_grade ? `SG ${data.manager.salary_grade}` : 'SG 26' });
-
-                if (data.secretary) {
-                    subNodes.push({ id: "sec_node", pid: rootId, tags: ["assistant"], name: data.secretary.employee_name || 'Vacant', title: data.secretary.position_title, sg: `SG ${data.secretary.salary_grade || 7}` });
-                }
-
-                let allPositions = [];
-                if (data.sections && Array.isArray(data.sections)) data.sections.forEach(sec => sec.positions && sec.positions.forEach(p => allPositions.push(p)));
-                if (data.divisions && Array.isArray(data.divisions)) data.divisions.forEach(div => div.positions && div.positions.forEach(p => allPositions.push(p)));
-                if (data.positions && Array.isArray(data.positions)) data.positions.forEach(p => allPositions.push(p));
-
-                allPositions.sort((a, b) => (parseInt(b.salary_grade) || 0) - (parseInt(a.salary_grade) || 0));
-
-                let previousId = rootId;
-                allPositions.forEach((pos, idx) => {
-                    let currentId = `pos_sg_${idx}`;
-                    subNodes.push({ id: currentId, pid: previousId, name: pos.employee_name || 'Vacant', title: pos.position_title, sg: pos.salary_grade ? `SG ${pos.salary_grade}` : 'SG --' });
-                    previousId = currentId;
-                });
-            }
-            return subNodes;
-        }
-
-        // ==========================================
-        // MODAL: open / render / close
-        // ==========================================
         async function openOrgModal(code) {
             try {
                 const currentUrl = window.location.pathname;
@@ -1332,17 +1181,142 @@ $emp_id = $emp_id ?? '—';
                 if (catElement) catElement.innerText = data.type || 'Department View';
                 if (titleElement) titleElement.innerText = data.title || '';
 
-                const key = String(code).toLowerCase();
+                let html = '';
+
+                const renderNames = (nameStr) => {
+                    if (!nameStr) return `<div class="badge bg-warning-subtle text-warning border border-warning-subtle fw-semibold mt-1"><i class="bx bx-error-circle me-1"></i>Vacant</div>`;
+                    const namesList = nameStr.split(',').map(n => n.trim());
+                    return namesList.map(n => {
+                        if (n.toLowerCase() === 'vacant') {
+                            return `<div class="badge bg-warning-subtle text-warning border border-warning-subtle fw-semibold mt-1"><i class="bx bx-error-circle me-1"></i>Vacant</div>`;
+                        }
+                        return `<div class="text-dark fw-bold small mt-1"><i class="bx bx-user text-muted me-1"></i>${n}</div>`;
+                    }).join('');
+                };
+
+                // 1. Leadership & Administrative Support
+                if (data.manager || data.secretary) {
+                    html += `<div class="row g-3 mb-4">`;
+
+                    if (data.manager) {
+                        html += `
+                <div class="${data.secretary ? 'col-md-7' : 'col-12'}">
+                    <div class="p-3 modal-card-lead border rounded-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="text-uppercase fw-bold text-primary" style="font-size: 10px; letter-spacing: 0.5px;">Leadership</span>
+                            ${data.manager.salary_grade && data.manager.salary_grade !== '0' && data.manager.salary_grade !== 'N/A' ? `<span class="badge-sg">SG ${data.manager.salary_grade}</span>` : ''}
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0 mt-1">${data.manager.position_title || 'Department Head'}</h6>
+                        <div>${renderNames(data.manager.employee_name)}</div>
+                    </div>
+                </div>`;
+                    }
+
+                    if (data.secretary) {
+                        html += `
+                <div class="col-md-5">
+                    <div class="p-3 modal-card-sec border rounded-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="text-uppercase fw-bold text-secondary" style="font-size: 9px; letter-spacing: 0.5px;">Admin Support</span>
+                            ${data.secretary.salary_grade && data.secretary.salary_grade !== '0' && data.secretary.salary_grade !== 'N/A' ? `<span class="badge-sg">SG ${data.secretary.salary_grade}</span>` : ''}
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0 mt-1">${data.secretary.position_title || 'Secretary'}</h6>
+                        <div>${renderNames(data.secretary.employee_name)}</div>
+                    </div>
+                </div>`;
+                    }
+
+                    html += `</div>`;
+                }
+
+                // Helper Function para mag-render ng Sections & Divisions cards
+                const renderSubGroup = (title, items, iconClass) => {
+                    if (!items || !Array.isArray(items) || items.length === 0) return '';
+                    let subHtml = `<div class="d-flex align-items-center gap-2 mb-3 mt-4">
+                <i class="${iconClass} text-primary fs-5"></i>
+                <h6 class="fw-bold text-uppercase text-secondary mb-0" style="font-size: 12px; letter-spacing: 0.5px;">${title}</h6>
+            </div>`;
+
+                    items.forEach(item => {
+                        const positions = item.positions || [];
+                        const head = positions.find(p => p.is_head == 1);
+                        const regularPositions = positions.filter(p => p.is_head == 0);
+
+                        subHtml += `
+                <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-3">
+                        <h6 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+                            <i class="bx bx-folder"></i> ${item.name || item.code || ''}
+                        </h6>
+                    </div>
+                    <div class="card-body p-3 bg-light-subtle">`;
+
+                        if (head) {
+                            subHtml += `
+                    <div class="p-3 bg-white border border-primary-subtle rounded-3 mb-3 d-flex justify-content-between align-items-center shadow-xs">
+                        <div>
+                            <span class="badge bg-info-subtle text-info text-uppercase fw-bold mb-1" style="font-size: 9px;">Head</span>
+                            <h6 class="fw-bold text-dark mb-0">${head.position_title || ''}</h6>
+                            <div>${renderNames(head.employee_name)}</div>
+                        </div>
+                        ${head.salary_grade && head.salary_grade !== '0' && head.salary_grade !== 'N/A' ? `<span class="badge-sg">SG ${head.salary_grade}</span>` : ''}
+                    </div>`;
+                        }
+
+                        if (regularPositions.length > 0) {
+                            subHtml += `<div class="row g-2">`;
+                            regularPositions.forEach(pos => {
+                                subHtml += `
+                        <div class="col-12 col-md-6">
+                            <div class="pos-card-item p-2 px-3 rounded-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="fw-bold text-dark mb-0 small">${pos.position_title || ''}</p>
+                                    <div>${renderNames(pos.employee_name)}</div>
+                                </div>
+                                ${pos.salary_grade && pos.salary_grade !== '0' && pos.salary_grade !== 'N/A' ? `<span class="badge-sg">SG ${pos.salary_grade}</span>` : ''}
+                            </div>
+                        </div>`;
+                            });
+                            subHtml += `</div>`;
+                        }
+
+                        subHtml += `</div></div>`;
+                    });
+                    return subHtml;
+                };
+
+                // 2. Direct Sections
+                html += renderSubGroup('Sections', data.sections, 'bx bx-layer');
+
+                // 3. Divisions
+                html += renderSubGroup('Divisions', data.divisions, 'bx bx-sitemap');
+
+                // 4. Direct Department Positions
+                if (data.positions && Array.isArray(data.positions) && data.positions.length > 0) {
+                    html += `<div class="d-flex align-items-center gap-2 mb-3 mt-4">
+                <i class="bx bx-id-card text-primary fs-5"></i>
+                <h6 class="fw-bold text-uppercase text-secondary mb-0" style="font-size: 12px; letter-spacing: 0.5px;">Plantilla Positions</h6>
+            </div>`;
+                    html += `<div class="row g-2">`;
+                    data.positions.forEach(pos => {
+                        html += `
+                <div class="col-12 col-md-6">
+                    <div class="pos-card-item p-3 rounded-3 d-flex justify-content-between align-items-center bg-white">
+                        <div>
+                            <span class="text-uppercase fw-bold text-muted d-block mb-1" style="font-size: 10px;">${pos.position_title || ''}</span>
+                            <div>${renderNames(pos.employee_name)}</div>
+                        </div>
+                        ${pos.salary_grade && pos.salary_grade !== '0' && pos.salary_grade !== 'N/A' ? `<span class="badge-sg">SG ${pos.salary_grade}</span>` : ''}
+                    </div>
+                </div>`;
+                    });
+                    html += `</div>`;
+                }
+
                 const modalBody = document.getElementById('modalBody');
                 const modalEl = document.getElementById('orgChartModal');
 
-                if (!BALKAN_READY) {
-                    alert('The chart library could not be loaded. Please check your connection and refresh the page.');
-                    return;
-                }
-
-                pendingModalNodes = buildModalNodes(key, data);
-                if (modalBody) modalBody.innerHTML = '<div id="modalTreeContainer"></div>';
+                if (modalBody) modalBody.innerHTML = html;
 
                 let bsModal = bootstrap.Modal.getInstance(modalEl);
                 if (!bsModal) {
@@ -1356,38 +1330,6 @@ $emp_id = $emp_id ?? '—';
             }
         }
 
-        // Create the sub-chart only after the modal is visible (Balkan needs real dimensions)
-        function renderModalChart() {
-            const container = document.getElementById('modalTreeContainer');
-            if (!BALKAN_READY || !container || !pendingModalNodes) return;
-
-            if (modalOrgChartInstance) { modalOrgChartInstance.destroy(); modalOrgChartInstance = null; }
-
-            try {
-                modalOrgChartInstance = new OrgChart(container, {
-                    nodes: pendingModalNodes,
-                    enableSearch: true,
-                    mouseScrool: OrgChart.action.zoom,   // scroll = zoom, no Ctrl
-                    scaleMin: 0.2,
-                    scaleMax: 3,
-                    nodeMouseClick: OrgChart.action.none,
-                    layout: OrgChart.top,
-                    template: "twoToneTemplate",
-                    nodeBinding: { field_0: "name", field_1: "title", field_2: "sg" }
-                });
-
-                setTimeout(() => {
-                    if (modalOrgChartInstance) {
-                        modalOrgChartInstance.fit();
-                        modalOrgChartInstance.center();
-                        styleChartSearch(container);
-                    }
-                }, 100);
-            } catch (err) {
-                console.error('Modal OrgChart error:', err);
-            }
-        }
-
         function closeOrgModal() {
             const modalEl = document.getElementById('orgChartModal');
             let bsModal = bootstrap.Modal.getInstance(modalEl);
@@ -1395,25 +1337,6 @@ $emp_id = $emp_id ?? '—';
                 bsModal.hide();
             }
         }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            renderBalkanOrgChart();
-
-            const modalEl = document.getElementById('orgChartModal');
-            if (modalEl) {
-                modalEl.addEventListener('shown.bs.modal', renderModalChart);
-                modalEl.addEventListener('hidden.bs.modal', function () {
-                    if (modalOrgChartInstance) { modalOrgChartInstance.destroy(); modalOrgChartInstance = null; }
-                    pendingModalNodes = null;
-                });
-            }
-        });
-
-        // Re-apply the close-up once everything (images, sidebar layout) has finished loading
-        window.addEventListener('load', function () {
-            const c = document.getElementById('balkan-tree-container');
-            if (mainOrgChartInstance && c) focusOnTopNodes(mainOrgChartInstance, c);
-        });
     </script>
 
     <!-- VENDOR SCRIPTS -->
