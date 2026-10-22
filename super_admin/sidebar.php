@@ -492,7 +492,7 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
         <?php if (access_can('module.service_request')): ?><li class="menu-item <?= $currentPage === 'serviceRequest.php' ? 'active' : '' ?>"><a href="../modules/serviceRequest.php" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>IT Service Request</div></a></li><?php endif; ?>
 
         <!-- Admin Panel -->
-        <?php if (access_is_super_admin()): ?><li class="menu-item <?= in_array($currentPage, ['monitoring.php','ticketRequest.php','approveTicket.php','addAnnouncement.php','addEvents.php','approveRoom.php','accountManagement.php','payrollmng.php','leaveSummaryUpload.php'], true) ? 'active open' : '' ?>">
+        <?php if (access_is_super_admin()): ?><li class="menu-item <?= in_array($currentPage, ['monitoring.php','ticketRequest.php','approveTicket.php','addAnnouncement.php','addEvents.php','approveRoom.php','accountManagement.php','payrollmng.php','leaveSummaryUpload.php','siteMedia.php'], true) ? 'active open' : '' ?>">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-shield-quarter"></i><div>Admin Panel</div>
           </a>
@@ -506,6 +506,7 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
             <?php if (access_can('special.payroll_management')): ?><li class="menu-item <?= $currentPage === 'payrollmng.php' ? 'active' : '' ?>"><a href="../super_admin/payrollmng.php" class="menu-link"><div>Payroll Management</div></a></li><?php endif; ?>
             <?php if (access_can('special.leave_summary_upload')): ?><li class="menu-item <?= $currentPage === 'leaveSummaryUpload.php' ? 'active' : '' ?>"><a href="../super_admin/leaveSummaryUpload.php" class="menu-link"><div>Leave Summary Import</div></a></li><?php endif; ?>
             <?php if (access_can('special.account_management')): ?><li class="menu-item <?= $currentPage === 'accountManagement.php' ? 'active' : '' ?>"><a href="../super_admin/accountManagement.php" class="menu-link"><div>Account Management</div></a></li><?php endif; ?>
+            <?php if (access_is_super_admin()): ?><li class="menu-item <?= $currentPage === 'siteMedia.php' ? 'active' : '' ?>"><a href="../super_admin/siteMedia.php" class="menu-link"><div>Site Images</div></a></li><?php endif; ?>
           </ul>
         </li>
         <?php endif; ?>

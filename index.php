@@ -4,6 +4,9 @@ session_start();
 require 'vendor/autoload.php';
 require 'db.php';
 require 'lib/access_control.php';
+require_once 'lib/site_media.php';
+
+$loginBackground = site_media_login_background($conn);
 
 $alertType = $_SESSION['alertType'] ?? '';
 $alertText = $_SESSION['alertText'] ?? '';
@@ -192,7 +195,7 @@ unset($_SESSION['success']);
     </div>
 
     <!-- RIGHT IMAGE PANEL -->
-    <div class="hidden lg:flex flex-1 relative flex-col items-center justify-center bg-[url('assets/img/backgrounds/oct.jpg')] bg-cover bg-center">
+    <div class="hidden lg:flex flex-1 relative flex-col items-center justify-center bg-cover bg-center" style="background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>');">
 
       <div class="absolute inset-0 bg-black/45"></div>
 

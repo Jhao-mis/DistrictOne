@@ -1,8 +1,10 @@
 <?php
 include '../db.php';
+require_once '../lib/site_media.php';
 require '../vendor/autoload.php';
 require 'login_verification.php';
 
+$carouselImages = site_media_carousel_images($conn);
 $username = $_SESSION['username'];
 
 date_default_timezone_set('Asia/Manila');
@@ -453,45 +455,21 @@ $emp_id = $emp_id ?? '—';
                                     <div id="coverCarousel" class="carousel slide" data-bs-ride="carousel"
                                         data-bs-interval="10000" style="height: 100%;">
                                         <div class="carousel-indicators">
-                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="0"
-                                                class="active" aria-current="true" aria-label="Slide 1"></button>
-                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="1"
-                                                aria-label="Slide 2"></button>
-                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="2"
-                                                aria-label="Slide 3"></button>
-                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="3"
-                                                aria-label="Slide 4"></button>
-                                            <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="4"
-                                                aria-label="Slide 5"></button>
-                                            <!-- <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="5"
-                                                aria-label="Slide 6"></button> -->
+                                            <?php foreach ($carouselImages as $slideIndex => $carouselImage): ?>
+                                                <button type="button" data-bs-target="#coverCarousel" data-bs-slide-to="<?php echo $slideIndex; ?>"
+                                                    class="<?php echo $slideIndex === 0 ? 'active' : ''; ?>"
+                                                    <?php echo $slideIndex === 0 ? 'aria-current="true"' : ''; ?>
+                                                    aria-label="Slide <?php echo $slideIndex + 1; ?>"></button>
+                                            <?php endforeach; ?>
                                         </div>
                                         <div class="carousel-inner" style="height: 100%;">
-                                            <div class="carousel-item active" style="height: 100%;">
-                                                <img src="../assets/img/carousel/new-web.png"
-                                                    class="d-block w-100 h-100" style="object-fit: cover;"
-                                                    alt="Cover 1">
-                                            </div>
-                                            <div class="carousel-item" style="height: 100%;">
-                                                <img src="../assets/img/carousel/tell2.png" class="d-block w-100 h-100"
-                                                    style="object-fit: cover;" alt="Cover 2">
-                                            </div>
-                                            <div class="carousel-item" style="height: 100%;">
-                                                <img src="../assets/img/carousel/gm.png" class="d-block w-100 h-100"
-                                                    style="object-fit: cover;" alt="Cover 3">
-                                            </div>
-                                            <div class="carousel-item" style="height: 100%;">
-                                                <img src="../assets/img/carousel/6.png" class="d-block w-100 h-100"
-                                                    style="object-fit: cover;" alt="Cover 4">
-                                            </div>
-                                            <div class="carousel-item" style="height: 100%;">
-                                                <img src="../assets/img/carousel/1.png" class="d-block w-100 h-100"
-                                                    style="object-fit: cover;" alt="Cover 5">
-                                            </div>
-                                            <!-- <div class="carousel-item" style="height: 100%;">
-                                                <img src="../assets/img/carousel/3.png" class="d-block w-100 h-100"
-                                                    style="object-fit: cover;" alt="Cover 6">
-                                            </div> -->
+                                            <?php foreach ($carouselImages as $slideIndex => $carouselImage): ?>
+                                                <div class="carousel-item <?php echo $slideIndex === 0 ? 'active' : ''; ?>" style="height: 100%;">
+                                                    <img src="<?php echo htmlspecialchars($carouselImage, ENT_QUOTES, 'UTF-8'); ?>"
+                                                        class="d-block w-100 h-100" style="object-fit: cover;"
+                                                        alt="Cover slide <?php echo $slideIndex + 1; ?>">
+                                                </div>
+                                            <?php endforeach; ?>
                                         </div>
                                         <button class="carousel-control-prev" type="button"
                                             data-bs-target="#coverCarousel" data-bs-slide="prev">
