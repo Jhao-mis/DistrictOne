@@ -705,7 +705,7 @@ $netPay = $income - $deduction;
             </div>
 
             <div class="pr-leave-history-head">
-                <h3 class="pr-leave-history-title">Monthly leave history</h3>
+                <h3 class="pr-leave-history-title">Monthly Leave History</h3>
                 <div class="pr-leave-range" id="leaveRange">
                     <div>
                         <label for="leaveFrom">From</label>
