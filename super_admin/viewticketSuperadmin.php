@@ -60,8 +60,6 @@ $mis_query = $conn->query("SELECT u.id, CONCAT(u.firstname, ' ', u.lastname) AS 
                            ORDER BY u.firstname, u.lastname");
 $mis_personnel = $mis_query->fetch_all(MYSQLI_ASSOC);
 
-$conn->close();
-
 // Helper: pick an icon + tone for a history log action (purely cosmetic, doesn't touch the data)
 function tkt_history_icon($action) {
   $action_lc = strtolower($action);
@@ -698,6 +696,8 @@ $priority_tone = $has_priority ? tkt_priority_tone($ticket['priority']) : '';
       exit;
   }
   ?>
+
+  <?php $conn->close(); ?>
 
   <!-- / Navbar -->
 
