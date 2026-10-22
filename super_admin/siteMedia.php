@@ -339,8 +339,7 @@ $currentLoginBackground = $loginBackground
                 <section class="media-card">
                     <h2>Profile Carousel</h2>
                     <p class="media-muted">
-                        Shared by Profile, Profile Teams, Communications, and Telephone Directory.
-                        Upload JPG, PNG, or WebP images up to 50 MB each. Maximum: 10 images
+                        Max of 50 MB per image and 10 images
                         (<?php echo count($carouselMedia); ?>/10 currently).
                     </p>
                     <form class="media-form" method="post" enctype="multipart/form-data">
