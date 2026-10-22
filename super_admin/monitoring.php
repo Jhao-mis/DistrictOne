@@ -36,7 +36,7 @@ $_SESSION['lastname'] = $lastname;
 $_SESSION['role'] = $role;
 
 if (!access_can('special.live_report')) {
-  header("Location: ../login.php");
+  header("Location: ../index.php");
   exit;
 }
 

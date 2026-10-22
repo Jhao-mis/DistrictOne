@@ -1,8 +1,16 @@
 RewriteEngine On
+RewriteBase /districtone/
 
-# Redirect login.php → /login
-RewriteRule ^login$ login.php [L]
+# Redirect direct PHP URLs to their extensionless equivalents without
+# changing the request method or dropping its body.
+RewriteCond %{THE_REQUEST} \s/+[^\s?]+\.php(?:[?\s]) [NC]
+RewriteRule ^(.+)\.php$ /districtone/$1 [R=308,L,NE]
 
-# Optional: remove .php from all files
+# Keep the old login URL working while using the root entry point.
+RewriteRule ^login/?$ index.php [L]
+
+# Resolve extensionless URLs to matching PHP files at any directory depth.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}.php -f
-RewriteRule ^([^/]+)$ $1.php [L]
+RewriteRule ^(.+?)/?$ $1.php [L]

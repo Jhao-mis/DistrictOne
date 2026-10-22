@@ -28,7 +28,7 @@ $role = $_SESSION['role'];
 // ✅ Restrict access
 if (!access_can('special.room_reservation')) {
   $_SESSION['error'] = "Access Denied.";
-  header("Location: ../login.php");
+  header("Location: ../index.php");
   exit();
 }
 

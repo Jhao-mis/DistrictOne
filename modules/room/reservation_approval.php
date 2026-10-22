@@ -4,7 +4,7 @@ include '../includes/db.php';
 
 // Ensure only Admin or MIS Supervisor can access
 if (!isset($_SESSION["user_id"]) || !in_array($_SESSION["role"], ['admin', 'mis'])) {
-    header("Location: ../login.php");
+    header("Location: ../../index.php");
     exit();
 }
 

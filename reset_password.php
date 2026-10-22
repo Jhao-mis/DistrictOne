@@ -82,7 +82,7 @@ function showResetMessage($title, $message)
 
             <br><br>
 
-            <a href="login.php">Back to Login</a>
+            <a href="index.php">Back to Login</a>
 
           </div>
 
@@ -188,7 +188,7 @@ WHERE id=?
     $_SESSION['alert'] = [
       'type' => 'success',
       'message' => 'Your password has been successfully changed.',
-      'redirect' => 'login.php'
+      'redirect' => 'index.php'
     ];
 
     header("Location: reset_password.php");
@@ -306,7 +306,7 @@ WHERE id=?
 
           <div class="text-center">
 
-            <a href="login.php">
+            <a href="index.php">
               <i class="bx bx-chevron-left"></i>
               Back to Login
             </a>

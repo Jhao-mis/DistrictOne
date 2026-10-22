@@ -563,7 +563,7 @@
 
   <!-- FOOTER ACTION -->
   <div class="text-center my-8 pb-4">
-    <a href="login.php" class="btn btn-outline-secondary px-4 py-2.5 rounded-pill shadow-sm">
+    <a href="index.php" class="btn btn-outline-secondary px-4 py-2.5 rounded-pill shadow-sm">
       <i class="fa-solid fa-arrow-left me-2"></i> Back to Employee Login
     </a>
   </div>

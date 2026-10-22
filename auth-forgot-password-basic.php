@@ -330,7 +330,7 @@ Manage Information Services Section
 
               </form>
               <div class="text-center">
-                <a href="login.php" class="d-flex align-items-center justify-content-center">
+                <a href="index.php" class="d-flex align-items-center justify-content-center">
                   <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm" style="color:#568df5"></i>
                   <span style="color:#568df5">Back to login</span>
 

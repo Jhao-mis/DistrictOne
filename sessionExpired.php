@@ -99,7 +99,7 @@
             <img src="assets/img/backgrounds/districtone.png" alt="DistrictOne Logo" width="150" />
             <h4>Session Expired</h4>
             <p>Your session has expired. Please log in again to continue.</p>
-            <a href="login" class="btn btn-primary btn-login">Go to Login</a>
+            <a href="index.php" class="btn btn-primary btn-login">Go to Login</a>
         </div>
     </div>
 
@@ -113,7 +113,7 @@
                 confirmButtonText: 'Go to Login',
                 confirmButtonColor: '#568df5'
             }).then(() => {
-                window.location.href = 'login.php';
+                window.location.href = 'index.php';
             });
         });
     </script>

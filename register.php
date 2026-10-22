@@ -371,7 +371,7 @@ if (isset($_SESSION['success'])) {
 
           <p class="text-center">
             <span>Already have an account?</span>
-            <a href="login.php">
+            <a href="index.php">
               <span style="color: #568df5;">Sign in instead</span>
 
             </a>
