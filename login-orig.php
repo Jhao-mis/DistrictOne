@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   if (empty($_POST['username']) || empty($_POST['password'])) {
     $_SESSION['error'] = 'Username and password cannot be empty!';
     $_SESSION['errorIcon'] = 'error';
-    header("Location: login.php");
+    header("Location: login-orig.php");
     exit();
   }
 
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($user['isVerified'] == 0) {
       $_SESSION['error'] = 'Please wait for admin approval to verify your account.';
       $_SESSION['errorIcon'] = 'warning';
-      header("Location: login.php");
+      header("Location: login-orig.php");
       exit();
     }
 
@@ -50,18 +50,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
       // Redirect to the same page to display the SweetAlert, then the
       // page itself takes care of moving on to the dashboard.
-      header("Location: login.php?login_success=1&role=" . urlencode($user['role']));
+      header("Location: login-orig.php?login_success=1&role=" . urlencode($user['role']));
       exit();
     } else {
       $_SESSION['error'] = 'Invalid username or password. Please try again!';
       $_SESSION['errorIcon'] = 'error';
-      header("Location: login.php");
+      header("Location: login-orig.php");
       exit();
     }
   } else {
     $_SESSION['error'] = 'Invalid username or password. Please try again!';
     $_SESSION['errorIcon'] = 'error';
-    header("Location: login.php");
+    header("Location: login-orig.php");
     exit();
   }
 }
