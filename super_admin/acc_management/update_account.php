@@ -1,5 +1,6 @@
 <?php
 include '../../db.php'; // your database connection file
+include '../../lib/access_control.php';
 include '../login_verification.php'; // your session file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -10,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $email = $_POST['email'];
     $department = $_POST['department'];
-    $role = $_POST['role'];
+    $role = access_normalize_role($_POST['role'] ?? 'user');
 
     $query = "UPDATE users SET 
         firstname='$firstname', 

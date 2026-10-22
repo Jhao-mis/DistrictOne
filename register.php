@@ -69,6 +69,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $stmt->bind_param("ssssssss", $username, $firstname, $middlename, $lastname, $email, $hashedPassword, $department, $VerificationCode);
 
   if ($stmt->execute()) {
+    $newUserId = $stmt->insert_id;
+    $permissionStmt = $conn->prepare("INSERT INTO user_permissions (user_id, permission_id) SELECT ?, id FROM permissions WHERE group_name = 'Default Access'");
+    $permissionStmt->bind_param('i', $newUserId);
+    $permissionStmt->execute();
+    $permissionStmt->close();
+
+    if (in_array($department, ['Management Information Services Section', 'Manage Information Services Section'], true)) {
+      $misPermissionStmt = $conn->prepare(
+        "INSERT INTO user_permissions (user_id, permission_id)
+         SELECT ?, id
+         FROM permissions p
+         WHERE permission_key IN ('mis.ticket_assignment', 'mis.machine_inspection')
+           AND NOT EXISTS (
+             SELECT 1
+             FROM user_permissions existing
+             WHERE existing.user_id = ? AND existing.permission_id = p.id
+           )"
+      );
+      $misPermissionStmt->bind_param('ii', $newUserId, $newUserId);
+      $misPermissionStmt->execute();
+      $misPermissionStmt->close();
+    }
     $stmt->close();
     $_SESSION['username'] = $username;
     $_SESSION['email'] = $email;

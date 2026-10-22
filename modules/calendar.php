@@ -71,7 +71,6 @@ foreach ($reservations as $reservation) {
     ];
 }
 
-$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed">

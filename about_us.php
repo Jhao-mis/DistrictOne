@@ -298,7 +298,7 @@
               <h5 class="fw-bold text-dark mb-1">Engr. Jonathan Dave A. Fajarda</h5>
               <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Engr. Dave"
               </p>
-              <p class="text-primary fw-semibold small mb-2">MIS Design Specialist A</p>
+              <p class="text-primary fw-semibold small mb-2">Management Information Design Specialist A</p>
               <span class="badge bg-primary text-white px-3 py-1.5 rounded-pill small mt-auto">Supervising Lead</span>
             </div>
           </div>
@@ -594,7 +594,7 @@
           </p>
 
           <span class="badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm mb-3">
-            <i class="fa-solid fa-user-shield me-1"></i> MIS Design Specialist A / Supervising Lead
+            <i class="fa-solid fa-user-shield me-1"></i> Management Information Design Specialist A / Supervising Lead
           </span>
 
           <div class="bg-light p-3 rounded-4 text-start mb-3 border border-slate-100">
@@ -664,7 +664,7 @@
 
           <div class="pt-2 border-top border-slate-100 d-flex justify-content-around text-muted small">
             <div><i class="fa-solid fa-location-dot text-primary me-1"></i> 4th Flr OGM Dept</div>
-            <div><i class="fa-solid fa-phone text-primary me-1"></i> Local 4132</div>
+            <div><i class="fa-sgolid fa-phone text-primary me-1"></i> Local 4132</div>
           </div>
 
         </div>
@@ -748,7 +748,7 @@
 
           <div class="bg-light p-3 rounded-4 text-start mb-3 border border-slate-100">
             <p class="text-secondary small leading-relaxed mb-0" style="text-align: justify;">
-              Provides technical support in network administration and performs system, workstation, and device maintenance and repairs to keep agency operations running smoothly.
+              Provides technical support in network administration and performs system, workstation, and device maintenance and repairs to keep agency operations running smoothly
             </p>
           </div>
 
@@ -822,7 +822,6 @@
 
   <!-- BOOTSTRAP 5 JS BUNDLE -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 
   <!-- CAROUSEL JAVASCRIPT LOGIC -->
   <script>

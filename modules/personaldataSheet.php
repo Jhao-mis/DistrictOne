@@ -45,7 +45,6 @@ $query->bind_result($user_id, $firstname, $middlename, $lastname, $email, $depar
 $query->fetch();
 $query->close();
 
-$conn->close();
 ?>
 <!DOCTYPE html>
 

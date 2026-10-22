@@ -12,6 +12,8 @@ let menu, animate;
 
   let layoutMenuEl = document.querySelectorAll('#layout-menu');
   layoutMenuEl.forEach(function (element) {
+    if (typeof Menu === 'undefined' || !window.Helpers) return;
+
     menu = new Menu(element, {
       orientation: 'vertical',
       closeChildren: false
@@ -44,7 +46,8 @@ let menu, animate;
 
     elem.onmouseleave = function () {
       // Clear any timers set to timeout
-      document.querySelector('.layout-menu-toggle').classList.remove('d-block');
+      const toggle = document.querySelector('.layout-menu-toggle');
+      if (toggle) toggle.classList.remove('d-block');
       clearTimeout(timeout);
     };
   };
@@ -52,7 +55,8 @@ let menu, animate;
     delay(document.getElementById('layout-menu'), function () {
       // not for small screen
       if (!Helpers.isSmallScreen()) {
-        document.querySelector('.layout-menu-toggle').classList.add('d-block');
+        const toggle = document.querySelector('.layout-menu-toggle');
+        if (toggle) toggle.classList.add('d-block');
       }
     });
   }
@@ -62,7 +66,8 @@ let menu, animate;
     menuInnerShadow = document.getElementsByClassName('menu-inner-shadow')[0];
   if (menuInnerContainer.length > 0 && menuInnerShadow) {
     menuInnerContainer[0].addEventListener('ps-scroll-y', function () {
-      if (this.querySelector('.ps__thumb-y').offsetTop) {
+      const scrollbarThumb = this.querySelector('.ps__thumb-y');
+      if (scrollbarThumb && scrollbarThumb.offsetTop) {
         menuInnerShadow.style.display = 'block';
       } else {
         menuInnerShadow.style.display = 'none';
@@ -75,9 +80,11 @@ let menu, animate;
 
   // Init BS Tooltip
   const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-  tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-  });
+  if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
 
   // Accordion active class
   const accordionActiveFunction = function (e) {

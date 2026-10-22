@@ -20,15 +20,32 @@ if (!$user_id) {
 
 $performed_by = "$firstname $lastname";
 
+// ✅ Role-based ticket scope
+//    - 'Super Admin' can see/manage tickets from ALL departments.
+//    - Every other role (User, Admin, mis) is limited to their OWN department.
+$role           = $_SESSION['role'] ?? '';
+$is_super_admin = ($role === 'Super Admin');
+$dept_where     = $is_super_admin ? '' : " AND u.department = '" . $conn->real_escape_string($department) . "'";
+
 // ✅ APPROVE Ticket (keep status as 'Pending')
 if (isset($_POST['approve_ticket_id'])) {
   $ticket_id = intval($_POST['approve_ticket_id']);
 
-  $update_sql = "UPDATE tickets 
-                   SET admin_approved = 1 
-                   WHERE id = ? AND status = 'Pending'";
-  $stmt = $conn->prepare($update_sql);
-  $stmt->bind_param("i", $ticket_id);
+  if ($is_super_admin) {
+    $update_sql = "UPDATE tickets 
+                     SET admin_approved = 1 
+                     WHERE id = ? AND status = 'Pending'";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("i", $ticket_id);
+  } else {
+    // Non super-admins may only approve tickets from their own department
+    $update_sql = "UPDATE tickets 
+                     SET admin_approved = 1 
+                     WHERE id = ? AND status = 'Pending'
+                       AND user_id IN (SELECT id FROM users WHERE department = ?)";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("is", $ticket_id, $department);
+  }
 
   if ($stmt->execute()) {
     // Log history
@@ -51,11 +68,21 @@ if (isset($_POST['approve_ticket_id'])) {
 if (isset($_POST['reject_ticket_id'])) {
   $ticket_id = intval($_POST['reject_ticket_id']);
 
-  $update_sql = "UPDATE tickets 
-                   SET status = 'Rejected', admin_approved = 0 
-                   WHERE id = ? AND status = 'Pending'";
-  $stmt = $conn->prepare($update_sql);
-  $stmt->bind_param("i", $ticket_id);
+  if ($is_super_admin) {
+    $update_sql = "UPDATE tickets 
+                     SET status = 'Rejected', admin_approved = 0 
+                     WHERE id = ? AND status = 'Pending'";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("i", $ticket_id);
+  } else {
+    // Non super-admins may only reject tickets from their own department
+    $update_sql = "UPDATE tickets 
+                     SET status = 'Rejected', admin_approved = 0 
+                     WHERE id = ? AND status = 'Pending'
+                       AND user_id IN (SELECT id FROM users WHERE department = ?)";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("is", $ticket_id, $department);
+  }
 
   if ($stmt->execute()) {
     // Log history
@@ -92,9 +119,9 @@ $rejected_show = get_show_limit('rejected_show', $allowed_show);
 // ─────────────────────────────────────────────────────────────
 // ✅ Fetch total counts (unaffected by the "show" limit)
 // ─────────────────────────────────────────────────────────────
-$pending_count_sql  = "SELECT COUNT(*) AS c FROM tickets WHERE status = 'Pending' AND admin_approved = 0";
-$approved_count_sql = "SELECT COUNT(*) AS c FROM tickets WHERE admin_approved = 1";
-$rejected_count_sql = "SELECT COUNT(*) AS c FROM tickets WHERE status = 'Rejected'";
+$pending_count_sql  = "SELECT COUNT(*) AS c FROM tickets t JOIN users u ON t.user_id = u.id WHERE t.status = 'Pending' AND t.admin_approved = 0" . $dept_where;
+$approved_count_sql = "SELECT COUNT(*) AS c FROM tickets t JOIN users u ON t.user_id = u.id WHERE t.admin_approved = 1" . $dept_where;
+$rejected_count_sql = "SELECT COUNT(*) AS c FROM tickets t JOIN users u ON t.user_id = u.id WHERE t.status = 'Rejected'" . $dept_where;
 
 $pending_count  = ($r = $conn->query($pending_count_sql))  ? (int)$r->fetch_assoc()['c'] : 0;
 $approved_count = ($r = $conn->query($approved_count_sql)) ? (int)$r->fetch_assoc()['c'] : 0;
@@ -109,7 +136,7 @@ $pending_sql = "SELECT t.id, t.subject, t.description, t.status, t.created_at,
                        u.firstname, u.lastname, u.department
                 FROM tickets t
                 JOIN users u ON t.user_id = u.id
-                WHERE t.status = 'Pending' AND t.admin_approved = 0
+                WHERE t.status = 'Pending' AND t.admin_approved = 0" . $dept_where . "
                 ORDER BY t.created_at DESC
                 LIMIT $pending_show";
 $result_pending = $conn->query($pending_sql);
@@ -118,7 +145,7 @@ $approved_sql = "SELECT t.id, t.subject, t.description, t.status, t.created_at,
                         u.firstname, u.lastname, u.department
                  FROM tickets t
                  JOIN users u ON t.user_id = u.id
-                 WHERE t.admin_approved = 1
+                 WHERE t.admin_approved = 1" . $dept_where . "
                  ORDER BY t.created_at DESC
                  LIMIT $approved_show";
 $result_approved = $conn->query($approved_sql);
@@ -127,7 +154,7 @@ $rejected_sql = "SELECT t.id, t.subject, t.description, t.status, t.created_at,
                         u.firstname, u.lastname, u.department
                  FROM tickets t
                  JOIN users u ON t.user_id = u.id
-                 WHERE t.status = 'Rejected'
+                 WHERE t.status = 'Rejected'" . $dept_where . "
                  ORDER BY t.created_at DESC
                  LIMIT $rejected_show";
 $result_rejected = $conn->query($rejected_sql);
@@ -547,7 +574,7 @@ $result_rejected = $conn->query($rejected_sql);
           <div>
             <div class="tk-header-eyebrow">Approval queue</div>
             <div class="tk-header-title">IT Service Requests</div>
-            
+            <div class="tk-header-sub"><?= $is_super_admin ? 'Viewing tickets from all departments' : 'Viewing tickets from the ' . htmlspecialchars($department) . ' department only' ?></div>
           </div>
           <div class="tk-header-stats">
             <div class="tk-header-count">

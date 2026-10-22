@@ -166,7 +166,6 @@ $result = $stmt->get_result();
 $reservations = $result->fetch_all(MYSQLI_ASSOC);
 
 $stmt->close();
-$conn->close();
 
 ?>
 <!DOCTYPE html>

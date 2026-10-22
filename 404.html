@@ -147,7 +147,7 @@
     .image-panel {
       flex: 1;
       min-height: 100vh;
-      background-image: url("assets/img/backgrounds/Oct2026.jpg");
+      background-image: url("assets/img/backgrounds/bg69.jpg");
       background-position: center center;
       background-size: cover;
       background-repeat: no-repeat;

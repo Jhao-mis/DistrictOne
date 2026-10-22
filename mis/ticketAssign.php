@@ -107,7 +107,6 @@ function ticketStatusBreakdown($res)
 $requestsStats = ticketStatusBreakdown($result_all);
 $assignedStats = ticketStatusBreakdown($result);
 
-$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -745,6 +744,9 @@ $conn->close();
 
     case 'Admin':
       include '../admin/sidebar.php';
+      break;
+    case 'Super Admin':
+      include '../super_admin/sidebar.php';
       break;
 
     case 'super_admin':
