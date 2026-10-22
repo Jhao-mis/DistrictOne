@@ -664,7 +664,7 @@
 
           <div class="pt-2 border-top border-slate-100 d-flex justify-content-around text-muted small">
             <div><i class="fa-solid fa-location-dot text-primary me-1"></i> 4th Flr OGM Dept</div>
-            <div><i class="fa-solid fa-phone text-primary me-1"></i> Local 4132</div>
+            <div><i class="fa-sgolid fa-phone text-primary me-1"></i> Local 4132</div>
           </div>
 
         </div>
