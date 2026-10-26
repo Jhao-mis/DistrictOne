@@ -21,7 +21,6 @@ $query->bind_result($user_id, $firstname, $lastname, $role, $department);
 $query->fetch();
 $query->close();
 
-$_SESSION['user_id'] = $user_id;
 $_SESSION['role'] = access_normalize_role($role);
 $role = $_SESSION['role'];
 

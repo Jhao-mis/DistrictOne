@@ -61,12 +61,17 @@ $query->bind_result($user_id, $profile_picture, $cover_photo, $department, $firs
 $query->fetch();
 $query->close();
 
-// ✅ Store in session
-$_SESSION['user_id'] = $user_id;
-$_SESSION['name'] = trim("$firstname $middlename $lastname") ?: "Unknown User";
-
 // 🔧 Pre-fill
-$user_name = $_SESSION["name"];
+$user_name = trim(implode(' ', array_filter([
+    trim((string) $firstname),
+    trim((string) $middlename),
+    trim((string) $lastname),
+], static function ($part) {
+    return $part !== '';
+})));
+if ($user_name === '') {
+    $user_name = $username;
+}
 $date_requested = date('Y-m-d');
 
 // ==============================

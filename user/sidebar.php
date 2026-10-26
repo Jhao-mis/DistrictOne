@@ -11,15 +11,14 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 $sb_username = $_SESSION['username'] ?? '';
 $sb_profile  = $_SESSION['profile_picture'] ?? '../assets/img/avatars/default_dp.jpg';
 $sb_role     = $_SESSION['role'] ?? '';
-$sb_dept     = $department ?? '';
+$sb_dept     = '';
 $sb_name     = '';
-if (!empty($_SESSION['user_id'])) {
-    $sb_user_id = (int) $_SESSION['user_id'];
-    $sb_user_stmt = $conn->prepare('SELECT firstname, middlename, lastname, department FROM users WHERE id = ? LIMIT 1');
+if ($sb_username !== '') {
+    $sb_user_stmt = $conn->prepare('SELECT firstname, middlename, lastname, department FROM users WHERE username = ? LIMIT 1');
     if ($sb_user_stmt === false) {
         error_log('User sidebar: unable to prepare user details lookup: ' . $conn->error);
     } else {
-        $sb_user_stmt->bind_param('i', $sb_user_id);
+        $sb_user_stmt->bind_param('s', $sb_username);
         if ($sb_user_stmt->execute()) {
             $sb_user_result = $sb_user_stmt->get_result();
             $sb_user_row = $sb_user_result->fetch_assoc();
@@ -38,15 +37,6 @@ if (!empty($_SESSION['user_id'])) {
         }
         $sb_user_stmt->close();
     }
-}
-if (!$sb_name) {
-    $sb_name = trim(implode(' ', array_filter([
-        trim((string) ($firstname ?? '')),
-        trim((string) ($middlename ?? '')),
-        trim((string) ($lastname ?? '')),
-    ], static function ($part) {
-        return $part !== '';
-    })));
 }
 if (!$sb_name) $sb_name = $sb_username;
 ?>
@@ -121,6 +111,7 @@ if (!$sb_name) $sb_name = $sb_username;
   flex-shrink: 0;
 }
 #layout-menu .sb-brand-text {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 15px;
   font-weight: 800;
   color: var(--sb-text);
@@ -155,6 +146,7 @@ if (!$sb_name) $sb_name = $sb_username;
 }
 .sb-user-info { flex: 1; min-width: 0; }
 .sb-user-name {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 13px; font-weight: 700; color: var(--sb-text);
   line-height: 1.3; overflow-wrap: anywhere;
 }
