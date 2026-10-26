@@ -147,9 +147,8 @@ $history_result = $stmt->get_result();
 $history_rows = $history_result->fetch_all(MYSQLI_ASSOC);
 $history_count = count($history_rows);
 
-// ✅ Close everything
+// ✅ Close the completed query statement; the shared sidebar still uses $conn.
 $stmt->close();
-$conn->close();
 
 // ── Helpers for the redesigned UI ──────────────────────────────────────────
 $statusMap = [

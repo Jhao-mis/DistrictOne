@@ -6,13 +6,6 @@ require '../db.php';
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-// Database connection
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    die("Database Connection Failed: " . $conn->connect_error);
-}
-
-
 // Fetch current user details
 $username = $_SESSION['username'];
 
@@ -51,8 +44,6 @@ $updateActivity->bind_param("ss", $now, $username);
 $updateActivity->execute();
 $updateActivity->close();
 
-// Close DB connection
-$conn->close();
 ?>
 
 

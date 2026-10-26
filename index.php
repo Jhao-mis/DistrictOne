@@ -5,6 +5,7 @@ require 'vendor/autoload.php';
 require 'db.php';
 require 'lib/access_control.php';
 require_once 'lib/site_media.php';
+require_once 'lib/seasonal_theme.php';
 
 $loginBackground = site_media_login_background($conn);
 
@@ -123,6 +124,7 @@ unset($_SESSION['success']);
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <?php seasonal_theme_render($conn); ?>
 </head>
 
 <body class="h-screen m-0 p-0 font-sans overflow-hidden">
@@ -130,8 +132,11 @@ unset($_SESSION['success']);
   <div class="flex w-full h-screen flex-col lg:flex-row">
 
     <!-- LEFT LOGIN PANEL -->
-    <div class="w-full lg:w-[450px] lg:min-w-[400px] bg-white flex items-center justify-center px-8 py-10">
-      <div class="w-full max-w-[320px]">
+    <div class="login-left-panel w-full lg:w-[450px] lg:min-w-[400px] bg-white flex items-center justify-center px-8 py-10">
+      <div class="login-left-seasonal-overlay" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="relative z-10 w-full max-w-[320px]">
 
         <div class="text-center mb-6">
           <img src="assets/img/backgrounds/districtone.png" width="140" class="mx-auto mb-3">
@@ -198,6 +203,10 @@ unset($_SESSION['success']);
     <div class="hidden lg:flex flex-1 relative flex-col items-center justify-center bg-cover bg-center" style="background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>');">
 
       <div class="absolute inset-0 bg-black/45"></div>
+      <div class="login-seasonal-overlay" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
 
       <div class="relative z-10 text-center text-white px-10 pb-[670px] animate-fadeUp"> <!--px-[550px] adjust this for height of content -->
         <h2 class="text-xl font-light">Welcome to</h2>

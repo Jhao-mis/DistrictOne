@@ -1,5 +1,6 @@
 <?php
 include '../db.php';
+require_once '../lib/seasonal_theme.php';
 
 $mis_id = $_SESSION["user_id"]; // Logged-in MIS user
 
@@ -39,6 +40,7 @@ $sb_name     = trim(($firstname ?? '') . ' ' . ($lastname ?? ''));
 if (!$sb_name) $sb_name = $sb_username;
 ?>
 
+<?php seasonal_theme_render($conn); ?>
 <link rel="stylesheet" href="../assets/css/tailwind.css">
 <script src="../assets/vendor/js/helpers.js"></script>
 

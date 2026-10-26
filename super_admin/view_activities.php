@@ -78,7 +78,6 @@ $departmentColors = [
     "Operations Department" => ["bgcolor" => "#fab07a", "textcolor" => "#a8602c"]
 ];
 
-$conn->close();
 ?>
 
 

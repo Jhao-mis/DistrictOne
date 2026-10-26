@@ -1,0 +1,394 @@
+html[data-seasonal-theme="new-year"] {
+  --seasonal-accent: #a77b18;
+  --seasonal-accent-dark: #805b0c;
+  --seasonal-accent-soft: #fbf3d9;
+  --seasonal-page: #f8f7f1;
+  --seasonal-border: #eee5c8;
+}
+
+html[data-seasonal-theme="chinese-new-year"] {
+  --seasonal-accent: #c83e3e;
+  --seasonal-accent-dark: #9f2929;
+  --seasonal-accent-soft: #fff0d1;
+  --seasonal-page: #fff9f0;
+  --seasonal-border: #f1dfbd;
+}
+
+html[data-seasonal-theme="valentines"] {
+  --seasonal-accent: #d64f78;
+  --seasonal-accent-dark: #b5325b;
+  --seasonal-accent-soft: #fff0f4;
+  --seasonal-page: #fff8fa;
+  --seasonal-border: #f3dce4;
+}
+
+html[data-seasonal-theme="summer"] {
+  --seasonal-accent: #e58a27;
+  --seasonal-accent-dark: #c26b12;
+  --seasonal-accent-soft: #fff2df;
+  --seasonal-page: #fffaf2;
+  --seasonal-border: #f1e1ca;
+}
+
+html[data-seasonal-theme="rainy-season"] {
+  --seasonal-accent: #328b9c;
+  --seasonal-accent-dark: #216d7b;
+  --seasonal-accent-soft: #e7f5f7;
+  --seasonal-page: #f3f9fa;
+  --seasonal-border: #d8e9ec;
+}
+
+html[data-seasonal-theme="halloween"] {
+  --seasonal-accent: #d76a24;
+  --seasonal-accent-dark: #aa4b12;
+  --seasonal-accent-soft: #fff0e5;
+  --seasonal-page: #fbf7f3;
+  --seasonal-border: #efdfd1;
+}
+
+html[data-seasonal-theme="christmas"] {
+  --seasonal-accent: #34845b;
+  --seasonal-accent-dark: #246441;
+  --seasonal-accent-soft: #e9f5ed;
+  --seasonal-page: #f5f9f6;
+  --seasonal-border: #dce9df;
+}
+
+html[data-seasonal-theme="new-year"] body::after,
+html[data-seasonal-theme="chinese-new-year"] body::after,
+html[data-seasonal-theme="valentines"] body::after,
+html[data-seasonal-theme="summer"] body::after,
+html[data-seasonal-theme="rainy-season"] body::after,
+html[data-seasonal-theme="halloween"] body::after,
+html[data-seasonal-theme="christmas"] body::after {
+  position: fixed;
+  right: 20px;
+  bottom: 14px;
+  z-index: 5;
+  font-size: clamp(42px, 6vw, 76px);
+  line-height: 1;
+  opacity: .16;
+  pointer-events: none;
+  user-select: none;
+}
+
+html[data-seasonal-theme="new-year"] body::after { content: "\1F386"; }
+html[data-seasonal-theme="chinese-new-year"] body::after { content: "\1F3EE"; }
+html[data-seasonal-theme="valentines"] body::after { content: "\1F496"; }
+html[data-seasonal-theme="summer"] body::after { content: "\2600\FE0F"; }
+html[data-seasonal-theme="rainy-season"] body::after { content: "\1F327\FE0F"; }
+html[data-seasonal-theme="halloween"] body::after { content: "\1F383"; }
+html[data-seasonal-theme="christmas"] body::after { content: "\1F384"; }
+
+html[data-seasonal-theme="christmas"] body::before {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1090;
+  height: 8px;
+  background:
+    radial-gradient(circle, #c83e3e 0 3px, transparent 3.5px) 0 0 / 36px 8px repeat-x,
+    radial-gradient(circle, #d9a72e 0 3px, transparent 3.5px) 18px 0 / 36px 8px repeat-x;
+  content: "";
+  pointer-events: none;
+}
+
+html[data-seasonal-theme="new-year"] body {
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(167, 123, 24, .12) 0 2px, transparent 3px),
+    radial-gradient(circle at 78% 26%, rgba(55, 84, 133, .1) 0 3px, transparent 4px),
+    radial-gradient(circle at 88% 72%, rgba(167, 123, 24, .1) 0 2px, transparent 3px),
+    radial-gradient(ellipse at 100% 0, rgba(231, 205, 125, .22), transparent 38%),
+    radial-gradient(ellipse at 0 100%, rgba(128, 91, 12, .08), transparent 34%) !important;
+  background-size: 64px 64px, 82px 82px, 54px 54px, auto, auto !important;
+  background-attachment: fixed !important;
+}
+
+html[data-seasonal-theme="chinese-new-year"] body {
+  background-image:
+    radial-gradient(circle at 14% 16%, rgba(200, 62, 62, .11) 0 3px, transparent 4px),
+    radial-gradient(circle at 84% 24%, rgba(217, 167, 46, .17) 0 3px, transparent 4px),
+    radial-gradient(circle at 78% 78%, rgba(200, 62, 62, .09) 0 2px, transparent 3px),
+    radial-gradient(ellipse at 100% 0, rgba(217, 167, 46, .2), transparent 38%),
+    radial-gradient(ellipse at 0 100%, rgba(200, 62, 62, .08), transparent 36%) !important;
+  background-size: 68px 68px, 84px 84px, 58px 58px, auto, auto !important;
+  background-attachment: fixed !important;
+}
+
+html[data-seasonal-theme="valentines"] body {
+  background-image:
+    radial-gradient(ellipse at 8% 12%, rgba(214, 79, 120, .12), transparent 34%),
+    radial-gradient(ellipse at 94% 88%, rgba(244, 174, 195, .2), transparent 38%),
+    radial-gradient(circle at 86% 20%, rgba(214, 79, 120, .09) 0 4px, transparent 5px),
+    radial-gradient(circle at 18% 78%, rgba(214, 79, 120, .08) 0 3px, transparent 4px) !important;
+  background-size: auto, auto, 76px 76px, 92px 92px !important;
+  background-attachment: fixed !important;
+}
+
+html[data-seasonal-theme="summer"] body {
+  background-image:
+    radial-gradient(ellipse at 92% 8%, rgba(255, 193, 89, .28), transparent 32%),
+    radial-gradient(ellipse at 4% 94%, rgba(229, 138, 39, .13), transparent 35%),
+    repeating-linear-gradient(115deg, transparent 0 82px, rgba(229, 138, 39, .025) 83px 85px, transparent 86px 150px) !important;
+  background-attachment: fixed !important;
+}
+
+html[data-seasonal-theme="rainy-season"] body {
+  background-image:
+    radial-gradient(ellipse at 90% 0, rgba(50, 139, 156, .15), transparent 36%),
+    radial-gradient(ellipse at 0 100%, rgba(82, 160, 175, .1), transparent 38%),
+    repeating-linear-gradient(108deg, transparent 0 46px, rgba(50, 139, 156, .035) 47px 48px, transparent 49px 94px) !important;
+  background-attachment: fixed !important;
+}
+
+html[data-seasonal-theme="halloween"] body {
+  background-image:
+    radial-gradient(ellipse at 100% 4%, rgba(119, 79, 145, .15), transparent 36%),
+    radial-gradient(ellipse at 0 96%, rgba(215, 106, 36, .15), transparent 38%),
+    radial-gradient(circle at 18% 22%, rgba(215, 106, 36, .08) 0 3px, transparent 4px),
+    radial-gradient(circle at 76% 70%, rgba(93, 61, 117, .08) 0 4px, transparent 5px) !important;
+  background-size: auto, auto, 88px 88px, 104px 104px !important;
+  background-attachment: fixed !important;
+}
+
+html[data-seasonal-theme="christmas"] body {
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, .82) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(255, 255, 255, .6) 0 1px, transparent 2px),
+    radial-gradient(ellipse at 100% 0, rgba(75, 145, 102, .15), transparent 38%),
+    radial-gradient(ellipse at 0 100%, rgba(196, 62, 62, .08), transparent 34%) !important;
+  background-size: 48px 48px, 73px 73px, auto, auto !important;
+  background-position: 0 0, 22px 17px, 0 0, 0 0 !important;
+  background-attachment: fixed !important;
+}
+
+.login-left-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .login-left-panel {
+  background-color: #fff !important;
+}
+
+.login-left-seasonal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--seasonal-accent, #7cb9ff);
+  opacity: .72;
+}
+
+.login-left-seasonal-overlay::before,
+.login-left-seasonal-overlay::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.login-left-seasonal-overlay::before {
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 0 0, var(--seasonal-accent-soft, #eaf3ff) 0, transparent 48%),
+    radial-gradient(ellipse at 100% 100%, var(--seasonal-accent-soft, #eaf3ff) 0, transparent 44%);
+  opacity: .8;
+}
+
+.login-left-seasonal-overlay::after {
+  top: 18px;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  border: 1px solid color-mix(in srgb, var(--seasonal-accent, #7cb9ff) 18%, transparent);
+  border-radius: 18px;
+}
+
+.login-left-seasonal-overlay span {
+  position: absolute;
+  top: var(--left-decor-top);
+  left: var(--left-decor-left);
+  color: var(--seasonal-accent, #7cb9ff);
+  font-size: var(--left-decor-size, 22px);
+  line-height: 1;
+  opacity: .48;
+  animation: seasonal-login-left-float var(--left-decor-duration, 8s) var(--left-decor-delay, 0s) ease-in-out infinite alternate;
+}
+
+.login-left-seasonal-overlay span:nth-child(1) { --left-decor-top: 8%; --left-decor-left: 10%; --left-decor-size: 24px; --left-decor-duration: 7s; }
+.login-left-seasonal-overlay span:nth-child(2) { --left-decor-top: 15%; --left-decor-left: 84%; --left-decor-size: 20px; --left-decor-duration: 9s; --left-decor-delay: -3s; }
+.login-left-seasonal-overlay span:nth-child(3) { --left-decor-top: 80%; --left-decor-left: 9%; --left-decor-size: 19px; --left-decor-duration: 8s; --left-decor-delay: -5s; }
+.login-left-seasonal-overlay span:nth-child(4) { --left-decor-top: 88%; --left-decor-left: 82%; --left-decor-size: 25px; --left-decor-duration: 10s; --left-decor-delay: -2s; }
+.login-left-seasonal-overlay span:nth-child(5) { --left-decor-top: 48%; --left-decor-left: 4%; --left-decor-size: 15px; --left-decor-duration: 9s; --left-decor-delay: -6s; }
+.login-left-seasonal-overlay span:nth-child(6) { --left-decor-top: 56%; --left-decor-left: 92%; --left-decor-size: 17px; --left-decor-duration: 7s; --left-decor-delay: -4s; }
+
+@keyframes seasonal-login-left-float {
+  from { transform: translate3d(0, -7px, 0) rotate(-8deg); }
+  to { transform: translate3d(3px, 9px, 0) rotate(8deg); }
+}
+
+html[data-seasonal-theme="new-year"] .login-left-seasonal-overlay span::before { content: "\2728"; }
+html[data-seasonal-theme="chinese-new-year"] .login-left-seasonal-overlay span::before { content: "\1F3EE"; }
+html[data-seasonal-theme="valentines"] .login-left-seasonal-overlay span::before { content: "\1F496"; }
+html[data-seasonal-theme="summer"] .login-left-seasonal-overlay span::before { content: "\2600\FE0F"; }
+html[data-seasonal-theme="rainy-season"] .login-left-seasonal-overlay span::before { content: "\1F4A7"; }
+html[data-seasonal-theme="halloween"] .login-left-seasonal-overlay span::before { content: "\1F383"; }
+html[data-seasonal-theme="christmas"] .login-left-seasonal-overlay span::before { content: "\2744\FE0F"; }
+
+html[data-seasonal-theme="new-year"] .login-left-seasonal-overlay span:nth-child(3n)::before { content: "\1F386"; }
+html[data-seasonal-theme="chinese-new-year"] .login-left-seasonal-overlay span:nth-child(3n)::before { content: "\1F9E7"; }
+html[data-seasonal-theme="valentines"] .login-left-seasonal-overlay span:nth-child(3n)::before { content: "\1F338"; }
+html[data-seasonal-theme="summer"] .login-left-seasonal-overlay span:nth-child(3n)::before { content: "\1F33A"; }
+html[data-seasonal-theme="rainy-season"] .login-left-seasonal-overlay span:nth-child(3n)::before { content: "\2601\FE0F"; }
+html[data-seasonal-theme="halloween"] .login-left-seasonal-overlay span:nth-child(3n)::before { content: "\1F987"; }
+html[data-seasonal-theme="christmas"] .login-left-seasonal-overlay span:nth-child(3n)::before { content: "\1F384"; }
+
+html[data-seasonal-theme="chinese-new-year"] .login-left-seasonal-overlay span { color: #c83e3e; }
+html[data-seasonal-theme="christmas"] .login-left-seasonal-overlay span:nth-child(odd) { color: #34845b; }
+html[data-seasonal-theme="christmas"] .login-left-seasonal-overlay span:nth-child(even) { color: #c83e3e; }
+
+.login-seasonal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.login-seasonal-overlay span {
+  position: absolute;
+  top: -12%;
+  left: var(--particle-left);
+  color: #fff;
+  font-size: var(--particle-size, 24px);
+  line-height: 1;
+  opacity: .78;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .28);
+  animation: seasonal-login-drift var(--particle-duration, 16s) var(--particle-delay, 0s) linear infinite;
+  will-change: transform;
+}
+
+.login-seasonal-overlay span:nth-child(1) { --particle-left: 8%; --particle-size: 28px; --particle-duration: 18s; }
+.login-seasonal-overlay span:nth-child(2) { --particle-left: 19%; --particle-size: 19px; --particle-duration: 22s; --particle-delay: -7s; }
+.login-seasonal-overlay span:nth-child(3) { --particle-left: 31%; --particle-size: 25px; --particle-duration: 17s; --particle-delay: -12s; }
+.login-seasonal-overlay span:nth-child(4) { --particle-left: 43%; --particle-size: 17px; --particle-duration: 24s; --particle-delay: -4s; }
+.login-seasonal-overlay span:nth-child(5) { --particle-left: 56%; --particle-size: 27px; --particle-duration: 20s; --particle-delay: -15s; }
+.login-seasonal-overlay span:nth-child(6) { --particle-left: 68%; --particle-size: 18px; --particle-duration: 23s; --particle-delay: -9s; }
+.login-seasonal-overlay span:nth-child(7) { --particle-left: 78%; --particle-size: 26px; --particle-duration: 19s; --particle-delay: -2s; }
+.login-seasonal-overlay span:nth-child(8) { --particle-left: 89%; --particle-size: 20px; --particle-duration: 21s; --particle-delay: -13s; }
+.login-seasonal-overlay span:nth-child(9) { --particle-left: 96%; --particle-size: 16px; --particle-duration: 25s; --particle-delay: -18s; }
+.login-seasonal-overlay span:nth-child(10) { --particle-left: 3%; --particle-size: 22px; --particle-duration: 20s; --particle-delay: -10s; }
+
+@keyframes seasonal-login-drift {
+  0% { transform: translate3d(0, -5vh, 0) rotate(-12deg); }
+  50% { transform: translate3d(24px, 52vh, 0) rotate(18deg); }
+  100% { transform: translate3d(-18px, 112vh, 0) rotate(-12deg); }
+}
+
+html[data-seasonal-theme="new-year"] .login-seasonal-overlay span::before { content: "\2728"; }
+html[data-seasonal-theme="chinese-new-year"] .login-seasonal-overlay span::before { content: "\1F3EE"; }
+html[data-seasonal-theme="valentines"] .login-seasonal-overlay span::before { content: "\1F496"; }
+html[data-seasonal-theme="summer"] .login-seasonal-overlay span::before { content: "\2728"; }
+html[data-seasonal-theme="rainy-season"] .login-seasonal-overlay span::before { content: "\1F4A7"; }
+html[data-seasonal-theme="halloween"] .login-seasonal-overlay span::before { content: "\1F383"; }
+html[data-seasonal-theme="christmas"] .login-seasonal-overlay span::before { content: "\2744\FE0F"; }
+
+html[data-seasonal-theme="chinese-new-year"] .login-seasonal-overlay span:nth-child(3n)::before { content: "\1F9E7"; }
+html[data-seasonal-theme="valentines"] .login-seasonal-overlay span:nth-child(3n)::before { content: "\1F338"; }
+html[data-seasonal-theme="summer"] .login-seasonal-overlay span:nth-child(3n)::before { content: "\2600\FE0F"; }
+html[data-seasonal-theme="halloween"] .login-seasonal-overlay span:nth-child(3n)::before { content: "\1F987"; }
+
+html[data-seasonal-theme="new-year"] .login-seasonal-overlay span {
+  color: #ffe6a0;
+  text-shadow: 0 0 14px rgba(255, 207, 84, .7);
+}
+
+html[data-seasonal-theme="chinese-new-year"] .login-seasonal-overlay span {
+  color: #ffd36b;
+  text-shadow: 0 0 16px rgba(200, 62, 62, .8);
+}
+
+html[data-seasonal-theme="valentines"] .login-seasonal-overlay span { color: #ffd4e0; }
+html[data-seasonal-theme="summer"] .login-seasonal-overlay span { color: #ffe3a1; }
+html[data-seasonal-theme="rainy-season"] .login-seasonal-overlay span { color: #c5efff; }
+html[data-seasonal-theme="halloween"] .login-seasonal-overlay span { color: #ffc27f; }
+html[data-seasonal-theme="christmas"] .login-seasonal-overlay span { color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .login-seasonal-overlay span,
+  .login-left-seasonal-overlay span {
+    animation: none;
+  }
+
+  .login-seasonal-overlay span {
+    top: 18%;
+    opacity: .5;
+  }
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) {
+  --sb-primary: var(--seasonal-accent);
+  --sb-primary-dark: var(--seasonal-accent-dark);
+  --sb-primary-soft: var(--seasonal-accent-soft);
+  --sb-border: var(--seasonal-border);
+  --bs-primary: var(--seasonal-accent);
+  --bs-link-color: var(--seasonal-accent);
+  --bs-link-hover-color: var(--seasonal-accent-dark);
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) body {
+  background-color: var(--seasonal-page) !important;
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .card,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .modal-content,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .dropdown-menu {
+  border-color: var(--seasonal-border);
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .btn-primary,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .btn-primary:hover,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .btn-primary:focus,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .page-item.active .page-link {
+  background-color: var(--seasonal-accent);
+  border-color: var(--seasonal-accent);
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .bg-brand {
+  background-color: var(--seasonal-accent) !important;
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .hover\:bg-brand-dark:hover {
+  background-color: var(--seasonal-accent-dark) !important;
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .text-primary,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) a:not(.btn):hover {
+  color: var(--seasonal-accent) !important;
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) .form-control:focus {
+  border-color: var(--seasonal-accent);
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) #layout-menu .menu-link:hover,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) #layout-menu .menu-sub .menu-item.active > .menu-link,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) #layout-menu .menu-item.open > .menu-toggle {
+  color: var(--seasonal-accent-dark) !important;
+}
+
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) #layout-menu .menu-link:hover .menu-icon,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) #layout-menu .menu-item.open > .menu-toggle .menu-icon {
+  color: var(--seasonal-accent-dark) !important;
+}
+
+@media (max-width: 575px) {
+  html[data-seasonal-theme]:not([data-seasonal-theme="none"]) body::after {
+    right: 8px;
+    bottom: 8px;
+    font-size: 42px;
+  }
+}

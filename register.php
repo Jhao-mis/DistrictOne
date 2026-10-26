@@ -6,6 +6,7 @@ use PHPMailer\PHPMailer\Exception;
 session_start();
 require 'vendor/autoload.php';
 require 'db.php';   // ✅ Use centralized DB connection
+require_once 'lib/seasonal_theme.php';
 
 $alertType = $_SESSION['alertType'] ?? '';
 $alertText = $_SESSION['alertText'] ?? '';
@@ -210,6 +211,7 @@ if (isset($_SESSION['success'])) {
   <!-- Helpers -->
   <script src="assets/vendor/js/helpers.js"></script>
   <script src="assets/js/config.js"></script>
+  <?php seasonal_theme_render($conn); ?>
 </head>
 
 <body>

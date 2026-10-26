@@ -1,5 +1,6 @@
 <?php
 include '../db.php';
+require_once '../lib/seasonal_theme.php';
 
 // ✅ Get the logged-in user department (make sure $department is already set in your session or fetched earlier)
 if (!isset($department) && isset($_SESSION['username'])) {
@@ -44,6 +45,7 @@ $sb_name     = trim(($firstname ?? '') . ' ' . ($lastname ?? ''));
 if (!$sb_name) $sb_name = $sb_username;
 ?>
 
+<?php seasonal_theme_render($conn); ?>
 <link rel="stylesheet" href="../assets/css/tailwind.css">
 <script src="../assets/vendor/js/helpers.js"></script>
 

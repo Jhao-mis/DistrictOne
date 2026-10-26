@@ -130,8 +130,6 @@ $history_stmt->execute();
 $history_logs = $history_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $history_stmt->close();
 
-$conn->close();
-
 /* =========================================================
    Display-only helpers (no schema/query changes below this line)
    ========================================================= */

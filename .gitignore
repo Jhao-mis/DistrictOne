@@ -8,6 +8,7 @@ extras
 !/database/
 /database/*
 !/database/site_media_migration.sql
+!/database/seasonal_theme_migration.sql
 !/uploads/
 /uploads/*
 !/uploads/site_media/

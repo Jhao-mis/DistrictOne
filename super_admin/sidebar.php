@@ -1,6 +1,7 @@
 <?php
 require_once '../vendor/autoload.php';
 include_once '../db.php';
+require_once '../lib/seasonal_theme.php';
 require_once 'login_verification.php';
 
 // ── Counts for badge pills ──────────────────────────────────────────
@@ -17,8 +18,46 @@ $sb_username = $_SESSION['username'] ?? '';
 $sb_profile  = $_SESSION['profile_picture'] ?? '../assets/img/avatars/default_dp.jpg';
 $sb_role     = $_SESSION['role'] ?? '';
 $sb_dept     = $department ?? '';
-$sb_name     = trim(($firstname ?? '') . ' ' . ($lastname ?? ''));
-if (!$sb_name) $sb_name = $sb_username;
+$sb_name     = trim(implode(' ', array_filter([
+    trim((string) ($firstname ?? '')),
+    trim((string) ($middlename ?? '')),
+    trim((string) ($lastname ?? '')),
+], static function ($part) {
+    return $part !== '';
+})));
+if ((!$sb_name || $sb_dept === '') && !empty($_SESSION['user_id'])) {
+    $sb_user_id = (int) $_SESSION['user_id'];
+    $sb_department_stmt = $conn->prepare('SELECT firstname, middlename, lastname, department FROM users WHERE id = ? LIMIT 1');
+    if ($sb_department_stmt === false) {
+        error_log('Sidebar: unable to prepare user details lookup: ' . $conn->error);
+    } else {
+        $sb_department_stmt->bind_param('i', $sb_user_id);
+        if ($sb_department_stmt->execute()) {
+            $sb_department_result = $sb_department_stmt->get_result();
+            $sb_department_row = $sb_department_result->fetch_assoc();
+            if ($sb_department_row !== null) {
+                if ($sb_dept === '') {
+                    $sb_dept = trim((string) ($sb_department_row['department'] ?? ''));
+                }
+                if (!$sb_name) {
+                    $sb_name = trim(implode(' ', array_filter([
+                        trim((string) ($sb_department_row['firstname'] ?? '')),
+                        trim((string) ($sb_department_row['middlename'] ?? '')),
+                        trim((string) ($sb_department_row['lastname'] ?? '')),
+                    ], static function ($part) {
+                        return $part !== '';
+                    })));
+                }
+            }
+        } else {
+            error_log('Sidebar: unable to load user details: ' . $sb_department_stmt->error);
+        }
+        $sb_department_stmt->close();
+    }
+}
+if (!$sb_name) {
+    $sb_name = 'Name not set';
+}
 
 // ── Root-relative base URL for AJAX calls ───────────────────────────
 // sidebar.php is now included from pages at different folder depths,
@@ -57,6 +96,7 @@ if (empty($_SESSION['sb_notif_login_token'])) {
 $sb_login_token = $_SESSION['sb_notif_login_token'];
 ?>
 
+<?php seasonal_theme_render($conn); ?>
 <link rel="stylesheet" href="../assets/css/tailwind.css">
 <script src="../assets/vendor/js/helpers.js"></script>
 
@@ -454,7 +494,7 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
         </div>
         <div class="sb-user-info">
           <div class="sb-user-name"><?= htmlspecialchars($sb_name) ?></div>
-          <div class="sb-user-role"><?= htmlspecialchars($sb_dept ?: $sb_role) ?></div>
+          <div class="sb-user-role"><?= htmlspecialchars($sb_dept !== '' ? $sb_dept : 'Department not assigned', ENT_QUOTES, 'UTF-8') ?></div>
         </div>
         <button class="sb-bell-btn" id="sbBellBtn" onclick="toggleSbNotif(event)" title="Notifications">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -492,7 +532,7 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
         <?php if (access_can('module.service_request')): ?><li class="menu-item <?= $currentPage === 'serviceRequest.php' ? 'active' : '' ?>"><a href="../modules/serviceRequest.php" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>IT Service Request</div></a></li><?php endif; ?>
 
         <!-- Admin Panel -->
-        <?php if (access_is_super_admin()): ?><li class="menu-item <?= in_array($currentPage, ['monitoring.php','ticketRequest.php','approveTicket.php','addAnnouncement.php','addEvents.php','approveRoom.php','accountManagement.php','payrollmng.php','leaveSummaryUpload.php','siteMedia.php'], true) ? 'active open' : '' ?>">
+        <?php if (access_is_super_admin()): ?><li class="menu-item <?= in_array($currentPage, ['monitoring.php','ticketRequest.php','approveTicket.php','addAnnouncement.php','addEvents.php','approveRoom.php','accountManagement.php','payrollmng.php','leaveSummaryUpload.php','siteMedia.php','seasonalThemes.php'], true) ? 'active open' : '' ?>">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-shield-quarter"></i><div>Admin Panel</div>
           </a>
@@ -507,6 +547,7 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
             <?php if (access_can('special.leave_summary_upload')): ?><li class="menu-item <?= $currentPage === 'leaveSummaryUpload.php' ? 'active' : '' ?>"><a href="../super_admin/leaveSummaryUpload.php" class="menu-link"><div>Leave Summary Import</div></a></li><?php endif; ?>
             <?php if (access_can('special.account_management')): ?><li class="menu-item <?= $currentPage === 'accountManagement.php' ? 'active' : '' ?>"><a href="../super_admin/accountManagement.php" class="menu-link"><div>Account Management</div></a></li><?php endif; ?>
             <?php if (access_is_super_admin()): ?><li class="menu-item <?= $currentPage === 'siteMedia.php' ? 'active' : '' ?>"><a href="../super_admin/siteMedia.php" class="menu-link"><div>Site Images</div></a></li><?php endif; ?>
+            <?php if (access_is_super_admin()): ?><li class="menu-item <?= $currentPage === 'seasonalThemes.php' ? 'active' : '' ?>"><a href="../super_admin/seasonalThemes.php" class="menu-link"><div>Seasonal Themes</div></a></li><?php endif; ?>
           </ul>
         </li>
         <?php endif; ?>

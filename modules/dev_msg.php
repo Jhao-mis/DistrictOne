@@ -4,11 +4,6 @@ require '../vendor/autoload.php';
 require '../db.php';
 require 'login_verification.php';
 
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    die("Database Connection Failed");
-}
-
 /* Update last activity */
 date_default_timezone_set('Asia/Manila');
 $now = date('Y-m-d H:i:s');
@@ -31,7 +26,6 @@ $stmt->bind_result($department);
 $stmt->fetch();
 $stmt->close();
 
-$conn->close();
 ?>
 
 
