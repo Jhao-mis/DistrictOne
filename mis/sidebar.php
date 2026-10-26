@@ -36,7 +36,41 @@ $sb_username = $_SESSION['username'] ?? ($username ?? '');
 $sb_profile  = $_SESSION['profile_picture'] ?? '../assets/img/avatars/default_dp.jpg';
 $sb_role     = $_SESSION['role'] ?? 'MIS';
 $sb_dept     = $department ?? '';
-$sb_name     = trim(($firstname ?? '') . ' ' . ($lastname ?? ''));
+$sb_name     = '';
+if (!empty($_SESSION['user_id'])) {
+  $sb_user_stmt = $conn->prepare('SELECT firstname, middlename, lastname, department FROM users WHERE id = ? LIMIT 1');
+  if ($sb_user_stmt === false) {
+    error_log('MIS sidebar: unable to prepare user details lookup: ' . $conn->error);
+  } else {
+    $sb_user_id = (int) $_SESSION['user_id'];
+    $sb_user_stmt->bind_param('i', $sb_user_id);
+    if ($sb_user_stmt->execute()) {
+      $sb_user_row = $sb_user_stmt->get_result()->fetch_assoc();
+      if ($sb_user_row !== null) {
+        $sb_name = trim(implode(' ', array_filter([
+          trim((string) ($sb_user_row['firstname'] ?? '')),
+          trim((string) ($sb_user_row['middlename'] ?? '')),
+          trim((string) ($sb_user_row['lastname'] ?? '')),
+        ], static function ($part) {
+          return $part !== '';
+        })));
+        $sb_dept = trim((string) ($sb_user_row['department'] ?? ''));
+      }
+    } else {
+      error_log('MIS sidebar: unable to load user details: ' . $sb_user_stmt->error);
+    }
+    $sb_user_stmt->close();
+  }
+}
+if (!$sb_name) {
+  $sb_name = trim(implode(' ', array_filter([
+    trim((string) ($firstname ?? '')),
+    trim((string) ($middlename ?? '')),
+    trim((string) ($lastname ?? '')),
+  ], static function ($part) {
+    return $part !== '';
+  })));
+}
 if (!$sb_name) $sb_name = $sb_username;
 ?>
 
@@ -145,8 +179,7 @@ if (!$sb_name) $sb_name = $sb_username;
 .sb-user-info { flex: 1; min-width: 0; }
 .sb-user-name {
   font-size: 13px; font-weight: 700; color: var(--sb-text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  line-height: 1.3;
+  line-height: 1.3; overflow-wrap: anywhere;
 }
 .sb-user-role {
   font-size: 11px; color: var(--sb-muted);
@@ -168,11 +201,19 @@ if (!$sb_name) $sb_name = $sb_username;
 #layout-menu .menu-link {
   border-radius: 9px !important;
   color: var(--sb-muted) !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
+  line-height: 1.4 !important;
   padding: 9px 12px !important;
   transition: background .12s ease, color .12s ease;
   display: flex; align-items: center;
+}
+#layout-menu .menu-link > div {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
 }
 #layout-menu .menu-link .menu-icon {
   color: var(--sb-muted) !important;
@@ -185,24 +226,27 @@ if (!$sb_name) $sb_name = $sb_username;
   color: #2563a8 !important;
 }
 #layout-menu .menu-link:hover .menu-icon { color: #2563a8 !important; }
-#layout-menu .menu-item.active > .menu-link {
+#layout-menu .menu-item.active > .menu-link,
+#layout-menu .menu-item.active > .menu-link:hover {
   background: var(--sb-primary) !important;
   color: #fff !important;
   box-shadow: 0 4px 10px -4px rgba(124,185,255,.55);
 }
-#layout-menu .menu-item.active > .menu-link .menu-icon { color: #fff !important; }
+#layout-menu .menu-item.active > .menu-link .menu-icon,
+#layout-menu .menu-item.active > .menu-link:hover .menu-icon { color: #fff !important; }
 
 /* Submenu */
 #layout-menu .menu-sub { padding-left: 6px; }
 #layout-menu .menu-sub .menu-link {
-  font-size: 13px !important;
-  font-weight: 500 !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
   padding: 7px 12px 7px 38px !important;
 }
+#layout-menu .menu-sub .menu-link > div { font-weight: 600 !important; }
 #layout-menu .menu-sub .menu-item.active > .menu-link {
   background: var(--sb-primary-soft) !important;
   color: #2563a8 !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   box-shadow: none;
 }
 #layout-menu .menu-toggle::after { opacity: .45; }

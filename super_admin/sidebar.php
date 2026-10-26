@@ -17,15 +17,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 $sb_username = $_SESSION['username'] ?? '';
 $sb_profile  = $_SESSION['profile_picture'] ?? '../assets/img/avatars/default_dp.jpg';
 $sb_role     = $_SESSION['role'] ?? '';
-$sb_dept     = $department ?? '';
-$sb_name     = trim(implode(' ', array_filter([
-    trim((string) ($firstname ?? '')),
-    trim((string) ($middlename ?? '')),
-    trim((string) ($lastname ?? '')),
-], static function ($part) {
-    return $part !== '';
-})));
-if ((!$sb_name || $sb_dept === '') && !empty($_SESSION['user_id'])) {
+$sb_dept     = '';
+$sb_name     = '';
+if (!empty($_SESSION['user_id'])) {
     $sb_user_id = (int) $_SESSION['user_id'];
     $sb_department_stmt = $conn->prepare('SELECT firstname, middlename, lastname, department FROM users WHERE id = ? LIMIT 1');
     if ($sb_department_stmt === false) {
@@ -36,18 +30,14 @@ if ((!$sb_name || $sb_dept === '') && !empty($_SESSION['user_id'])) {
             $sb_department_result = $sb_department_stmt->get_result();
             $sb_department_row = $sb_department_result->fetch_assoc();
             if ($sb_department_row !== null) {
-                if ($sb_dept === '') {
-                    $sb_dept = trim((string) ($sb_department_row['department'] ?? ''));
-                }
-                if (!$sb_name) {
-                    $sb_name = trim(implode(' ', array_filter([
-                        trim((string) ($sb_department_row['firstname'] ?? '')),
-                        trim((string) ($sb_department_row['middlename'] ?? '')),
-                        trim((string) ($sb_department_row['lastname'] ?? '')),
-                    ], static function ($part) {
-                        return $part !== '';
-                    })));
-                }
+                $sb_dept = trim((string) ($sb_department_row['department'] ?? ''));
+                $sb_name = trim(implode(' ', array_filter([
+                    trim((string) ($sb_department_row['firstname'] ?? '')),
+                    trim((string) ($sb_department_row['middlename'] ?? '')),
+                    trim((string) ($sb_department_row['lastname'] ?? '')),
+                ], static function ($part) {
+                    return $part !== '';
+                })));
             }
         } else {
             error_log('Sidebar: unable to load user details: ' . $sb_department_stmt->error);
@@ -56,7 +46,19 @@ if ((!$sb_name || $sb_dept === '') && !empty($_SESSION['user_id'])) {
     }
 }
 if (!$sb_name) {
-    $sb_name = 'Name not set';
+    $sb_name = trim(implode(' ', array_filter([
+        trim((string) ($firstname ?? '')),
+        trim((string) ($middlename ?? '')),
+        trim((string) ($lastname ?? '')),
+    ], static function ($part) {
+        return $part !== '';
+    })));
+}
+if ($sb_dept === '') {
+    $sb_dept = trim((string) ($department ?? ''));
+}
+if (!$sb_name) {
+    $sb_name = $sb_username;
 }
 
 // ── Root-relative base URL for AJAX calls ───────────────────────────
@@ -201,8 +203,7 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
 .sb-user-info { flex: 1; min-width: 0; }
 .sb-user-name {
   font-size: 13px; font-weight: 700; color: var(--sb-text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  line-height: 1.3;
+  line-height: 1.3; overflow-wrap: anywhere;
 }
 .sb-user-role {
   font-size: 11px; color: var(--sb-muted);
@@ -233,8 +234,11 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
 /* ── Menu inner (scrollable) ───────────────────────────────────── */
 #layout-menu .menu-inner {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 8px 12px !important;
 }
 #layout-menu .menu-inner::-webkit-scrollbar { width: 4px; }
@@ -244,16 +248,19 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
 #layout-menu .menu-link {
   border-radius: 9px !important;
   color: var(--sb-muted) !important;
-  font-family: 'Public Sans', sans-serif !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
+  line-height: 1.4 !important;
   padding: 9px 12px !important;
   transition: background .12s ease, color .12s ease;
   display: flex; align-items: center;
 }
 #layout-menu .menu-link > div {
-  font-family: 'Public Sans', sans-serif !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 13.5px !important;
   font-weight: 600 !important;
+  line-height: 1.4 !important;
 }
 #layout-menu .menu-link .menu-icon {
   color: var(--sb-muted) !important;
@@ -266,28 +273,37 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
   color: #2563a8 !important;
 }
 #layout-menu .menu-link:hover .menu-icon { color: #2563a8 !important; }
-#layout-menu .menu-item.active > .menu-link {
+#layout-menu .menu-item.active > .menu-link,
+#layout-menu .menu-item.active > .menu-link:hover {
   background: var(--sb-primary) !important;
   color: #fff !important;
   box-shadow: 0 4px 10px -4px rgba(124,185,255,.55);
 }
-#layout-menu .menu-item.active > .menu-link .menu-icon { color: #fff !important; }
+#layout-menu .menu-item.active > .menu-link .menu-icon,
+#layout-menu .menu-item.active > .menu-link:hover .menu-icon { color: #fff !important; }
 
 /* Submenu */
 #layout-menu .menu-sub { padding-left: 6px; }
 #layout-menu .menu-sub .menu-link {
-  font-size: 13px !important;
-  font-weight: 500 !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
   padding: 7px 12px 7px 38px !important;
 }
-#layout-menu .menu-sub .menu-link > div { font-weight: 500 !important; }
+#layout-menu .menu-sub .menu-link > div {
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+}
 #layout-menu .menu-sub .menu-item.active > .menu-link {
   background: var(--sb-primary-soft) !important;
   color: #2563a8 !important;
-  font-weight: 700 !important;
   box-shadow: none;
 }
-#layout-menu .menu-sub .menu-item.active > .menu-link > div { font-weight: 700 !important; }
+#layout-menu .menu-sub .menu-item.active > .menu-link > div { font-weight: 600 !important; }
+#layout-menu .menu-inner .menu-link > div,
+#layout-menu .menu-inner .menu-link > div *,
+#layout-menu .menu-inner .menu-link > span:not(.sb-pill) {
+  font-weight: 600 !important;
+}
 #layout-menu .menu-toggle::after { opacity: .45; }
 #layout-menu .menu-item.open > .menu-toggle {
   background: var(--sb-primary-soft) !important;

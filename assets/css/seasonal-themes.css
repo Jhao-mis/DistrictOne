@@ -385,6 +385,11 @@ html[data-seasonal-theme]:not([data-seasonal-theme="none"]) #layout-menu .menu-i
   color: var(--seasonal-accent-dark) !important;
 }
 
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) #layout-menu .menu-item.active > .menu-link:hover,
+html[data-seasonal-theme]:not([data-seasonal-theme="none"]) #layout-menu .menu-item.active > .menu-link:hover .menu-icon {
+  color: #fff !important;
+}
+
 @media (max-width: 575px) {
   html[data-seasonal-theme]:not([data-seasonal-theme="none"]) body::after {
     right: 8px;

@@ -249,5 +249,7 @@ unset($_SESSION['seasonal_theme_flash']);
             </section>
         </div>
     </main>
+    <script src="../assets/vendor/js/menu.js"></script>
+    <script src="../assets/js/main.js"></script>
 </body>
 </html>

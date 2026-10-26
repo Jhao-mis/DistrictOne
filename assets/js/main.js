@@ -4,9 +4,28 @@
 
 'use strict';
 
-let menu, animate;
+let menu;
 
 (function () {
+  const scrollActiveMenuItemIntoView = layoutMenu => {
+    const menuInner = layoutMenu.querySelector('.menu-inner');
+    const activeItem = layoutMenu.querySelector('li.menu-item.active:not(.open)');
+    if (!menuInner || !activeItem) return;
+
+    const menuRect = menuInner.getBoundingClientRect();
+    const itemRect = activeItem.getBoundingClientRect();
+    const itemTop = itemRect.top - menuRect.top + menuInner.scrollTop;
+    const target = Math.max(
+      0,
+      Math.min(
+        itemTop - Math.round((menuInner.clientHeight - itemRect.height) / 2),
+        menuInner.scrollHeight - menuInner.clientHeight
+      )
+    );
+
+    menuInner.scrollTop = target;
+  };
+
   // Initialize menu
   //-----------------
 
@@ -18,8 +37,7 @@ let menu, animate;
       orientation: 'vertical',
       closeChildren: false
     });
-    // Change parameter to true if you want scroll animation
-    window.Helpers.scrollToActive((animate = false));
+    scrollActiveMenuItemIntoView(element);
     window.Helpers.mainMenu = menu;
   });
 
