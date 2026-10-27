@@ -1154,33 +1154,33 @@ $emp_id = $emp_id ?? '—';
             const orgChartData = [
         { id: "bod", pid: null, tags: ["top"], name: "OFFICE OF THE BOARD OF DIRECTORS", title: "Board of Directors", sg: "" },
         { id: "ogm", pid: "bod", tags: ["top"], name: "OFFICE OF THE GENERAL MANAGER", title: "Exequiel A. Aguilar, Jr.", sg: "SG 26" },
-        { id: "mis", pid: "ogm", tags: ["assistant", "section"], name: "Management Info Services", title: "Engr. Jonathan Dave Fajarda", sg: "SG 19" },
+        { id: "mis", pid: "ogm", tags: ["assistant", "section"], name: "Management Information Services section", title: "Engr. Jonathan Dave Fajarda", sg: "SG 19" },
         
         // Administrative Department & Divisions
         { id: "admin", pid: "ogm", tags: ["dept"], name: "ADMINISTRATIVE DEPARTMENT", title: "Edwin L. Cartago", sg: "SG 26" },
         { id: "admin_sec", pid: "admin", tags: ["assistant", "staff"], name: "Janine S. Bercasio", title: "Secretary B", sg: "SG 7" },
-        { id: "hrd", pid: "admin", tags: ["division"], name: "HUMAN RESOURCE DIVISION", title: "Elenita V. Panganiban", sg: "SG 24" },
-        { id: "pmmd", pid: "admin", tags: ["division"], name: "PROPERTY & MATERIALS MGT.", title: "Rolando M. Pizzara (OIC)", sg: "SG 24" },
+        { id: "hrd", pid: "admin", tags: ["division"], name: "ADMINISTRATIVE & HUMAN RESOURCE DIVISION", title: "Elenita V. Panganiban", sg: "SG 24" },
+        { id: "pmmd", pid: "admin", tags: ["division"], name: "PROPERTY & MATERIALS MANAGEMENT DIVISION", title: "Rolando M. Pizzara (OIC)", sg: "SG 24" },
         { id: "gsd", pid: "admin", tags: ["division"], name: "GENERAL SERVICES DIVISION", title: "Emmanuel T. Salvador", sg: "SG 24" },
         
         // Finance Department & Divisions
         { id: "finance", pid: "ogm", tags: ["dept"], name: "FINANCE DEPARTMENT", title: "Mercedes A. Carreon (OIC)", sg: "SG 26" },
         { id: "finance_sec", pid: "finance", tags: ["assistant", "staff"], name: "Vacant", title: "Secretary B", sg: "SG 7" },
         { id: "budget", pid: "finance", tags: ["division"], name: "BUDGET DIVISION", title: "Mercedes A. Carreon", sg: "SG 24" },
-        { id: "accounting", pid: "finance", tags: ["division"], name: "GENERAL ACCOUNTING DIV.", title: "Junsy Y. Nieron, CPA (OIC)", sg: "SG 24" },
+        { id: "accounting", pid: "finance", tags: ["division"], name: "GENERAL ACCOUNTING DIVISION", title: "Junsy Y. Nieron, CPA (OIC)", sg: "SG 24" },
         
         // Commercial Department & Divisions
         { id: "commercial", pid: "ogm", tags: ["dept"], name: "COMMERCIAL DEPARTMENT", title: "Ma. Carmela M. Elepaño", sg: "SG 26" },
         { id: "commercial_sec", pid: "commercial", tags: ["assistant", "staff"], name: "Verra Mae Mariano", title: "Secretary B", sg: "SG 7" },
         { id: "bmrd", pid: "commercial", tags: ["division"], name: "BILLING & METER READING", title: "Basilisa Gillera (OIC)", sg: "SG 24" },
-        { id: "cad", pid: "commercial", tags: ["division"], name: "CUSTOMER ACCOUNTS DIV.", title: "Henry B. Junio", sg: "SG 24" },
+        { id: "cad", pid: "commercial", tags: ["division"], name: "CUSTOMER ACCOUNTS DIVISION", title: "Henry B. Junio", sg: "SG 24" },
         { id: "ccd", pid: "commercial", tags: ["division"], name: "CUSTOMER CARE DIVISION", title: "Ronnie G. Sierva", sg: "SG 24" },
         
         // Technical Services Department & Divisions
-        { id: "tsd", pid: "ogm", tags: ["dept"], name: "TECHNICAL SERVICES DEPT.", title: "Engr. Ranely S. Cartago", sg: "SG 26" },
+        { id: "tsd", pid: "ogm", tags: ["dept"], name: "TECHNICAL SERVICES DEPARTMENT", title: "Engr. Ranely S. Cartago", sg: "SG 26" },
         { id: "tsd_sec", pid: "tsd", tags: ["assistant", "staff"], name: "Joana Leana May V. Villanueva", title: "Secretary B", sg: "SG 7" },
-        { id: "eamd", pid: "tsd", tags: ["division"], name: "ENGINEERING & MAINTENANCE", title: "Engr. Rolando V. Baro", sg: "SG 24" },
-        { id: "pamd", pid: "tsd", tags: ["division"], name: "PIPELINE & APPURTENANCES", title: "Engr. Bernard Joseph Rodriguez (OIC)", sg: "SG 24" },
+        { id: "eamd", pid: "tsd", tags: ["division"], name: "ENGINEERING & MAINTENANCE DIVISION", title: "Engr. Rolando V. Baro", sg: "SG 24" },
+        { id: "pamd", pid: "tsd", tags: ["division"], name: "PIPELINE & APPURTENANCES MAINTENANCE DIVISION", title: "Engr. Bernard Joseph Rodriguez (OIC)", sg: "SG 24" },
         
         // Operations Department & Divisions
         { id: "ops", pid: "ogm", tags: ["dept"], name: "OPERATIONS DEPARTMENT", title: "Engr. Joselito A. Gillera", sg: "SG 26" },
