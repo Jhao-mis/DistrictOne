@@ -1154,7 +1154,7 @@ $emp_id = $emp_id ?? '—';
             const orgChartData = [
         { id: "bod", pid: null, tags: ["top"], name: "OFFICE OF THE BOARD OF DIRECTORS", title: "Board of Directors", sg: "" },
         { id: "ogm", pid: "bod", tags: ["top"], name: "OFFICE OF THE GENERAL MANAGER", title: "Exequiel A. Aguilar, Jr.", sg: "SG 26" },
-        { id: "mis", pid: "ogm", tags: ["assistant", "section"], name: "Management Info Services", title: "MIS Section", sg: "SG 19" },
+        { id: "mis", pid: "ogm", tags: ["assistant", "section"], name: "Management Info Services", title: "Engr. Jonathan Dave Fajarda", sg: "SG 19" },
         
         // Administrative Department & Divisions
         { id: "admin", pid: "ogm", tags: ["dept"], name: "ADMINISTRATIVE DEPARTMENT", title: "Edwin L. Cartago", sg: "SG 26" },

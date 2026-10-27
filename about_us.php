@@ -295,7 +295,7 @@
               class="mis-member-card bg-white p-4 rounded-4 border border-slate-100 shadow-sm text-center h-100 d-flex flex-column align-items-center"
               data-bs-toggle="modal" data-bs-target="#misModal1">
               <img src="assets/img/avatars/pic1.png" alt="Engr. Jonathan Dave A. Fajarda" class="mis-avatar mb-3">
-              <h5 class="fw-bold text-dark mb-1">Engr. Jonathan Dave A. Fajarda</h5>
+              <h5 class="fw-bold text-dark mb-1">Engr. Jonathan Dave A. Fajarda, PECE</h5>
               <p class="text-muted fw-semibold small mb-1"><i class="fa-solid fa-user-tag text-primary me-1"></i> "Engr. Dave"
               </p>
               <p class="text-primary fw-semibold small mb-2">Management Information Design Specialist A</p>
@@ -401,7 +401,7 @@
             Engr. Jonathan Dave A. Fajarda
           </h2>
           <div class="text-lg md:text-xl font-bold text-blue-600 text-center md:text-left mt-0.5">
-            <i class="fa-solid fa-graduation-cap me-1"></i>MPA, ECE
+            <i class="fa-solid fa-graduation-cap me-1"></i>MPA, PECE
           </div>
           <div class="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-wider text-center md:text-left mt-1 mb-4">
             Project Manager / SCRUM Master
@@ -501,7 +501,7 @@
         <div class="team-member active-thumb cursor-pointer text-center" data-index="0">
           <img src="assets/img/avatars/pic1.png" alt="Jonathan Dave Aquino Fajarda" class="w-20 h-20 mx-auto rounded-full object-cover mb-2.5" />
           <p class="name font-bold text-xs text-slate-900 line-clamp-1">Engr. Jonathan Dave A. Fajarda</p>
-          <p class="text-[11px] font-bold text-blue-600">MPA, ECE</p>
+          <p class="text-[11px] font-bold text-blue-600">MPA, PECE</p>
           <p class="title text-[11px] text-slate-500 line-clamp-1 mt-0.5">Project Manager / SCRUM Master</p>
         </div>
 
@@ -588,7 +588,7 @@
               class="upgraded-modal-avatar">
           </div>
 
-          <h4 class="fw-bold text-slate-900 mb-1">Engr. Jonathan Dave A. Fajarda</h4>
+          <h4 class="fw-bold text-slate-900 mb-1">Engr. Jonathan Dave A. Fajarda, PECE</h4>
           <p class="text-muted fw-semibold small mb-2"><i class="fa-solid fa-user-tag me-1"></i> Preferred Name:
             <strong>Engr. Dave</strong>
           </p>
