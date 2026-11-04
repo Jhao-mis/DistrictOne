@@ -27,7 +27,7 @@ $renderAssignedLinks = static function (array $links): void {
 };
 ?>
 
-<?php if (access_can_any(array_column($assignedMisLinks, 0))): ?>
+<?php if (!access_is_super_admin() && access_can_any(array_column($assignedMisLinks, 0))): ?>
 <li class="menu-item">
   <a href="javascript:void(0);" class="menu-link menu-toggle"><i class="menu-icon tf-icons bx bx-wrench"></i><div>MIS Tools</div></a>
   <ul class="menu-sub"><?php $renderAssignedLinks($assignedMisLinks); ?></ul>

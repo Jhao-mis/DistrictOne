@@ -229,6 +229,7 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
       margin-bottom: 22px;
     }
     .tk-stat-link { text-decoration: none; color: inherit; display: block; }
+    .tk-stat-wrapper { display: block; }
     .tk-stat {
       background: var(--tk-surface);
       border: 1px solid var(--tk-border);
@@ -389,7 +390,7 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
         <div class="tk-stats">
 
           <!-- New Tickets -->
-          <a href="approveTicket.php" class="tk-stat-link">
+          <?php if ($normalizedRole === 'User'): ?><div class="tk-stat-wrapper"><?php else: ?><a href="approveTicket.php" class="tk-stat-link"><?php endif; ?>
             <div class="tk-stat is-new">
               <div class="tk-stat-top">
                 <div class="tk-stat-icon">
@@ -399,10 +400,10 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
               <div class="tk-stat-num" id="ticketRequests">0</div>
               <div class="tk-stat-label">New tickets</div>
             </div>
-          </a>
+          <?php if ($normalizedRole === 'User'): ?></div><?php else: ?></a><?php endif; ?>
 
           <!-- Active Tickets -->
-          <a href="ticketRequest.php" class="tk-stat-link">
+          <?php if ($normalizedRole === 'User'): ?><div class="tk-stat-wrapper"><?php else: ?><a href="ticketRequest.php" class="tk-stat-link"><?php endif; ?>
             <div class="tk-stat is-active">
               <div class="tk-stat-top">
                 <div class="tk-stat-icon">
@@ -412,10 +413,10 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
               <div class="tk-stat-num" id="activeTickets">0</div>
               <div class="tk-stat-label">Active tickets</div>
             </div>
-          </a>
+          <?php if ($normalizedRole === 'User'): ?></div><?php else: ?></a><?php endif; ?>
 
           <!-- Resolved Tickets -->
-          <a href="ticketRequest.php" class="tk-stat-link">
+          <?php if ($normalizedRole === 'User'): ?><div class="tk-stat-wrapper"><?php else: ?><a href="ticketRequest.php" class="tk-stat-link"><?php endif; ?>
             <div class="tk-stat is-resolved">
               <div class="tk-stat-top">
                 <div class="tk-stat-icon">
@@ -425,10 +426,10 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
               <div class="tk-stat-num" id="resolvedTickets">0</div>
               <div class="tk-stat-label">Resolved tickets</div>
             </div>
-          </a>
+          <?php if ($normalizedRole === 'User'): ?></div><?php else: ?></a><?php endif; ?>
 
           <!-- Room Reservations -->
-          <a href="approveRoom.php" class="tk-stat-link">
+          <?php if ($normalizedRole === 'User'): ?><div class="tk-stat-wrapper"><?php else: ?><a href="approveRoom.php" class="tk-stat-link"><?php endif; ?>
             <div class="tk-stat is-rooms">
               <div class="tk-stat-top">
                 <div class="tk-stat-icon">
@@ -438,10 +439,10 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
               <div class="tk-stat-num" id="roomRequests">0</div>
               <div class="tk-stat-label">Room reservations</div>
             </div>
-          </a>
+          <?php if ($normalizedRole === 'User'): ?></div><?php else: ?></a><?php endif; ?>
 
           <!-- Total Users -->
-          <a href="accountManagement.php" class="tk-stat-link">
+          <?php if ($normalizedRole === 'User'): ?><div class="tk-stat-wrapper"><?php else: ?><a href="accountManagement.php" class="tk-stat-link"><?php endif; ?>
             <div class="tk-stat is-users">
               <div class="tk-stat-top">
                 <div class="tk-stat-icon">
@@ -451,10 +452,10 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
               <div class="tk-stat-num" id="totalUsers">0</div>
               <div class="tk-stat-label">Total users</div>
             </div>
-          </a>
+          <?php if ($normalizedRole === 'User'): ?></div><?php else: ?></a><?php endif; ?>
 
           <!-- Not Approved Users -->
-          <a href="accountManagement.php" class="tk-stat-link">
+          <?php if ($normalizedRole === 'User'): ?><div class="tk-stat-wrapper"><?php else: ?><a href="accountManagement.php" class="tk-stat-link"><?php endif; ?>
             <div class="tk-stat is-unverified">
               <div class="tk-stat-top">
                 <div class="tk-stat-icon">
@@ -464,7 +465,7 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
               <div class="tk-stat-num" id="notApprovedUsers">0</div>
               <div class="tk-stat-label">Not verified users</div>
             </div>
-          </a>
+          <?php if ($normalizedRole === 'User'): ?></div><?php else: ?></a><?php endif; ?>
         </div>
 
 

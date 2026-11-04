@@ -273,6 +273,16 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
 
 /* Submenu */
 #layout-menu .menu-sub { padding-left: 6px; }
+#layout-menu .menu-sub > .menu-header {
+  width: auto;
+  margin: 8px 0 2px;
+  padding: 6px 12px 4px 38px;
+  color: var(--sb-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
 #layout-menu .menu-sub .menu-link {
   font-size: 13.5px !important;
   font-weight: 600 !important;
@@ -537,22 +547,40 @@ $sb_login_token = $_SESSION['sb_notif_login_token'];
         <?php if (access_can('module.service_request')): ?><li class="menu-item <?= $currentPage === 'serviceRequest.php' ? 'active' : '' ?>"><a href="../modules/serviceRequest.php" class="menu-link"><i class="menu-icon tf-icons bx bx-support"></i><div>IT Service Request</div></a></li><?php endif; ?>
 
         <!-- Admin Panel -->
-        <?php if (access_is_super_admin()): ?><li class="menu-item <?= in_array($currentPage, ['monitoring.php','ticketRequest.php','approveTicket.php','addAnnouncement.php','addEvents.php','approveRoom.php','accountManagement.php','payrollmng.php','leaveSummaryUpload.php','siteMedia.php','seasonalThemes.php'], true) ? 'active open' : '' ?>">
+        <?php if (access_is_super_admin()): ?><li class="menu-item <?= in_array($currentPage, ['monitoring.php','ticketRequest.php','approveTicket.php','accountManagement.php','addAnnouncement.php','addEvents.php','approveRoom.php','payrollmng.php','leaveSummaryUpload.php','siteMedia.php','seasonalThemes.php','ticketAssign.php','mir.php'], true) ? 'active open' : '' ?>">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-shield-quarter"></i><div>Admin Panel</div>
           </a>
           <ul class="menu-sub">
+            <?php if (access_can_any(['special.live_report', 'special.ticket_request', 'special.ticket_approval', 'special.account_management'])): ?>
+            <li class="menu-header"><span class="menu-header-text">IT Management</span></li>
             <?php if (access_can('special.live_report')): ?><li class="menu-item <?= $currentPage === 'monitoring.php' ? 'active' : '' ?>"><a href="../super_admin/monitoring.php" class="menu-link"><div>Live Report</div></a></li><?php endif; ?>
             <?php if (access_can('special.ticket_request')): ?><li class="menu-item <?= $currentPage === 'ticketRequest.php' ? 'active' : '' ?>"><a href="../super_admin/ticketRequest.php" class="menu-link"><div>Ticket Request</div></a></li><?php endif; ?>
             <?php if (access_can('special.ticket_approval')): ?><li class="menu-item <?= $currentPage === 'approveTicket.php' ? 'active' : '' ?>"><a href="../super_admin/approveTicket.php" class="menu-link"><div>Ticket Approval</div></a></li><?php endif; ?>
-            <?php if (access_can('special.add_announcements')): ?><li class="menu-item <?= $currentPage === 'addAnnouncement.php' ? 'active' : '' ?>"><a href="../super_admin/addAnnouncement.php" class="menu-link"><div>Add Announcements</div></a></li><?php endif; ?>
+            <?php if (access_can('special.account_management')): ?><li class="menu-item <?= $currentPage === 'accountManagement.php' ? 'active' : '' ?>"><a href="../super_admin/accountManagement.php" class="menu-link"><div>Account Management</div></a></li><?php endif; ?>
+            <?php endif; ?>
+
+            <?php if (access_can_any(['special.add_announcements', 'special.add_calendar_activity', 'special.room_reservation', 'special.payroll_management', 'special.leave_summary_upload'])): ?>
+            <li class="menu-header"><span class="menu-header-text">Administrative Tools</span></li>
+            <?php if (access_can('special.add_announcements')): ?><li class="menu-item <?= $currentPage === 'addAnnouncement.php' ? 'active' : '' ?>"><a href="../super_admin/addAnnouncement.php" class="menu-link"><div>Add Announcement</div></a></li><?php endif; ?>
             <?php if (access_can('special.add_calendar_activity')): ?><li class="menu-item <?= $currentPage === 'addEvents.php' ? 'active' : '' ?>"><a href="../super_admin/addEvents.php" class="menu-link"><div>Add Calendar Activity</div></a></li><?php endif; ?>
             <?php if (access_can('special.room_reservation')): ?><li class="menu-item <?= $currentPage === 'approveRoom.php' ? 'active' : '' ?>"><a href="../super_admin/approveRoom.php" class="menu-link"><div>Room Reservation</div></a></li><?php endif; ?>
             <?php if (access_can('special.payroll_management')): ?><li class="menu-item <?= $currentPage === 'payrollmng.php' ? 'active' : '' ?>"><a href="../super_admin/payrollmng.php" class="menu-link"><div>Payroll Management</div></a></li><?php endif; ?>
             <?php if (access_can('special.leave_summary_upload')): ?><li class="menu-item <?= $currentPage === 'leaveSummaryUpload.php' ? 'active' : '' ?>"><a href="../super_admin/leaveSummaryUpload.php" class="menu-link"><div>Leave Summary Import</div></a></li><?php endif; ?>
-            <?php if (access_can('special.account_management')): ?><li class="menu-item <?= $currentPage === 'accountManagement.php' ? 'active' : '' ?>"><a href="../super_admin/accountManagement.php" class="menu-link"><div>Account Management</div></a></li><?php endif; ?>
-            <?php if (access_is_super_admin()): ?><li class="menu-item <?= $currentPage === 'siteMedia.php' ? 'active' : '' ?>"><a href="../super_admin/siteMedia.php" class="menu-link"><div>Site Images</div></a></li><?php endif; ?>
-            <?php if (access_is_super_admin()): ?><li class="menu-item <?= $currentPage === 'seasonalThemes.php' ? 'active' : '' ?>"><a href="../super_admin/seasonalThemes.php" class="menu-link"><div>Seasonal Themes</div></a></li><?php endif; ?>
+            <?php endif; ?>
+
+            <?php if (access_is_super_admin()): ?>
+            <li class="menu-header"><span class="menu-header-text">Personalization</span></li>
+            <li class="menu-item <?= $currentPage === 'siteMedia.php' ? 'active' : '' ?>"><a href="../super_admin/siteMedia.php" class="menu-link"><div>Site Images</div></a></li>
+            <li class="menu-item <?= $currentPage === 'seasonalThemes.php' ? 'active' : '' ?>"><a href="../super_admin/seasonalThemes.php" class="menu-link"><div>Seasonal Themes</div></a></li>
+            <?php endif; ?>
+
+            <?php if (access_can_any(['mis.ticket_assignment', 'mis.machine_inspection'])): ?>
+            <li class="menu-header"><span class="menu-header-text">MIS Tools</span></li>
+            <?php if (access_can('mis.ticket_assignment')): ?><li class="menu-item <?= $currentPage === 'ticketAssign.php' ? 'active' : '' ?>"><a href="../mis/ticketAssign.php" class="menu-link"><div>Ticket Assignment</div></a></li><?php endif; ?>
+            <?php if (access_can('mis.machine_inspection')): ?><li class="menu-item <?= $currentPage === 'mir.php' ? 'active' : '' ?>"><a href="../mis/mir.php" class="menu-link"><div>Machine Inspection Report</div></a></li><?php endif; ?>
+            <?php endif; ?>
+
           </ul>
         </li>
         <?php endif; ?>
