@@ -5,8 +5,13 @@
 set_time_limit(0);
 ini_set('memory_limit', '512M');
 
+session_start();
 require '../../vendor/autoload.php';
 require '../../db.php';
+require '../../lib/access_control.php';
+require '../login_verification.php';
+
+access_require('special.payroll_management');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -24,6 +29,11 @@ function fail($msg)
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     fail("Invalid request method.");
+}
+
+if (empty($_SESSION['payroll_csrf']) ||
+    !hash_equals($_SESSION['payroll_csrf'], (string) ($_POST['csrf_token'] ?? ''))) {
+    fail("The form expired. Refresh the page and try again.");
 }
 
 /* =====================
@@ -90,8 +100,8 @@ $checkStmt = $conn->prepare("
     WHERE batch_id = ?
       AND emp_id = ?
       AND account_code = ?
-      AND payroll_from = ?
-      AND payroll_to = ?
+      AND payroll_from <=> ?
+      AND payroll_to <=> ?
     LIMIT 1
 ");
 
@@ -172,7 +182,10 @@ for ($i = 1; $i < count($rows); $i++) {
         $payroll_from,
         $payroll_to
     );
-    $checkStmt->execute();
+    if (!$checkStmt->execute()) {
+        $conn->rollback();
+        fail("Unable to verify duplicate payroll records.");
+    }
     $checkStmt->store_result();
 
     if ($checkStmt->num_rows > 0) {

@@ -64,9 +64,9 @@
                 </div>
 
                 <div class="card-footer bg-white border-0 text-center">
-                    <a href="payrollData.php" class="btn btn-outline-success btn-sm">
+                    <a href="../payrollmng.php#records" class="btn btn-outline-success btn-sm">
                         <i class="fa fa-table me-1"></i>
-                        View Payroll Data
+                        Manage Payroll Records
                     </a>
                 </div>
 
