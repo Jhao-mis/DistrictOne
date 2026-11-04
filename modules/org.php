@@ -1165,6 +1165,348 @@ $emp_id = $emp_id ?? '—';
 
     <!-- JAVASCRIPT FOR ORG CHART MODAL -->
     <script>
+        let modalOrgChartInstance = null;
+        let mainOrgChartInstance = null;
+        let pendingModalNodes = null;
+
+        const BALKAN_READY = (typeof OrgChart !== 'undefined');
+        const MAIN_CHART_START_SCALE = 1.0;   // 1.0 = real card size; lower = farther, higher = closer
+
+        // Chart node id -> code used by the existing DistrictOne modal / API
+        const ORG_CODE_MAP = {
+            bod: 'BOD', ogm: 'OGM', mis: 'MIS',
+            admin: 'ADMIN', hrd: 'HRD', pmmd: 'PMMD', gsd: 'GSD',
+            finance: 'FINANCE', budget: 'BUDGET', accounting: 'gad',
+            commercial: 'COMMERCIAL', bmrd: 'BILLING', cad: 'cad', ccd: 'CUSTOMER_CARE',
+            tsd: 'TECHNICAL', eamd: 'eamd', pamd: 'PIPELINE',
+            ops: 'OPERATIONS', production: 'PRODUCTION'
+        };
+
+        // ==========================================
+        // CARD TEMPLATES (two-tone, color-coded by level)
+        // ==========================================
+        function buildCardTemplate(c) {
+            const t = Object.assign({}, OrgChart.templates.ana);
+            t.size = [290, 105];
+
+            t.node = `
+                <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+                    <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.12"/>
+                    <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.08"/>
+                </filter>
+                <rect x="0" y="0" width="290" height="105" fill="${c.body}" rx="16" ry="16" filter="url(#card-shadow)" stroke="${c.stroke}" stroke-width="1.5"></rect>
+                <path d="M 0 16 A 16 16 0 0 1 16 0 L 274 0 A 16 16 0 0 1 290 16 L 290 50 L 0 50 Z" fill="#f8fafc" />
+                <line x1="0" y1="50" x2="290" y2="50" stroke="#e2e8f0" stroke-width="1" />
+            `;
+            t.field_0 = `
+                <foreignObject x="12" y="6" width="266" height="40">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; font-size: 10.5px; font-weight: 800; color: #0f172a; font-family: 'Inter', system-ui, sans-serif; text-transform: uppercase; line-height: 1.2; overflow: hidden; word-break: break-word; text-rendering: geometricPrecision; -webkit-font-smoothing: antialiased;">
+                        {val}
+                    </div>
+                </foreignObject>
+            `;
+            t.field_1 = `<text style="font-size: 11.5px; font-weight: 700; font-family: 'Inter', system-ui, sans-serif;" fill="#ffffff" x="145" y="72" text-anchor="middle">{val}</text>`;
+            t.field_2 = `<text style="font-size: 10px; font-weight: 600; font-family: 'Inter', system-ui, sans-serif;" fill="${c.sub}" x="145" y="90" text-anchor="middle">{val}</text>`;
+            t.img_0 = '';
+
+            if (typeof OrgChart.templates.ana.link === 'string') {
+                t.link = OrgChart.templates.ana.link
+                    .replace(/stroke="[^"]*"/, 'stroke="#94a3b8"')
+                    .replace(/stroke-width="[^"]*"/, 'stroke-width="2px"');
+            }
+            return t;
+        }
+
+        if (BALKAN_READY) {
+            OrgChart.SEARCH_PLACEHOLDER = "Search for department, division or plantilla...";
+            OrgChart.templates.twoToneTemplate = buildCardTemplate({ body: "#1e3a8a", stroke: "#3b82f6", sub: "#bfdbfe" });
+            OrgChart.templates.topTemplate = buildCardTemplate({ body: "#0f2a5c", stroke: "#38bdf8", sub: "#bae6fd" }); // BOD / OGM
+            OrgChart.templates.deptTemplate = buildCardTemplate({ body: "#1e3a8a", stroke: "#3b82f6", sub: "#bfdbfe" }); // Departments
+            OrgChart.templates.divisionTemplate = buildCardTemplate({ body: "#2563eb", stroke: "#93c5fd", sub: "#dbeafe" }); // Divisions
+            OrgChart.templates.staffTemplate = buildCardTemplate({ body: "#475569", stroke: "#94a3b8", sub: "#e2e8f0" }); // Secretaries
+            OrgChart.templates.sectionTemplate = buildCardTemplate({ body: "#0f766e", stroke: "#2dd4bf", sub: "#ccfbf1" }); // MIS section
+        }
+
+        // ==========================================
+        // HELPERS
+        // ==========================================
+        // Only cosmetic border changes. Do NOT touch placeholder/padding/font-size:
+        // Balkan draws its own placeholder layer behind the input (text would overlap).
+        function styleChartSearch(container) {
+            if (!container) return;
+            const searchInput = container.querySelector('input');
+            if (searchInput) {
+                searchInput.style.borderRadius = "20px";
+                searchInput.style.border = "1px solid #cbd5e1";
+                searchInput.style.outline = "none";
+            }
+        }
+
+        // ==========================================
+        // CHART HINT (Injected dynamically below search bar)
+        // ==========================================
+        function addChartHint(container) {
+            if (!container) return;
+
+            let hint = container.querySelector('#orgchart-hint');
+            if (!hint) {
+                hint = document.createElement('p');
+                hint.id = 'orgchart-hint';
+                hint.style.cssText = "position:absolute;margin:0;font-size:12px;line-height:1.5;color:#64748b;pointer-events:none;z-index:1;font-family:'Inter', system-ui, sans-serif;";
+                hint.innerHTML = 'Click a card for details &middot; Scroll to zoom &middot; Drag to pan';
+                container.appendChild(hint);
+            }
+
+            const input = container.querySelector('input');
+
+            const position = function () {
+                const cr = container.getBoundingClientRect();
+                const ir = input ? input.getBoundingClientRect() : null;
+                if (ir && ir.width > 0) {
+                    hint.style.top = (ir.bottom - cr.top + 8) + 'px';
+                    hint.style.left = (ir.left - cr.left + 12) + 'px';
+                    hint.style.right = 'auto';
+                    hint.style.width = Math.max(ir.width - 12, 220) + 'px';
+                } else {
+                    hint.style.top = '70px';
+                    hint.style.right = '16px';
+                    hint.style.left = 'auto';
+                    hint.style.width = '320px';
+                }
+            };
+            position();
+
+            // Hide hint kapag nag-type ang user sa search input
+            if (input && !input.dataset.hintBound) {
+                input.dataset.hintBound = '1';
+                input.addEventListener('input', function () {
+                    hint.style.display = input.value ? 'none' : 'block';
+                });
+            }
+
+            if (!container.dataset.hintResizeBound) {
+                container.dataset.hintResizeBound = '1';
+                window.addEventListener('resize', function () { setTimeout(position, 100); });
+            }
+        }
+
+        // Close-up on the BOD + OGM cards (Balkan's center() has no scale option -> set viewBox).
+        // Retries a few times because the layout may not be ready right after init.
+        function focusOnTopNodes(chart, container, attempt) {
+            attempt = attempt || 0;
+            if (!chart || !container) return;
+            try {
+                const cw = container.clientWidth;
+                const ch = container.clientHeight;
+                const bod = chart.getNode ? chart.getNode("bod") : null;
+                const ready = cw && ch && bod && typeof bod.x === 'number' && typeof bod.y === 'number';
+
+                if (!ready) {
+                    if (attempt < 6) {
+                        setTimeout(() => focusOnTopNodes(chart, container, attempt + 1), 150);
+                    } else {
+                        chart.fit();
+                        chart.center("bod");
+                    }
+                    return;
+                }
+                const vw = cw / MAIN_CHART_START_SCALE;
+                const vh = ch / MAIN_CHART_START_SCALE;
+                const x = bod.x + (bod.w || 290) / 2 - vw / 2;
+                const y = bod.y - 40;
+                chart.setViewBox([x, y, vw, vh]);
+            } catch (e) {
+                console.error("focusOnTopNodes error:", e);
+                try { chart.fit(); chart.center("bod"); } catch (_) { }
+            }
+        }
+
+        // ==========================================
+        // MAIN ORG CHART (Chart View tab)
+        // ==========================================
+        function renderBalkanOrgChart() {
+            const container = document.getElementById("balkan-tree-container");
+            if (!container) return;
+
+            if (!BALKAN_READY) {
+                container.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-muted small p-4 text-center">The chart library could not be loaded. Please check your connection and refresh the page, or use the Cards View.</div>';
+                return;
+            }
+
+            if (mainOrgChartInstance) {
+                setTimeout(() => {
+                    focusOnTopNodes(mainOrgChartInstance, container);
+                    styleChartSearch(container);
+                    addChartHint(container);
+                }, 50);
+                return;
+            }
+
+            const orgChartData = [
+        { id: "bod", pid: null, tags: ["top"], name: "OFFICE OF THE BOARD OF DIRECTORS", title: "Board of Directors", sg: "" },
+        { id: "ogm", pid: "bod", tags: ["top"], name: "OFFICE OF THE GENERAL MANAGER", title: "Exequiel A. Aguilar, Jr.", sg: "SG 26" },
+        { id: "mis", pid: "ogm", tags: ["assistant", "section"], name: "Management Info Services", title: "Engr. Jonathan Dave Fajarda", sg: "SG 19" },
+        
+        // Administrative Department & Divisions
+        { id: "admin", pid: "ogm", tags: ["dept"], name: "ADMINISTRATIVE DEPARTMENT", title: "Edwin L. Cartago", sg: "SG 26" },
+        { id: "admin_sec", pid: "admin", tags: ["assistant", "staff"], name: "Janine S. Bercasio", title: "Secretary B", sg: "SG 7" },
+        { id: "hrd", pid: "admin", tags: ["division"], name: "HUMAN RESOURCE DIVISION", title: "Elenita V. Panganiban", sg: "SG 24" },
+        { id: "pmmd", pid: "admin", tags: ["division"], name: "PROPERTY & MATERIALS MGT.", title: "Rolando M. Pizzara (OIC)", sg: "SG 24" },
+        { id: "gsd", pid: "admin", tags: ["division"], name: "GENERAL SERVICES DIVISION", title: "Emmanuel T. Salvador", sg: "SG 24" },
+        
+        // Finance Department & Divisions
+        { id: "finance", pid: "ogm", tags: ["dept"], name: "FINANCE DEPARTMENT", title: "Mercedes A. Carreon (OIC)", sg: "SG 26" },
+        { id: "finance_sec", pid: "finance", tags: ["assistant", "staff"], name: "Vacant", title: "Secretary B", sg: "SG 7" },
+        { id: "budget", pid: "finance", tags: ["division"], name: "BUDGET DIVISION", title: "Mercedes A. Carreon", sg: "SG 24" },
+        { id: "accounting", pid: "finance", tags: ["division"], name: "GENERAL ACCOUNTING DIV.", title: "Junsy Y. Nieron, CPA (OIC)", sg: "SG 24" },
+        
+        // Commercial Department & Divisions
+        { id: "commercial", pid: "ogm", tags: ["dept"], name: "COMMERCIAL DEPARTMENT", title: "Ma. Carmela M. Elepaño", sg: "SG 26" },
+        { id: "commercial_sec", pid: "commercial", tags: ["assistant", "staff"], name: "Verra Mae Mariano", title: "Secretary B", sg: "SG 7" },
+        { id: "bmrd", pid: "commercial", tags: ["division"], name: "BILLING & METER READING", title: "Basilisa Gillera (OIC)", sg: "SG 24" },
+        { id: "cad", pid: "commercial", tags: ["division"], name: "CUSTOMER ACCOUNTS DIV.", title: "Henry B. Junio", sg: "SG 24" },
+        { id: "ccd", pid: "commercial", tags: ["division"], name: "CUSTOMER CARE DIVISION", title: "Ronnie G. Sierva", sg: "SG 24" },
+        
+        // Technical Services Department & Divisions
+        { id: "tsd", pid: "ogm", tags: ["dept"], name: "TECHNICAL SERVICES DEPT.", title: "Engr. Ranely S. Cartago", sg: "SG 26" },
+        { id: "tsd_sec", pid: "tsd", tags: ["assistant", "staff"], name: "Joana Leana May V. Villanueva", title: "Secretary B", sg: "SG 7" },
+        { id: "eamd", pid: "tsd", tags: ["division"], name: "ENGINEERING & MAINTENANCE", title: "Engr. Rolando V. Baro", sg: "SG 24" },
+        { id: "pamd", pid: "tsd", tags: ["division"], name: "PIPELINE & APPURTENANCES", title: "Engr. Bernard Joseph Rodriguez (OIC)", sg: "SG 24" },
+        
+        // Operations Department & Divisions
+        { id: "ops", pid: "ogm", tags: ["dept"], name: "OPERATIONS DEPARTMENT", title: "Engr. Joselito A. Gillera", sg: "SG 26" },
+        { id: "ops_sec", pid: "ops", tags: ["assistant", "staff"], name: "Vacant", title: "Secretary B", sg: "SG 7" },
+        { id: "production", pid: "ops", tags: ["division"], name: "PRODUCTION DIVISION", title: "Engr. Elizaldy D. Novillos", sg: "SG 24" }
+    ];
+
+            try {
+                mainOrgChartInstance = new OrgChart(container, {
+                    nodes: orgChartData,
+                    enableSearch: true,
+                    mouseScrool: OrgChart.action.zoom,   // scroll = zoom, no Ctrl
+                    scaleMin: 0.2,
+                    scaleMax: 3,
+                    scaleInitial: 1,
+                    nodeMouseClick: OrgChart.action.none,
+                    layout: OrgChart.top,
+                    template: "twoToneTemplate",
+                    tags: {
+                        top: { template: "topTemplate" },
+                        dept: { template: "deptTemplate" },
+                        division: { template: "divisionTemplate" },
+                        staff: { template: "staffTemplate" },
+                        section: { template: "sectionTemplate" }
+                    },
+                    nodeBinding: { field_0: "name", field_1: "title", field_2: "sg" }
+                });
+
+                mainOrgChartInstance.onNodeClick(function (args) {
+                    const nodeId = args.node.id;
+                    const nonClickableIds = ['admin', 'finance', 'commercial', 'tsd', 'ops'];
+                    if (nonClickableIds.includes(nodeId) || nodeId.endsWith('_sec')) return false;   // same as website
+                    const code = ORG_CODE_MAP[nodeId];
+                    if (code) openOrgModal(code);
+                    return false;
+                });
+
+                mainOrgChartInstance.onInit(function () {
+                    focusOnTopNodes(mainOrgChartInstance, container);
+                    styleChartSearch(container);
+                    addChartHint(container);
+                });
+
+                setTimeout(() => {
+                    if (mainOrgChartInstance) {
+                        focusOnTopNodes(mainOrgChartInstance, container);
+                        styleChartSearch(container);
+                        addChartHint(container);
+                    }
+                }, 150);
+            } catch (err) {
+                console.error("OrgChart error:", err);
+            }
+        }
+
+        // ==========================================
+        // MODAL: nodes for the sub-chart
+        // ==========================================
+        function buildModalNodes(key, data) {
+            let subNodes = [];
+
+            if (key === 'bod') {
+                subNodes.push({ id: "bod_root", pid: null, name: "OFFICE OF THE BOARD OF DIRECTORS", title: "Board of Directors", sg: "" });
+                subNodes.push({ id: "bod_chair", pid: "bod_root", name: "RONALDO J. PUA", title: "Chairperson", sg: "" });
+                subNodes.push({ id: "bod_vice", pid: "bod_root", name: "ATTY. DANTE M. MANGUIAT", title: "Vice-Chairperson", sg: "" });
+                subNodes.push({ id: "bod_sec", pid: "bod_root", name: "SATURNINO J. LAJARA", title: "Corporate Secretary", sg: "" });
+                subNodes.push({ id: "bod_treas", pid: "bod_root", name: "ALICIA V. LLAMAS", title: "Treasurer", sg: "" });
+                subNodes.push({ id: "bod_pro", pid: "bod_root", name: "BRYAN A. ERCIA", title: "Public Relations Officer", sg: "" });
+
+                subNodes.push({ id: "agenda_officer", pid: "bod_chair", tags: ["assistant"], name: "AMIE B. MENDOZA", title: "Minutes/Agenda Officer B", sg: "SG 11" });
+                subNodes.push({ id: "tech_assist", pid: "bod_chair", tags: ["assistant"], name: "VACANT", title: "Technical Assistant B", sg: "SG 20" });
+                subNodes.push({ id: "admin_assist", pid: "agenda_officer", name: "VACANT", title: "Admin Services Assistant C", sg: "SG 8" });
+            } else if (key === 'ogm') {
+                let gm = data.manager;
+                subNodes.push({ id: "ogm_root", pid: null, name: gm ? gm.employee_name : 'Exequiel A. Aguilar, Jr.', title: gm ? gm.position_title : 'General Manager A', sg: gm ? `SG ${gm.salary_grade}` : 'SG 26' });
+
+                let dbPositions = [];
+                if (data.positions && Array.isArray(data.positions)) dbPositions = dbPositions.concat(data.positions);
+                if (data.sections && Array.isArray(data.sections)) {
+                    data.sections.forEach(sec => { if (sec.positions) dbPositions = dbPositions.concat(sec.positions); });
+                }
+
+                let privSec = dbPositions.find(p => p.position_title.toLowerCase().includes('private secretary'));
+                let driver = dbPositions.find(p => p.position_title.toLowerCase().includes('driver'));
+
+                if (privSec) subNodes.push({ id: "priv_sec", pid: "ogm_root", tags: ["assistant"], name: privSec.employee_name, title: privSec.position_title, sg: `SG ${privSec.salary_grade}` });
+                if (driver) subNodes.push({ id: "driver_node", pid: "ogm_root", tags: ["assistant"], name: driver.employee_name, title: driver.position_title, sg: `SG ${driver.salary_grade}` });
+
+                let filteredPositions = dbPositions.filter(p => (!gm || p.id !== gm.id) && (!privSec || p.id !== privSec.id) && (!driver || p.id !== driver.id));
+
+                let col1 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('executive assistant') || p.position_title.toLowerCase().includes('customer service'));
+                let col2 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('plan'));
+                let col3 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('internal control'));
+                let col4 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('attorney') || p.position_title.toLowerCase().includes('legal'));
+                let col5 = filteredPositions.filter(p => p.position_title.toLowerCase().includes('mis') || p.position_title.toLowerCase().includes('computer') || p.position_title.toLowerCase().includes('encoder') || p.position_title.toLowerCase().includes('data') || p.employee_name.toLowerCase().includes('fajarda') || p.employee_name.toLowerCase().includes('dave'));
+
+                col5.sort((a, b) => (a.employee_name.toLowerCase().includes('fajarda') || a.employee_name.toLowerCase().includes('dave')) ? -1 : 1);
+
+                function addColumnNodes(colArray, colPrefix) {
+                    let parentId = "ogm_root";
+                    colArray.forEach((pos, idx) => {
+                        let nodeId = `${colPrefix}_${idx}`;
+                        subNodes.push({ id: nodeId, pid: parentId, name: pos.employee_name, title: pos.position_title, sg: `SG ${pos.salary_grade}` });
+                        parentId = nodeId;
+                    });
+                }
+                addColumnNodes(col1, "col1"); addColumnNodes(col2, "col2"); addColumnNodes(col3, "col3"); addColumnNodes(col4, "col4"); addColumnNodes(col5, "col5");
+            } else {
+                let rootId = "dept_root";
+                subNodes.push({ id: rootId, pid: null, name: data.manager ? (data.manager.employee_name || 'Vacant') : (data.title || 'Office'), title: data.manager ? data.manager.position_title : 'Department Manager', sg: data.manager?.salary_grade ? `SG ${data.manager.salary_grade}` : 'SG 26' });
+
+                if (data.secretary) {
+                    subNodes.push({ id: "sec_node", pid: rootId, tags: ["assistant"], name: data.secretary.employee_name || 'Vacant', title: data.secretary.position_title, sg: `SG ${data.secretary.salary_grade || 7}` });
+                }
+
+                let allPositions = [];
+                if (data.sections && Array.isArray(data.sections)) data.sections.forEach(sec => sec.positions && sec.positions.forEach(p => allPositions.push(p)));
+                if (data.divisions && Array.isArray(data.divisions)) data.divisions.forEach(div => div.positions && div.positions.forEach(p => allPositions.push(p)));
+                if (data.positions && Array.isArray(data.positions)) data.positions.forEach(p => allPositions.push(p));
+
+                allPositions.sort((a, b) => (parseInt(b.salary_grade) || 0) - (parseInt(a.salary_grade) || 0));
+
+                let previousId = rootId;
+                allPositions.forEach((pos, idx) => {
+                    let currentId = `pos_sg_${idx}`;
+                    subNodes.push({ id: currentId, pid: previousId, name: pos.employee_name || 'Vacant', title: pos.position_title, sg: pos.salary_grade ? `SG ${pos.salary_grade}` : 'SG --' });
+                    previousId = currentId;
+                });
+            }
+            return subNodes;
+        }
+
+        // ==========================================
+        // MODAL: open / render / close
+        // ==========================================
         async function openOrgModal(code) {
             try {
                 const currentUrl = window.location.pathname;
