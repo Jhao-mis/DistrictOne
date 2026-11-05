@@ -31,6 +31,93 @@ if (!access_can('special.room_reservation')) {
   exit();
 }
 
+if (isset($_GET['schedule_calendar'])) {
+  header('Content-Type: application/json; charset=utf-8');
+
+  $month = (string) ($_GET['month'] ?? '');
+  $room = trim((string) ($_GET['room'] ?? 'all'));
+  $validMonthFormat = preg_match('/^\d{4}-\d{2}$/', $month) === 1;
+  $monthStart = $validMonthFormat ? DateTimeImmutable::createFromFormat('!Y-m-d', $month . '-01') : false;
+  $dateErrors = DateTimeImmutable::getLastErrors();
+  $validMonth = $monthStart !== false
+    && ($dateErrors === false || ($dateErrors['warning_count'] === 0 && $dateErrors['error_count'] === 0))
+    && $monthStart->format('Y-m') === $month;
+
+  if (!$validMonth) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Choose a valid month.']);
+    exit();
+  }
+
+  $monthEnd = $monthStart->modify('first day of next month');
+  $startDate = $monthStart->format('Y-m-d');
+  $endDate = $monthEnd->format('Y-m-d');
+  if ($room === 'all') {
+    $calendarStatement = $conn->prepare("
+      SELECT rr.id, rr.room, rr.reservation_date, rr.start_time, rr.end_time,
+             rr.status, rr.purpose, rr.department, rr.participants,
+             CASE WHEN rr.status = 'Pending' AND EXISTS (
+               SELECT 1
+               FROM room_reservations overlap
+               WHERE overlap.id <> rr.id
+                 AND overlap.room = rr.room
+                 AND overlap.reservation_date = rr.reservation_date
+                 AND overlap.status IN ('Pending', 'Approved')
+                 AND overlap.start_time < rr.end_time
+                 AND overlap.end_time > rr.start_time
+             ) THEN 1 ELSE 0 END AS has_conflict,
+             CONCAT(u.firstname, ' ', u.lastname) AS requested_by
+      FROM room_reservations rr
+      LEFT JOIN users u ON rr.user_id = u.id
+      WHERE rr.reservation_date >= ? AND rr.reservation_date < ?
+      ORDER BY rr.reservation_date, rr.room, rr.start_time
+    ");
+    $calendarStatement->bind_param('ss', $startDate, $endDate);
+  } else {
+    $calendarStatement = $conn->prepare("
+      SELECT rr.id, rr.room, rr.reservation_date, rr.start_time, rr.end_time,
+             rr.status, rr.purpose, rr.department, rr.participants,
+             CASE WHEN rr.status = 'Pending' AND EXISTS (
+               SELECT 1
+               FROM room_reservations overlap
+               WHERE overlap.id <> rr.id
+                 AND overlap.room = rr.room
+                 AND overlap.reservation_date = rr.reservation_date
+                 AND overlap.status IN ('Pending', 'Approved')
+                 AND overlap.start_time < rr.end_time
+                 AND overlap.end_time > rr.start_time
+             ) THEN 1 ELSE 0 END AS has_conflict,
+             CONCAT(u.firstname, ' ', u.lastname) AS requested_by
+      FROM room_reservations rr
+      LEFT JOIN users u ON rr.user_id = u.id
+      WHERE rr.room = ? AND rr.reservation_date >= ? AND rr.reservation_date < ?
+      ORDER BY rr.reservation_date, rr.start_time
+    ");
+    $calendarStatement->bind_param('sss', $room, $startDate, $endDate);
+  }
+  $calendarStatement->execute();
+  $calendarResult = $calendarStatement->get_result();
+  $calendarReservations = [];
+  while ($calendarReservation = $calendarResult->fetch_assoc()) {
+    $calendarReservations[$calendarReservation['reservation_date']][] = [
+      'id' => (int) $calendarReservation['id'],
+      'room' => $calendarReservation['room'],
+      'reservation_date' => $calendarReservation['reservation_date'],
+      'start_time' => substr($calendarReservation['start_time'], 0, 5),
+      'end_time' => substr($calendarReservation['end_time'], 0, 5),
+      'status' => $calendarReservation['status'],
+      'has_conflict' => (bool) $calendarReservation['has_conflict'],
+      'purpose' => $calendarReservation['purpose'] ?? '',
+      'department' => $calendarReservation['department'] ?? '',
+      'participants' => (int) $calendarReservation['participants'],
+      'requested_by' => trim($calendarReservation['requested_by'] ?? '') ?: 'Unknown',
+    ];
+  }
+  echo json_encode($calendarReservations, JSON_THROW_ON_ERROR);
+  $calendarStatement->close();
+  exit();
+}
+
 // ✅ DEFINE SIDEBAR PATH HERE (Fixes line 107 error)
 $sidebarPath = match ($role) {
   'User' => '../user/sidebar.php',
@@ -59,11 +146,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action'], $_POST['res
 }
 
 // ✅ Fetch all reservations
-$sql = "SELECT rr.*, CONCAT(u.firstname, ' ', u.lastname) AS requested_by 
+$sql = "SELECT rr.*,
+        CASE WHEN rr.status = 'Pending' AND EXISTS (
+          SELECT 1
+          FROM room_reservations overlap
+          WHERE overlap.id <> rr.id
+            AND overlap.room = rr.room
+            AND overlap.reservation_date = rr.reservation_date
+            AND overlap.status IN ('Pending', 'Approved')
+            AND overlap.start_time < rr.end_time
+            AND overlap.end_time > rr.start_time
+        ) THEN 1 ELSE 0 END AS has_conflict,
+        CONCAT(u.firstname, ' ', u.lastname) AS requested_by
         FROM room_reservations rr 
         LEFT JOIN users u ON rr.user_id = u.id 
         ORDER BY rr.id DESC";
 $result = $conn->query($sql);
+$calendarRoomsResult = $conn->query("SELECT DISTINCT room FROM room_reservations WHERE room IS NOT NULL AND room <> '' ORDER BY room");
+$calendarRooms = $calendarRoomsResult->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -94,6 +194,12 @@ $result = $conn->query($sql);
     .table-hover tbody tr:hover {
       background-color: rgba(105, 108, 255, 0.08) !important;
     }
+
+    #reservationTable tbody tr.reservation-conflict > td {
+      background-color: #fff3cd !important;
+    }
+
+    .conflict-badge { margin: .25rem 0 0 .15rem; }
 
     .status-badge {
       font-weight: 700;
@@ -142,6 +248,126 @@ $result = $conn->query($sql);
     .swal2-top-end {
       margin-top: 20px;
     }
+
+    .schedule-card { margin-bottom: 1.5rem; }
+    #roomScheduleModal .modal-dialog { max-width: 1120px; }
+    #roomScheduleModal .modal-body { overflow-x: hidden; }
+    #roomScheduleModal .schedule-card { margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+    .schedule-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: .75rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e4e6ef;
+    }
+    .schedule-toolbar h5 { margin: 0; color: #344054; font-weight: 700; }
+    .schedule-toolbar p { margin: .2rem 0 0; color: #697586; font-size: .82rem; }
+    .schedule-controls { display: flex; align-items: center; gap: .5rem; }
+    .schedule-room-filter {
+      width: min(320px, 52vw);
+      min-height: 38px;
+      border: 1px solid #dfe3eb;
+      border-radius: 7px;
+      padding: .4rem .65rem;
+      background: #fff;
+    }
+    .schedule-refresh-state { color: #697586; font-size: .75rem; white-space: nowrap; }
+    .schedule-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
+      gap: 1.25rem;
+      padding: 1.25rem;
+    }
+    .schedule-monthbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+    .schedule-monthbar h6 { margin: 0; color: #344054; font-weight: 700; }
+    .schedule-month-controls { display: flex; gap: .35rem; }
+    .schedule-month-controls button {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #dfe3eb;
+      border-radius: 7px;
+      background: #fff;
+      color: #697586;
+    }
+    .schedule-month-controls button:hover { border-color: #696cff; color: #696cff; }
+    .schedule-weekdays, .schedule-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .schedule-weekdays span {
+      padding: .45rem 0;
+      color: #697586;
+      text-align: center;
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .schedule-day {
+      min-height: 54px;
+      margin: 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #344054;
+      font-size: .82rem;
+    }
+    .schedule-day:hover { background: #f3f4ff; }
+    .schedule-day.is-outside { color: #adb5c0; }
+    .schedule-day.is-today { border-color: #b7b9ff; font-weight: 700; }
+    .schedule-day.is-selected { color: #fff; background: #696cff; font-weight: 700; }
+    .schedule-day.is-selected:hover { background: #5558e8; }
+    .schedule-day-dots { display: flex; gap: 3px; min-height: 6px; }
+    .schedule-dot { width: 5px; height: 5px; border-radius: 50%; background: #f5b942; }
+    .schedule-dot.approved { background: #71dd37; }
+    .schedule-dot.rejected { background: #ff3e1d; }
+    .schedule-dot.conflict { background: #ff9800; }
+    .schedule-legend { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: .75rem; color: #697586; font-size: .72rem; }
+    .schedule-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+    .schedule-agenda { min-height: 270px; padding: 1rem; border: 1px solid #e4e6ef; border-radius: 9px; background: #fbfcfe; }
+    .schedule-agenda h6 { margin: 0; color: #344054; font-weight: 700; }
+    .schedule-agenda-date { margin: .2rem 0 .85rem; color: #697586; font-size: .75rem; }
+    .schedule-agenda-list { display: grid; gap: .55rem; }
+    .schedule-event {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: .6rem;
+      width: 100%;
+      padding: .7rem;
+      border: 1px solid #e4e6ef;
+      border-left: 3px solid #f5b942;
+      border-radius: 7px;
+      background: #fff;
+      text-align: left;
+    }
+    .schedule-event.is-approved { border-left-color: #71dd37; }
+    .schedule-event.is-rejected { border-left-color: #ff3e1d; }
+    .schedule-event.is-conflict { border-color: #ffb74d; border-left-color: #ff9800; background: #fff8e6; }
+    .schedule-event:hover { background: #f8f9ff; }
+    .schedule-event-room { display: block; color: #344054; font-size: .78rem; font-weight: 700; }
+    .schedule-event-meta { display: block; margin-top: .18rem; color: #697586; font-size: .7rem; }
+    .schedule-event-status { flex-shrink: 0; }
+    .schedule-empty { padding: 1.5rem .5rem; color: #697586; font-size: .8rem; text-align: center; }
+    .schedule-loading { opacity: .6; pointer-events: none; }
+    .schedule-error { color: #ff3e1d; }
+    @media (max-width: 767.98px) {
+      .schedule-body { grid-template-columns: 1fr; padding: .85rem; }
+      .schedule-toolbar { align-items: stretch; }
+      .schedule-controls { justify-content: space-between; }
+      .schedule-room-filter { width: 100%; }
+      .schedule-day { min-height: 44px; margin: 1px; }
+    }
   </style>
 </head>
 
@@ -171,6 +397,65 @@ $result = $conn->query($sql);
         </div>
       </div>
 
+      <div class="modal fade" id="roomScheduleModal" tabindex="-1" aria-labelledby="scheduleTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title fw-bold" id="scheduleTitle"><i class="bx bx-calendar me-1 text-primary"></i> Room Schedule</h5>
+                <p class="mb-0 mt-1 text-muted small">Monitor room bookings and reservation status for the selected date.</p>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close room schedule"></button>
+            </div>
+            <div class="modal-body p-0">
+      <section class="schedule-card" aria-labelledby="scheduleTitle">
+        <div class="schedule-toolbar">
+          <div>
+            <h5>Schedule Overview</h5>
+            <p>Pending, approved, and rejected reservations by room and date.</p>
+          </div>
+          <div class="schedule-controls">
+            <label class="visually-hidden" for="scheduleRoomFilter">Filter calendar by room</label>
+            <select class="schedule-room-filter" id="scheduleRoomFilter">
+              <option value="all">All Rooms</option>
+              <?php foreach ($calendarRooms as $calendarRoom): ?>
+                <option value="<?= htmlspecialchars($calendarRoom['room'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($calendarRoom['room'], ENT_QUOTES, 'UTF-8') ?></option>
+              <?php endforeach; ?>
+            </select>
+            <span class="schedule-refresh-state" id="scheduleRefreshState" role="status" aria-live="polite">Live</span>
+          </div>
+        </div>
+        <div class="schedule-body" id="roomSchedule" aria-busy="true">
+          <div>
+            <div class="schedule-monthbar">
+              <h6 id="scheduleMonthLabel"><?= htmlspecialchars(date('F Y'), ENT_QUOTES, 'UTF-8') ?></h6>
+              <div class="schedule-month-controls">
+                <button type="button" id="schedulePrevMonth" aria-label="Previous month"><i class="bx bx-chevron-left"></i></button>
+                <button type="button" id="scheduleNextMonth" aria-label="Next month"><i class="bx bx-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="schedule-weekdays" aria-hidden="true">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div class="schedule-days" id="scheduleDays" role="grid" aria-label="Reservation schedule calendar"></div>
+            <div class="schedule-legend">
+              <span><i class="schedule-dot"></i> Pending</span>
+              <span><i class="schedule-dot approved"></i> Approved</span>
+              <span><i class="schedule-dot rejected"></i> Rejected</span>
+            </div>
+          </div>
+          <aside class="schedule-agenda" aria-live="polite">
+            <h6 id="scheduleAgendaTitle">Select a date</h6>
+            <div class="schedule-agenda-date" id="scheduleAgendaRoom"></div>
+            <div class="schedule-agenda-list" id="scheduleAgendaList"></div>
+          </aside>
+        </div>
+      </section>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center border-bottom mb-3">
           <h5 class="mb-0 fw-bold">Room Reservation Approval Panel</h5>
@@ -192,7 +477,8 @@ $result = $conn->query($sql);
               <tbody>
                 <?php if ($result && $result->num_rows > 0): ?>
                   <?php while ($r = $result->fetch_assoc()): ?>
-                    <tr class="clickable-row" data-id="<?= $r['id']; ?>"
+                    <tr class="clickable-row <?= !empty($r['has_conflict']) ? 'table-warning reservation-conflict' : '' ?>" data-id="<?= $r['id']; ?>"
+                      title="Select to open the room calendar for this request"
                       data-json='<?= htmlspecialchars(json_encode($r), ENT_QUOTES, 'UTF-8'); ?>'>
                       <td><span class="fw-bold text-primary">#<?= $r['id']; ?></span></td>
                       <td>
@@ -214,6 +500,9 @@ $result = $conn->query($sql);
                       <td>
                         <?php $sCls = match ($r['status']) { 'Approved' => 'bg-label-success', 'Pending' => 'bg-label-warning', default => 'bg-label-danger'}; ?>
                         <span class="badge <?= $sCls ?> status-badge"><?= $r['status']; ?></span>
+                        <?php if (!empty($r['has_conflict'])): ?>
+                          <span class="badge bg-label-danger conflict-badge" title="Overlaps another pending or approved reservation">Conflict</span>
+                        <?php endif; ?>
                       </td>
                       <td class="text-center">
                         <form method="POST" class="action-form">
@@ -325,6 +614,221 @@ $result = $conn->query($sql);
             "pageLength": 10
         });
 
+        function refreshReservationTable() {
+            const pageInfo = table.page.info();
+            return $.get(location.href).done(function(data) {
+                const newTbody = $(data).find('#reservationTable tbody').html();
+                if (newTbody === undefined) return;
+
+                table.destroy();
+                $('#reservationTable tbody').html(newTbody);
+                table = $('#reservationTable').DataTable({
+                    "order": [[0, "desc"]],
+                    "columnDefs": [{ "type": "num-fmt", "targets": 0 }],
+                    "pageLength": 10,
+                    "displayStart": pageInfo.start
+                });
+            });
+        }
+
+        const scheduleRoot = document.getElementById('roomSchedule');
+        const scheduleModalElement = document.getElementById('roomScheduleModal');
+        const scheduleModal = new bootstrap.Modal(scheduleModalElement);
+        const scheduleRoomFilter = document.getElementById('scheduleRoomFilter');
+        const scheduleDays = document.getElementById('scheduleDays');
+        const scheduleMonthLabel = document.getElementById('scheduleMonthLabel');
+        const scheduleAgendaTitle = document.getElementById('scheduleAgendaTitle');
+        const scheduleAgendaRoom = document.getElementById('scheduleAgendaRoom');
+        const scheduleAgendaList = document.getElementById('scheduleAgendaList');
+        const scheduleRefreshState = document.getElementById('scheduleRefreshState');
+        const today = new Date();
+        let scheduleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        let selectedScheduleDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        let scheduleReservations = {};
+        let scheduleRequest;
+        let scheduleRefreshTimer;
+
+        function formatScheduleDate(dateString, options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) {
+            const [year, month, day] = dateString.split('-').map(Number);
+            return new Date(year, month - 1, day).toLocaleDateString(undefined, options);
+        }
+
+        function showReservationDetails(data) {
+            $('#modalReqId').text('#' + data.id);
+            $('#modalRequested').text(data.requested_by || 'Unknown');
+            $('#modalDept').text(data.department || 'N/A');
+            $('#modalRoom').text(data.room || 'N/A');
+            $('#modalParticipants').text((data.participants ?? 'N/A') + ' Persons');
+            $('#modalDate').text(data.reservation_date);
+            $('#modalTime').text(data.start_time + ' - ' + data.end_time);
+            $('#modalPurpose').text(data.purpose || 'No details provided.');
+
+            const statusClass = data.status === 'Approved'
+                ? 'bg-label-success'
+                : data.status === 'Pending' ? 'bg-label-warning' : 'bg-label-danger';
+            $('#modalStatus').text(data.status).attr('class', 'badge status-badge px-3 py-2 rounded-pill ' + statusClass);
+            new bootstrap.Modal(document.getElementById('reservationModal')).show();
+        }
+
+        function openScheduleForReservation(data) {
+            const [year, month] = data.reservation_date.split('-').map(Number);
+            selectedScheduleDate = data.reservation_date;
+            scheduleMonth = new Date(year, month - 1, 1);
+            scheduleRoomFilter.value = Array.from(scheduleRoomFilter.options)
+                .some(option => option.value === data.room) ? data.room : 'all';
+            scheduleRefreshState.textContent = 'Loading schedule…';
+            scheduleModal.show();
+            if (scheduleModalElement.classList.contains('show')) loadSchedule();
+        }
+
+        function renderScheduleAgenda() {
+            const reservations = scheduleReservations[selectedScheduleDate] || [];
+            scheduleAgendaTitle.textContent = formatScheduleDate(selectedScheduleDate);
+            scheduleAgendaRoom.textContent = scheduleRoomFilter.value === 'all' ? 'All Rooms' : scheduleRoomFilter.value;
+            scheduleAgendaList.replaceChildren();
+
+            if (!reservations.length) {
+                const empty = document.createElement('div');
+                empty.className = 'schedule-empty';
+                empty.textContent = 'No reservations scheduled for this date and room filter.';
+                scheduleAgendaList.appendChild(empty);
+                return;
+            }
+
+            reservations.forEach(reservation => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                const statusType = reservation.status.toLowerCase();
+                button.className = `schedule-event is-${statusType}${reservation.has_conflict ? ' is-conflict' : ''}`;
+                button.setAttribute('aria-label', `${reservation.room}, ${reservation.start_time} to ${reservation.end_time}, ${reservation.status}. Open reservation details.`);
+
+                const details = document.createElement('span');
+                const room = document.createElement('span');
+                room.className = 'schedule-event-room';
+                room.textContent = reservation.room;
+                const meta = document.createElement('span');
+                meta.className = 'schedule-event-meta';
+                meta.textContent = `${reservation.start_time}–${reservation.end_time} · ${reservation.requested_by}`;
+                details.append(room, meta);
+
+                const status = document.createElement('span');
+                const badgeType = reservation.has_conflict ? 'danger' : reservation.status === 'Approved' ? 'success'
+                    : reservation.status === 'Pending' ? 'warning' : 'danger';
+                status.className = `badge bg-label-${badgeType} status-badge schedule-event-status`;
+                status.textContent = reservation.has_conflict ? 'Conflict · Pending' : reservation.status;
+                button.append(details, status);
+                button.addEventListener('click', () => showReservationDetails(reservation));
+                scheduleAgendaList.appendChild(button);
+            });
+        }
+
+        function renderScheduleCalendar() {
+            const year = scheduleMonth.getFullYear();
+            const month = scheduleMonth.getMonth();
+            scheduleMonthLabel.textContent = scheduleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+            scheduleDays.replaceChildren();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const cellCount = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            for (let index = 0; index < cellCount; index++) {
+                const date = new Date(year, month, index - firstDay + 1);
+                const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                const reservations = scheduleReservations[dateString] || [];
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'schedule-day';
+                button.setAttribute('role', 'gridcell');
+                button.setAttribute('aria-label', `${formatScheduleDate(dateString)}${reservations.length ? `, ${reservations.length} reservation${reservations.length === 1 ? '' : 's'}` : ', no reservations'}`);
+                if (date.getMonth() !== month) button.classList.add('is-outside');
+                if (dateString === todayString) button.classList.add('is-today');
+                if (dateString === selectedScheduleDate) button.classList.add('is-selected');
+                button.appendChild(document.createTextNode(String(date.getDate())));
+
+                const dots = document.createElement('span');
+                dots.className = 'schedule-day-dots';
+                [...new Set(reservations.map(reservation => reservation.has_conflict ? 'conflict' : reservation.status.toLowerCase()))].slice(0, 3).forEach(status => {
+                    const dot = document.createElement('i');
+                    dot.className = `schedule-dot ${status}`;
+                    dot.setAttribute('aria-hidden', 'true');
+                    dots.appendChild(dot);
+                });
+                button.appendChild(dots);
+                button.addEventListener('click', () => {
+                    selectedScheduleDate = dateString;
+                    if (date.getMonth() !== month || date.getFullYear() !== year) {
+                        scheduleMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                        loadSchedule();
+                    } else {
+                        renderScheduleCalendar();
+                    }
+                });
+                scheduleDays.appendChild(button);
+            }
+            renderScheduleAgenda();
+        }
+
+        async function loadSchedule() {
+            if (!scheduleModalElement.classList.contains('show')) return;
+            if (scheduleRequest) scheduleRequest.abort();
+            const request = new AbortController();
+            scheduleRequest = request;
+            scheduleRoot.setAttribute('aria-busy', 'true');
+            scheduleRoot.classList.add('schedule-loading');
+            scheduleRefreshState.textContent = 'Updating…';
+            const month = `${scheduleMonth.getFullYear()}-${String(scheduleMonth.getMonth() + 1).padStart(2, '0')}`;
+            const params = new URLSearchParams({
+                schedule_calendar: '1',
+                month,
+                room: scheduleRoomFilter.value
+            });
+
+            try {
+                const response = await fetch(`approveRoom.php?${params.toString()}`, {
+                    headers: { 'Accept': 'application/json' },
+                    signal: request.signal
+                });
+                if (!response.ok) throw new Error(`Schedule request failed (${response.status}).`);
+                scheduleReservations = await response.json();
+                renderScheduleCalendar();
+                scheduleRefreshState.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                scheduleRefreshState.textContent = 'Schedule unavailable';
+                scheduleAgendaList.replaceChildren();
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'schedule-empty schedule-error';
+                errorMessage.textContent = 'Unable to load the room schedule. Please try again.';
+                scheduleAgendaList.appendChild(errorMessage);
+                console.error('Room schedule update failed:', error);
+            } finally {
+                if (scheduleRequest === request) {
+                    scheduleRoot.setAttribute('aria-busy', 'false');
+                    scheduleRoot.classList.remove('schedule-loading');
+                }
+            }
+        }
+
+        document.getElementById('schedulePrevMonth').addEventListener('click', () => {
+            scheduleMonth = new Date(scheduleMonth.getFullYear(), scheduleMonth.getMonth() - 1, 1);
+            selectedScheduleDate = `${scheduleMonth.getFullYear()}-${String(scheduleMonth.getMonth() + 1).padStart(2, '0')}-01`;
+            loadSchedule();
+        });
+        document.getElementById('scheduleNextMonth').addEventListener('click', () => {
+            scheduleMonth = new Date(scheduleMonth.getFullYear(), scheduleMonth.getMonth() + 1, 1);
+            selectedScheduleDate = `${scheduleMonth.getFullYear()}-${String(scheduleMonth.getMonth() + 1).padStart(2, '0')}-01`;
+            loadSchedule();
+        });
+        scheduleRoomFilter.addEventListener('change', loadSchedule);
+        scheduleModalElement.addEventListener('shown.bs.modal', () => {
+            loadSchedule();
+            scheduleRefreshTimer = window.setInterval(loadSchedule, 15000);
+        });
+        scheduleModalElement.addEventListener('hidden.bs.modal', () => {
+            window.clearInterval(scheduleRefreshTimer);
+            if (scheduleRequest) scheduleRequest.abort();
+        });
         // 2. Real-time Polling Logic
         let currentPendingCount = -1;
 
@@ -347,26 +851,7 @@ $result = $conn->query($sql);
                             text: 'Updating list...', showConfirmButton: false, timer: 2000
                         });
 
-                        // ✅ SILENT TABLE REFRESH
-                        $.get(location.href, function(data) {
-                            // 1. Grab the current page/state
-                            let pageInfo = table.page.info();
-
-                            // 2. Extract the new table body HTML from the fetched data
-                            let newTbody = $(data).find('#reservationTable tbody').html();
-
-                            // 3. Destroy old table and inject new rows
-                            table.destroy();
-                            $('#reservationTable tbody').html(newTbody);
-
-                            // 4. Re-initialize and return to the previous page
-                            table = $('#reservationTable').DataTable({
-                                "order": [[0, "desc"]],
-                                "columnDefs": [{ "type": "num-fmt", "targets": 0 }],
-                                "pageLength": 10,
-                                "displayStart": pageInfo.start // Stays on the same page!
-                            });
-                        });
+                        refreshReservationTable();
                     }
                     currentPendingCount = newCount;
                     $('#countPending').text(newCount);
@@ -406,13 +891,22 @@ $result = $conn->query($sql);
                             const statusBadge = row.find('.status-badge');
                             const newClass = type === 'approve' ? 'bg-label-success' : 'bg-label-danger';
                             statusBadge.text(actionVerb).attr('class', 'badge status-badge ' + newClass);
+                            const rowData = row.data('json');
+                            if (rowData) {
+                                rowData.status = actionVerb;
+                                row.attr('data-json', JSON.stringify(rowData));
+                            }
                             
                             // Immediately sync the count
                             checkNewRequests(); 
+                            refreshReservationTable();
+                            loadSchedule();
                             
                             // Close modal if open
                             bootstrap.Modal.getInstance(document.getElementById('reservationModal'))?.hide();
                         }
+                    }).fail(function() {
+                        Swal.fire({ icon: 'error', title: 'Update failed', text: 'The reservation status could not be updated. Please try again.' });
                     });
                 }
             });
@@ -433,32 +927,7 @@ $result = $conn->query($sql);
             if ($(e.target).closest('button, form').length) return;
             const data = $(this).data('json');
             if (!data) return;
-
-            $('#modalReqId').text('#' + data.id);
-            $('#modalRequested').text(data.requested_by);
-            $('#modalDept').text(data.department || 'N/A');
-            $('#modalRoom').text(data.room);
-            $('#modalParticipants').text(data.participants + ' Persons');
-            $('#modalDate').text(data.reservation_date);
-            $('#modalTime').text(data.start_time + ' - ' + data.end_time);
-            $('#modalPurpose').text(data.purpose || 'No details provided.');
-            
-            const sBadge = $('#modalStatus');
-            sBadge.text(data.status).attr('class', 'badge px-3 py-2 rounded-pill ' + 
-                (data.status === 'Approved' ? 'bg-label-success' : 
-                 data.status === 'Pending' ? 'bg-label-warning' : 'bg-label-danger'));
-
-            $('#modalActionFooter .gap-2').show();
-            
-            // Link modal buttons to the table row buttons
-            $('.modal-approve-btn').off().on('click', () => { 
-                handleAction($(`tr[data-id="${data.id}"] .approve-btn`), 'approve'); 
-            });
-            $('.modal-reject-btn').off().on('click', () => { 
-                handleAction($(`tr[data-id="${data.id}"] .reject-btn`), 'reject'); 
-            });
-
-            new bootstrap.Modal('#reservationModal').show();
+            openScheduleForReservation(data);
         });
     });
 </script>
