@@ -833,7 +833,7 @@ $assignedStats = ticketStatusBreakdown($result);
               <div class="mir-search-wrap">
                 <i class='bx bx-search'></i>
                 <input type="text" id="searchRequests" class="form-control form-control-sm"
-                  placeholder="Search ticket #, name, subject..." aria-label="Search ticket requests">
+                  placeholder="Search ticket #, name, subject, description..." aria-label="Search ticket requests">
                 <button type="button" class="mir-search-clear" id="clearRequests" aria-label="Clear search">&times;</button>
               </div>
               <select id="filterRequests" class="form-select form-select-sm w-auto" aria-label="Filter ticket requests by status">
@@ -876,7 +876,7 @@ $assignedStats = ticketStatusBreakdown($result);
                         default => ''
                       };
                       ?>
-                      <tr class="<?= $rowClass ?>">
+                      <tr class="<?= $rowClass ?>" data-search="<?= htmlspecialchars(($row_all['subject'] ?? '') . ' ' . ($row_all['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
                         <td data-label="Ticket #">#<?= $row_all['id']; ?></td>
                         <td data-label="Name"><i class='bx bx-user'></i><?= htmlspecialchars($row_all['user_name']); ?></td>
                         <td data-label="Subject" class="subject-col" title="<?= htmlspecialchars($row_all['subject']); ?>">
@@ -949,7 +949,7 @@ $assignedStats = ticketStatusBreakdown($result);
               <div class="mir-search-wrap">
                 <i class='bx bx-search'></i>
                 <input type="text" id="searchAssigned" class="form-control form-control-sm"
-                  placeholder="Search ticket #, name, subject..." aria-label="Search assigned tickets">
+                  placeholder="Search ticket #, name, subject, description..." aria-label="Search assigned tickets">
                 <button type="button" class="mir-search-clear" id="clearAssigned" aria-label="Clear search">&times;</button>
               </div>
               <select id="filterAssigned" class="form-select form-select-sm w-auto" aria-label="Filter assigned tickets by status">
@@ -992,7 +992,7 @@ $assignedStats = ticketStatusBreakdown($result);
                         default => ''
                       };
                       ?>
-                      <tr class="<?= $rowClass ?>">
+                      <tr class="<?= $rowClass ?>" data-search="<?= htmlspecialchars(($row['subject'] ?? '') . ' ' . ($row['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
                         <td data-label="Ticket #">#<?= $row['id']; ?></td>
                         <td data-label="Name"><i class='bx bx-user'></i><?= htmlspecialchars($row['user_name']); ?></td>
                         <td data-label="Subject" class="subject-col" title="<?= htmlspecialchars($row['subject']); ?>">
@@ -1052,7 +1052,13 @@ $assignedStats = ticketStatusBreakdown($result);
       const clearBtn = document.getElementById(clearId);
       const headers = table.querySelectorAll('th.sortable');
       const total = rows.length;
+      const searchableRows = rows.map(row => ({
+        row,
+        text: `${row.innerText} ${row.dataset.search || ''}`.toLowerCase(),
+        status: row.cells[3].innerText.toLowerCase()
+      }));
       let sortDir = {};
+      let searchTimeout;
 
       // Search + Filter logic
       function updateDisplay() {
@@ -1064,11 +1070,9 @@ $assignedStats = ticketStatusBreakdown($result);
           clearBtn.style.display = search.value ? 'block' : 'none';
         }
 
-        rows.forEach(row => {
-          const text = row.innerText.toLowerCase();
-          const stat = row.cells[3].innerText.toLowerCase();
+        searchableRows.forEach(({ row, text, status: rowStatus }) => {
           const matchSearch = text.includes(query);
-          const matchStatus = status === 'all' || stat.includes(status);
+          const matchStatus = status === 'all' || rowStatus.includes(status);
           const visible = matchSearch && matchStatus;
           row.style.display = visible ? '' : 'none';
           if (visible) visibleCount++;
@@ -1085,11 +1089,15 @@ $assignedStats = ticketStatusBreakdown($result);
         }
       }
 
-      search.addEventListener('input', updateDisplay);
+      search.addEventListener('input', () => {
+        window.clearTimeout(searchTimeout);
+        searchTimeout = window.setTimeout(updateDisplay, 100);
+      });
       filter.addEventListener('change', updateDisplay);
 
       if (clearBtn) {
         clearBtn.addEventListener('click', () => {
+          window.clearTimeout(searchTimeout);
           search.value = '';
           search.focus();
           updateDisplay();

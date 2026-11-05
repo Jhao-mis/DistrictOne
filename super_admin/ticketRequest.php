@@ -3,24 +3,26 @@ require '../vendor/autoload.php';
 include '../db.php';
 require 'login_verification.php';
 
+$isAjaxRequest = isset($_GET['ajax']) && $_GET['ajax'] === '1';
 $username = $_SESSION['username'];
 
 date_default_timezone_set('Asia/Manila');
-$now = date('Y-m-d H:i:s');
-$updateActivity = $conn->prepare("UPDATE users SET last_activity = ? WHERE username = ?");
-$updateActivity->bind_param("ss", $now, $username);
-$updateActivity->execute();
-$updateActivity->close();
+if (!$isAjaxRequest) {
+  $now = date('Y-m-d H:i:s');
+  $updateActivity = $conn->prepare("UPDATE users SET last_activity = ? WHERE username = ?");
+  $updateActivity->bind_param("ss", $now, $username);
+  $updateActivity->execute();
+  $updateActivity->close();
 
-// 🔍 Fetch user details
-$query = $conn->prepare("SELECT id, profile_picture, cover_photo, department, firstname, middlename, lastname, email 
-                         FROM users WHERE username = ?");
-$query->bind_param("s", $username);
-$query->execute();
-$query->store_result();
-$query->bind_result($user_id, $profile_picture, $cover_photo, $department, $firstname, $middlename, $lastname, $email);
-$query->fetch();
-$query->close();
+  $query = $conn->prepare("SELECT id, profile_picture, cover_photo, department, firstname, middlename, lastname, email
+                           FROM users WHERE username = ?");
+  $query->bind_param("s", $username);
+  $query->execute();
+  $query->store_result();
+  $query->bind_result($user_id, $profile_picture, $cover_photo, $department, $firstname, $middlename, $lastname, $email);
+  $query->fetch();
+  $query->close();
+}
 
 $pageSizeOptions = [25, 50, 100];
 $pageSize = isset($_GET['page_size']) ? (int) $_GET['page_size'] : 25;
@@ -49,22 +51,23 @@ if (!isset($sortColumns[$sort])) {
 }
 $direction = strtolower((string) ($_GET['direction'] ?? 'desc')) === 'asc' ? 'ASC' : 'DESC';
 
-$statsResult = $conn->query("
-  SELECT status, COUNT(*) AS ticket_count
-  FROM tickets
-  WHERE admin_approved = 1
-    AND status IN ('Pending', 'In Progress', 'Resolved')
-  GROUP BY status
-");
-if (!$statsResult) {
-  throw new RuntimeException('Unable to load ticket counts: ' . $conn->error);
-}
-
 $ticketCounts = ['Pending' => 0, 'In Progress' => 0, 'Resolved' => 0];
-while ($countRow = $statsResult->fetch_assoc()) {
-  $ticketCounts[$countRow['status']] = (int) $countRow['ticket_count'];
+if (!$isAjaxRequest) {
+  $statsResult = $conn->query("
+    SELECT status, COUNT(*) AS ticket_count
+    FROM tickets
+    WHERE admin_approved = 1
+      AND status IN ('Pending', 'In Progress', 'Resolved')
+    GROUP BY status
+  ");
+  if (!$statsResult) {
+    throw new RuntimeException('Unable to load ticket counts: ' . $conn->error);
+  }
+
+  while ($countRow = $statsResult->fetch_assoc()) {
+    $ticketCounts[$countRow['status']] = (int) $countRow['ticket_count'];
+  }
 }
-$statsResult->free();
 $totalCount = array_sum($ticketCounts);
 
 $where = "t.admin_approved = 1 AND t.status IN ('Pending', 'In Progress', 'Resolved')";
@@ -83,25 +86,10 @@ if ($search !== '') {
     OR t.description LIKE ?
     OR t.status LIKE ?
     OR DATE_FORMAT(t.created_at, '%Y-%m-%d %h:%i %p') LIKE ?
-    OR DATE_FORMAT((
-      SELECT th_search.timestamp
-      FROM ticket_history th_search
-      WHERE th_search.ticket_id = t.id
-      ORDER BY th_search.timestamp DESC
-      LIMIT 1
-    ), '%Y-%m-%d %h:%i %p') LIKE ?
-    OR COALESCE(NULLIF(TRIM(REPLACE((
-      SELECT SUBSTRING_INDEX(th_assigned.action, ' by ', 1)
-      FROM ticket_history th_assigned
-      WHERE th_assigned.ticket_id = t.id
-        AND th_assigned.action LIKE 'Ticket assigned to%'
-      ORDER BY th_assigned.timestamp DESC
-      LIMIT 1
-    ), 'Ticket assigned to', '')), ''), 'Pending Assignment') LIKE ?
   )";
   $searchTerm = '%' . $search . '%';
-  $parameterTypes .= 'ssssssss';
-  array_push($parameters, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+  $parameterTypes .= 'ssssss';
+  array_push($parameters, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
 }
 
 $bindParameters = static function (mysqli_stmt $statement, string $types, array &$values): void {
@@ -181,6 +169,28 @@ if (!$ticketStatement->execute()) {
 }
 $tickets = $ticketStatement->get_result()->fetch_all(MYSQLI_ASSOC);
 $ticketStatement->close();
+
+if ($isAjaxRequest) {
+  header('Content-Type: application/json; charset=utf-8');
+  echo json_encode([
+    'tickets' => array_map(static function (array $ticket): array {
+      $ticket['created_display'] = $ticket['created_at']
+        ? date('Y-m-d h:i A', strtotime($ticket['created_at']))
+        : '—';
+      $ticket['updated_display'] = $ticket['last_update']
+        ? date('Y-m-d h:i A', strtotime($ticket['last_update']))
+        : '—';
+      $ticket['assigned_to'] = $ticket['assigned_to'] ?: 'Pending Assignment';
+      return $ticket;
+    }, $tickets),
+    'matchingCount' => $matchingCount,
+    'page' => $page,
+    'pageSize' => $pageSize,
+    'totalPages' => $totalPages,
+    'offset' => $offset,
+  ], JSON_THROW_ON_ERROR);
+  exit;
+}
 
 $pageUrl = static function (array $changes): string {
   return '?' . http_build_query(array_merge($_GET, $changes));
@@ -445,7 +455,7 @@ $pageUrl = static function (array $changes): string {
           <form class="tk-toolbar" method="get" id="ticketFilters">
             <div class="tk-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-              <input type="search" name="search" id="searchInput" placeholder="Search ticket..." value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
+              <input type="search" name="search" id="searchInput" placeholder="Search ticket #, name, subject, description..." aria-label="Search tickets by number, name, subject, or description" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
             </div>
             <select class="tk-select" name="status" id="statusFilter">
               <option value="all" <?= $status === 'all' ? 'selected' : '' ?>>All Statuses</option>
@@ -453,10 +463,12 @@ $pageUrl = static function (array $changes): string {
               <option value="In Progress" <?= $status === 'In Progress' ? 'selected' : '' ?>>In Progress</option>
               <option value="Resolved" <?= $status === 'Resolved' ? 'selected' : '' ?>>Resolved</option>
             </select>
-            <input type="hidden" name="page_size" value="<?= $pageSize ?>">
+            <input type="hidden" name="page_size" id="pageSizeInput" value="<?= $pageSize ?>">
           </form>
+          <div id="ticketSearchStatus" role="status" aria-live="polite"></div>
         </div>
 
+        <div id="ticketResults" aria-busy="false">
         <?php if ($matchingCount > 0): ?>
           <div class="tk-table-wrap">
             <table class="tk-table" id="ticketTable">
@@ -543,6 +555,7 @@ $pageUrl = static function (array $changes): string {
             Submitted tickets will show up here.
           </div>
         <?php endif; ?>
+        </div>
       </div>
 
     </div>
@@ -610,52 +623,255 @@ $pageUrl = static function (array $changes): string {
   <script src="../assets/js/main.js"></script>
 
   <script>
-    // Ticket modal and server-side ticket filters.
     (function () {
-      const table = document.getElementById('ticketTable');
       const modalEl = document.getElementById('ticketModal');
+      const results = document.getElementById('ticketResults');
+      const filterForm = document.getElementById('ticketFilters');
+      const searchInput = document.getElementById('searchInput');
+      const statusFilter = document.getElementById('statusFilter');
+      const pageSizeInput = document.getElementById('pageSizeInput');
+      const searchStatus = document.getElementById('ticketSearchStatus');
       const statusModifier = {
         'pending': 'pending',
         'in progress': 'in-progress',
         'resolved': 'resolved',
         'rejected': 'rejected'
       };
-
-      if (table) {
-        const modal = new bootstrap.Modal(modalEl);
-        table.querySelectorAll('tbody tr').forEach(row => {
-          row.addEventListener('click', () => {
-            document.getElementById('modalTicketId').textContent = row.dataset.id;
-            document.getElementById('modalTicketName').textContent = row.dataset.name;
-            document.getElementById('modalTicketSubject').textContent = row.dataset.subject;
-            document.getElementById('modalTicketAssigned').textContent = row.dataset.assigned;
-            document.getElementById('modalTicketCreated').textContent = row.dataset.created;
-            document.getElementById('modalTicketUpdated').textContent = row.dataset.updated;
-            document.getElementById('modalTicketDescription').textContent = row.dataset.description || 'No description provided.';
-            document.getElementById('viewTicketLink').href = row.dataset.link;
-
-            const status = row.dataset.status;
-            const badge = document.getElementById('modalTicketStatus');
-            badge.textContent = status;
-            badge.className = 'tk-status ' + (statusModifier[status.toLowerCase()] || 'other');
-
-            modal.show();
-          });
-        });
-      }
-
-      const filterForm = document.getElementById('ticketFilters');
-      const searchInput = document.getElementById('searchInput');
-      const statusFilter = document.getElementById('statusFilter');
-      const pageSizeSelect = document.getElementById('pageSizeSelect');
+      const modal = new bootstrap.Modal(modalEl);
       let searchTimeout;
+      let activeSearchController;
+      let requestNumber = 0;
 
       searchInput.addEventListener('input', () => {
         window.clearTimeout(searchTimeout);
-        searchTimeout = window.setTimeout(() => filterForm.requestSubmit(), 350);
+        searchTimeout = window.setTimeout(() => loadResults(1), 300);
       });
-      statusFilter.addEventListener('change', () => filterForm.requestSubmit());
-      pageSizeSelect.addEventListener('change', () => filterForm.requestSubmit());
+      filterForm.addEventListener('submit', event => {
+        event.preventDefault();
+        window.clearTimeout(searchTimeout);
+        loadResults(1);
+      });
+      statusFilter.addEventListener('change', () => loadResults(1));
+
+      results.addEventListener('change', event => {
+        if (event.target.id !== 'pageSizeSelect') return;
+        pageSizeInput.value = event.target.value;
+        loadResults(1);
+      });
+
+      results.addEventListener('click', event => {
+        const pageLink = event.target.closest('.tk-page-btn');
+        if (pageLink && pageLink.getAttribute('aria-disabled') !== 'true') {
+          event.preventDefault();
+          loadResults(Number(new URL(pageLink.href).searchParams.get('page')) || 1);
+          return;
+        }
+
+        const row = event.target.closest('tr.clickable-row');
+        if (!row || event.target.closest('a')) return;
+        document.getElementById('modalTicketId').textContent = row.dataset.id;
+        document.getElementById('modalTicketName').textContent = row.dataset.name;
+        document.getElementById('modalTicketSubject').textContent = row.dataset.subject;
+        document.getElementById('modalTicketAssigned').textContent = row.dataset.assigned;
+        document.getElementById('modalTicketCreated').textContent = row.dataset.created;
+        document.getElementById('modalTicketUpdated').textContent = row.dataset.updated;
+        document.getElementById('modalTicketDescription').textContent = row.dataset.description || 'No description provided.';
+        document.getElementById('viewTicketLink').href = row.dataset.link;
+
+        const status = row.dataset.status;
+        const badge = document.getElementById('modalTicketStatus');
+        badge.textContent = status;
+        badge.className = 'tk-status ' + (statusModifier[status.toLowerCase()] || 'other');
+        modal.show();
+      });
+
+      function currentParams(page) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('search', searchInput.value.trim().slice(0, 100));
+        params.set('status', statusFilter.value);
+        params.set('page_size', pageSizeInput.value);
+        params.set('page', page);
+        params.set('ajax', '1');
+        return params;
+      }
+
+      function setTextCell(row, value, className) {
+        const cell = document.createElement('td');
+        if (className) cell.className = className;
+        cell.textContent = value ?? '';
+        row.appendChild(cell);
+        return cell;
+      }
+
+      function renderResults(data) {
+        results.replaceChildren();
+        if (!data.tickets.length) {
+          const empty = document.createElement('div');
+          empty.className = 'tk-empty';
+          const message = document.createElement('strong');
+          message.textContent = 'No tickets found';
+          empty.append(message, document.createTextNode('Submitted tickets will show up here.'));
+          results.appendChild(empty);
+          return;
+        }
+
+        const wrap = document.createElement('div');
+        wrap.className = 'tk-table-wrap';
+        const table = document.createElement('table');
+        table.className = 'tk-table';
+        table.id = 'ticketTable';
+        const header = table.createTHead().insertRow();
+        const sortLabels = [
+          ['id', 'Ticket #'], ['name', 'Name'], ['subject', 'Subject'],
+          ['status', 'Status'], ['assigned', 'Assigned To'],
+          ['created', 'Created At'], ['updated', 'Last Updated']
+        ];
+        const current = new URLSearchParams(window.location.search);
+        sortLabels.forEach(([key, label]) => {
+          const cell = document.createElement('th');
+          cell.className = 'sortable';
+          const link = document.createElement('a');
+          const direction = current.get('sort') === key && current.get('direction') === 'asc' ? 'desc' : 'asc';
+          const href = new URL(window.location.href);
+          href.searchParams.set('sort', key);
+          href.searchParams.set('direction', direction);
+          href.searchParams.set('page', '1');
+          href.searchParams.delete('ajax');
+          link.href = href.href;
+          link.textContent = label;
+          cell.appendChild(link);
+          header.appendChild(cell);
+        });
+        const actionHeader = document.createElement('th');
+        actionHeader.textContent = 'Action';
+        header.appendChild(actionHeader);
+
+        const body = table.createTBody();
+        data.tickets.forEach(ticket => {
+          const row = body.insertRow();
+          row.className = 'clickable-row';
+          row.dataset.id = ticket.id;
+          row.dataset.name = ticket.user_name;
+          row.dataset.subject = ticket.subject;
+          row.dataset.status = ticket.status;
+          row.dataset.assigned = ticket.assigned_to;
+          row.dataset.created = ticket.created_display;
+          row.dataset.updated = ticket.updated_display;
+          row.dataset.description = ticket.description;
+          row.dataset.link = `viewticketSuperadmin.php?ticket_id=${encodeURIComponent(ticket.id)}`;
+          row.title = 'Click to view details';
+
+          setTextCell(row, ticket.id);
+          setTextCell(row, ticket.user_name);
+          setTextCell(row, ticket.subject, 'subject-col');
+          const statusCell = document.createElement('td');
+          statusCell.className = 'status-cell';
+          const badge = document.createElement('span');
+          badge.className = `tk-status ${statusModifier[ticket.status.toLowerCase()] || 'other'}`;
+          badge.textContent = ticket.status;
+          statusCell.appendChild(badge);
+          row.appendChild(statusCell);
+          setTextCell(row, ticket.assigned_to);
+          setTextCell(row, ticket.created_display);
+          setTextCell(row, ticket.updated_display);
+          const actionCell = document.createElement('td');
+          const link = document.createElement('a');
+          link.href = row.dataset.link;
+          link.className = 'tk-btn-pill is-primary';
+          link.textContent = 'View';
+          actionCell.appendChild(link);
+          row.appendChild(actionCell);
+        });
+        wrap.appendChild(table);
+        results.appendChild(wrap);
+
+        const pagination = document.createElement('div');
+        pagination.className = 'tk-pagination';
+        const start = data.offset + 1;
+        const end = Math.min(data.offset + data.tickets.length, data.matchingCount);
+        const info = document.createElement('span');
+        info.className = 'tk-pagination-info';
+        info.textContent = `Showing ${start}–${end} of ${data.matchingCount} matching tickets`;
+        pagination.appendChild(info);
+        const right = document.createElement('div');
+        right.className = 'tk-pagination-right';
+        const sizeGroup = document.createElement('div');
+        sizeGroup.className = 'tk-pagesize-group';
+        const showLabel = document.createElement('span');
+        showLabel.textContent = 'Show';
+        const sizeSelect = document.createElement('select');
+        sizeSelect.className = 'tk-select';
+        sizeSelect.name = 'page_size';
+        sizeSelect.id = 'pageSizeSelect';
+        sizeSelect.setAttribute('form', 'ticketFilters');
+        [25, 50, 100].forEach(size => {
+          const option = document.createElement('option');
+          option.value = size;
+          option.textContent = size;
+          option.selected = size === data.pageSize;
+          sizeSelect.appendChild(option);
+        });
+        const entriesLabel = document.createElement('span');
+        entriesLabel.textContent = 'entries';
+        sizeGroup.append(showLabel, sizeSelect, entriesLabel);
+        right.appendChild(sizeGroup);
+
+        const controls = document.createElement('div');
+        controls.className = 'tk-pagination-controls';
+        const addPageLink = (page, label, ariaLabel, disabled) => {
+          const link = document.createElement('a');
+          const href = new URL(window.location.href);
+          href.searchParams.set('page', page);
+          href.searchParams.delete('ajax');
+          link.href = href.href;
+          link.className = 'tk-page-btn';
+          link.setAttribute('aria-label', ariaLabel);
+          if (disabled) {
+            link.setAttribute('aria-disabled', 'true');
+            link.tabIndex = -1;
+          }
+          link.textContent = label;
+          controls.appendChild(link);
+        };
+        addPageLink(Math.max(1, data.page - 1), '‹', 'Previous page', data.page <= 1);
+        const pageIndicator = document.createElement('span');
+        pageIndicator.className = 'tk-page-indicator';
+        pageIndicator.textContent = `Page ${data.page} of ${data.totalPages}`;
+        controls.appendChild(pageIndicator);
+        addPageLink(Math.min(data.totalPages, data.page + 1), '›', 'Next page', data.page >= data.totalPages);
+        right.appendChild(controls);
+        pagination.appendChild(right);
+        results.appendChild(pagination);
+      }
+
+      async function loadResults(page) {
+        window.clearTimeout(searchTimeout);
+        if (activeSearchController) activeSearchController.abort();
+        activeSearchController = new AbortController();
+        const currentRequest = ++requestNumber;
+        const params = currentParams(page);
+        results.setAttribute('aria-busy', 'true');
+        searchStatus.textContent = 'Searching tickets…';
+        try {
+          const response = await fetch(`${window.location.pathname}?${params.toString()}`, {
+            headers: { 'Accept': 'application/json' },
+            signal: activeSearchController.signal
+          });
+          if (!response.ok) throw new Error(`Search failed (${response.status}).`);
+          const data = await response.json();
+          if (currentRequest !== requestNumber) return;
+          renderResults(data);
+          params.delete('ajax');
+          window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+          searchStatus.textContent = '';
+        } catch (error) {
+          if (error.name === 'AbortError') return;
+          searchStatus.textContent = 'Unable to search tickets. Please try again.';
+          console.error(error);
+        } finally {
+          if (currentRequest === requestNumber) results.setAttribute('aria-busy', 'false');
+        }
+      }
     })();
   </script>
 
