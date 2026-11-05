@@ -44,6 +44,7 @@ if (!empty($prepared_name)) {
 $query = "
 SELECT 
     i.*, 
+    img.id AS image_id,
     img.image_path
 FROM mir_items i
 LEFT JOIN mir_item_images img 
@@ -79,8 +80,8 @@ while ($row = $result->fetch_assoc()) {
         ];
     }
 
-    if (!empty($row['image_path'])) {
-        $items[$itemId]['images'][] = $row['image_path'];
+    if (!empty($row['image_id'])) {
+        $items[$itemId]['images'][] = (int) $row['image_id'];
     }
 }
 ?>
@@ -189,7 +190,7 @@ while ($row = $result->fetch_assoc()) {
 
 </head>
 
-<body onload="window.print()">
+<body>
 
     <style>
         .copy {
@@ -280,8 +281,8 @@ while ($row = $result->fetch_assoc()) {
                         </td>
                         <td class="center"><?= $item['remarks'] ?></td>
                         <td class="center img-box">
-                            <?php foreach ($item['images'] as $img): ?>
-                                <img src="../uploads/mir/<?= $img ?>">
+                            <?php foreach ($item['images'] as $imageId): ?>
+                                <img src="mir_print_image.php?id=<?= $imageId ?>" width="90" height="70" loading="eager" decoding="async">
                             <?php endforeach; ?>
                         </td>
                     </tr>
@@ -327,32 +328,31 @@ while ($row = $result->fetch_assoc()) {
     </div>
 
     <script>
-        window.onload = function () {
-            window.print();
-            window.onafterprint = () => window.close();
-        };
-    </script>
-
-    <script>
-        window.onload = function () {
-
+        window.addEventListener('load', async function () {
             const copy1 = document.getElementById("copy1");
             const copy2 = document.getElementById("copy2");
+            const images = Array.from(document.querySelectorAll(".img-box img"));
 
-            // A4 height in px (approx)
+            await Promise.all(images.map(image => image.decode().catch(() => undefined)));
+
             const A4_HEIGHT = 1122;
             const HALF_PAGE = A4_HEIGHT / 2;
-
             const copy1Height = copy1.offsetHeight;
 
-            // 🔥 IF 1st copy too tall → push 2nd copy
             if (copy1Height > HALF_PAGE) {
                 copy2.style.pageBreakBefore = "always";
             }
 
+            window.addEventListener('afterprint', () => {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = 'mir_list.php';
+                }
+            }, { once: true });
+
             window.print();
-            window.onafterprint = () => window.close();
-        };
+        }, { once: true });
     </script>
 
 </body>

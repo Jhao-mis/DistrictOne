@@ -46,6 +46,86 @@ if ($dateFrom !== '' && $dateTo !== '' && $dateFrom > $dateTo) {
     [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
 }
 
+if (isset($_GET['batch_search'])) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $searchBatchId = filter_var($_GET['batch_id'] ?? null, FILTER_VALIDATE_INT);
+    $searchFrom = ($_GET['payroll_from_null'] ?? '') === '1'
+        ? null
+        : (string) ($_GET['payroll_from'] ?? '');
+    $searchTo = ($_GET['payroll_to_null'] ?? '') === '1'
+        ? null
+        : (string) ($_GET['payroll_to'] ?? '');
+    $searchTerm = trim((string) ($_GET['q'] ?? ''));
+    $searchPage = filter_var($_GET['search_page'] ?? 1, FILTER_VALIDATE_INT);
+    $searchPage = $searchPage && $searchPage > 0 ? $searchPage : 1;
+    $searchPageSize = 100;
+
+    if (!$searchBatchId || $searchBatchId < 1 || $searchTerm === '' || strlen($searchTerm) > 200) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Enter a search term of up to 200 characters.']);
+        exit;
+    }
+
+    try {
+        $searchPattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $searchTerm) . '%';
+        $searchWhere = "
+            FROM payroll
+            WHERE batch_id = ? AND payroll_from <=> ? AND payroll_to <=> ?
+              AND CONCAT_WS(' ', emp_id, account_code, account_type, amount, pay_date,
+                            payroll_from, payroll_to, week, remarks) LIKE ? ESCAPE '!'
+        ";
+
+        $countStatement = $conn->prepare('SELECT COUNT(*) ' . $searchWhere);
+        if (!$countStatement) {
+            throw new RuntimeException($conn->error);
+        }
+        $countStatement->bind_param('isss', $searchBatchId, $searchFrom, $searchTo, $searchPattern);
+        $countStatement->execute();
+        $matchedRecords = (int) $countStatement->get_result()->fetch_row()[0];
+        $countStatement->close();
+
+        $searchTotalPages = max(1, (int) ceil($matchedRecords / $searchPageSize));
+        $searchPage = min($searchPage, $searchTotalPages);
+        $searchOffset = ($searchPage - 1) * $searchPageSize;
+        $searchStatement = $conn->prepare('
+            SELECT emp_id, account_code, account_type, amount, pay_date, week,
+                   payroll_from, payroll_to, remarks
+            ' . $searchWhere . '
+            ORDER BY emp_id, account_code, id
+            LIMIT ? OFFSET ?
+        ');
+        if (!$searchStatement) {
+            throw new RuntimeException($conn->error);
+        }
+        $searchStatement->bind_param(
+            'isssii',
+            $searchBatchId,
+            $searchFrom,
+            $searchTo,
+            $searchPattern,
+            $searchPageSize,
+            $searchOffset
+        );
+        $searchStatement->execute();
+        $searchRows = $searchStatement->get_result()->fetch_all(MYSQLI_ASSOC);
+        $searchStatement->close();
+
+        echo json_encode([
+            'rows' => $searchRows,
+            'total' => $matchedRecords,
+            'page' => $searchPage,
+            'page_size' => $searchPageSize,
+            'total_pages' => $searchTotalPages,
+        ], JSON_THROW_ON_ERROR);
+    } catch (Throwable $exception) {
+        error_log('Payroll batch search failed: ' . $exception->getMessage());
+        http_response_code(500);
+        echo json_encode(['error' => 'Payroll batch search failed. Please try again.']);
+    }
+    exit;
+}
+
 try {
     $batchResult = $conn->query('
         SELECT batch_id, payroll_from, payroll_to, COUNT(*) AS total_records, MAX(pay_date) AS pay_date
@@ -319,8 +399,14 @@ switch ($normalizedRole) {
                                 of <?= number_format((int) $selectedBatch['total_records']) ?> records
                             </div>
                             <div class="payroll-filter">
-                                <label for="payrollSearch">Search this page</label>
-                                <input type="search" id="payrollSearch" placeholder="Employee, account, remarks…" autocomplete="off">
+                                <label for="payrollSearch">Search entire batch</label>
+                                <input type="search" id="payrollSearch"
+                                       data-batch-id="<?= $escape($selectedBatch['batch_id']) ?>"
+                                       data-payroll-from="<?= $escape($selectedBatch['payroll_from']) ?>"
+                                       data-payroll-from-null="<?= $selectedBatch['payroll_from'] === null ? '1' : '0' ?>"
+                                       data-payroll-to="<?= $escape($selectedBatch['payroll_to']) ?>"
+                                       data-payroll-to-null="<?= $selectedBatch['payroll_to'] === null ? '1' : '0' ?>"
+                                       placeholder="Employee, account, amount, dates, remarks…" autocomplete="off">
                             </div>
                         </div>
                         <div class="text-muted small mb-2" id="payrollCount" aria-live="polite"></div>
@@ -355,7 +441,7 @@ switch ($normalizedRole) {
                                     <td data-sort="<?= $escape($row['remarks']) ?>"><?= $escape($row['remarks']) ?></td>
                                 </tr>
                             <?php endforeach; ?>
-                                <tr id="payrollNoMatch" hidden><td colspan="9" class="payroll-empty">No records on this page match your search.</td></tr>
+                                <tr id="payrollNoMatch" hidden><td colspan="9" class="payroll-empty">No records in this batch match your search.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -366,7 +452,7 @@ switch ($normalizedRole) {
                             'payroll_to' => $selectedBatch['payroll_to'] ?? '',
                         ];
                     ?>
-                        <nav class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3" aria-label="Payroll record pages">
+                        <nav id="payrollPagination" class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3" aria-label="Payroll record pages">
                             <span class="small text-muted">Page <?= number_format($page) ?> of <?= number_format($totalPages) ?></span>
                             <div class="btn-group">
                                 <?php if ($page > 1): ?>
@@ -404,12 +490,32 @@ switch ($normalizedRole) {
     var table = document.getElementById('payrollTable');
     if (!table) return;
     var body = table.tBodies[0];
-    var rows = Array.prototype.slice.call(body.querySelectorAll('tr.payroll-row'));
+    var originalRows = Array.prototype.slice.call(body.querySelectorAll('tr.payroll-row'));
+    var rows = originalRows.slice();
     var search = document.getElementById('payrollSearch');
     var count = document.getElementById('payrollCount');
     var noMatch = document.getElementById('payrollNoMatch');
+    var tableWrap = table.closest('.payroll-table-wrap');
+    var pagination = document.getElementById('payrollPagination');
+    var originalPagination = pagination ? pagination.innerHTML : '';
+    var paginationCreated = false;
+    var debounceTimer;
+    var activeRequest;
+    var activeTerm = '';
+    var sortDirections = {};
+    var columns = [
+        ['Employee #', 'emp_id', 'number'],
+        ['Account Code', 'account_code', 'text'],
+        ['Account Type', 'account_type', 'text'],
+        ['Amount', 'amount', 'number'],
+        ['Payroll From', 'payroll_from', 'date'],
+        ['Payroll To', 'payroll_to', 'date'],
+        ['Pay Date', 'pay_date', 'date'],
+        ['Week', 'week', 'text'],
+        ['Remarks', 'remarks', 'text']
+    ];
 
-    function applyFilters() {
+    function applyLocalFilter() {
         var term = search.value.trim().toLowerCase();
         var visible = 0;
         rows.forEach(function (row) {
@@ -420,9 +526,158 @@ switch ($normalizedRole) {
         noMatch.hidden = visible !== 0;
         count.textContent = visible + ' of ' + rows.length + ' records on this page';
     }
-    search.addEventListener('input', applyFilters);
 
-    var sortDirections = {};
+    function ensurePagination() {
+        if (pagination) return pagination;
+        pagination = document.createElement('nav');
+        pagination.id = 'payrollPagination';
+        pagination.className = 'd-flex flex-wrap justify-content-between align-items-center gap-2 mt-3';
+        pagination.setAttribute('aria-label', 'Payroll record pages');
+        tableWrap.insertAdjacentElement('afterend', pagination);
+        paginationCreated = true;
+        return pagination;
+    }
+
+    function renderSearchPagination(result) {
+        if (result.total_pages <= 1) {
+            if (pagination) pagination.hidden = true;
+            return;
+        }
+
+        var nav = ensurePagination();
+        nav.hidden = false;
+        nav.replaceChildren();
+
+        var summary = document.createElement('span');
+        summary.className = 'small text-muted';
+        summary.textContent = 'Page ' + result.page + ' of ' + result.total_pages
+            + ' · ' + result.total.toLocaleString() + ' matching records';
+        var controls = document.createElement('div');
+        controls.className = 'btn-group';
+
+        [['Previous', result.page - 1], ['Next', result.page + 1]].forEach(function (item) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn btn-outline-primary btn-sm';
+            button.textContent = item[0];
+            button.disabled = item[1] < 1 || item[1] > result.total_pages;
+            button.addEventListener('click', function () {
+                loadBatchSearch(activeTerm, item[1]);
+            });
+            controls.appendChild(button);
+        });
+
+        nav.append(summary, controls);
+    }
+
+    function renderSearchRows(result) {
+        rows = result.rows.map(function (record) {
+            var row = document.createElement('tr');
+            row.className = 'payroll-row';
+            row.dataset.search = [
+                record.emp_id, record.account_code, record.account_type, record.amount,
+                record.pay_date, record.payroll_from, record.payroll_to, record.week, record.remarks
+            ].join(' ').toLowerCase();
+
+            columns.forEach(function (column) {
+                var value = record[column[1]] == null ? '' : String(record[column[1]]);
+                var cell = document.createElement('td');
+                cell.dataset.sort = value;
+                if (column[1] === 'amount' && value !== '') {
+                    cell.textContent = Number(value).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                } else {
+                    cell.textContent = value;
+                }
+                row.appendChild(cell);
+            });
+            return row;
+        });
+
+        body.replaceChildren();
+        rows.forEach(function (row) { body.appendChild(row); });
+        body.appendChild(noMatch);
+        noMatch.hidden = rows.length !== 0;
+        count.textContent = result.total === 0
+            ? 'No matching records in this batch.'
+            : 'Showing ' + ((result.page - 1) * result.page_size + 1).toLocaleString()
+                + '–' + Math.min(result.page * result.page_size, result.total).toLocaleString()
+                + ' of ' + result.total.toLocaleString() + ' matching records in this batch.';
+        renderSearchPagination(result);
+        applySort();
+    }
+
+    function loadBatchSearch(term, page) {
+        if (activeRequest) activeRequest.abort();
+        activeRequest = new AbortController();
+        activeTerm = term;
+        count.textContent = 'Searching entire batch…';
+        noMatch.hidden = true;
+
+        var params = new URLSearchParams({
+            batch_search: '1',
+            batch_id: search.dataset.batchId,
+            payroll_from: search.dataset.payrollFrom,
+            payroll_from_null: search.dataset.payrollFromNull,
+            payroll_to: search.dataset.payrollTo,
+            payroll_to_null: search.dataset.payrollToNull,
+            q: term,
+            search_page: String(page)
+        });
+
+        fetch('payrollmng.php?' + params.toString(), { signal: activeRequest.signal })
+            .then(function (response) {
+                return response.json().then(function (data) {
+                    if (!response.ok) throw new Error(data.error || 'Payroll batch search failed.');
+                    return data;
+                });
+            })
+            .then(renderSearchRows)
+            .catch(function (error) {
+                if (error.name === 'AbortError') return;
+                count.textContent = error.message || 'Payroll batch search failed. Please try again.';
+                console.error('Payroll batch search failed:', error);
+            });
+    }
+
+    function resetSearch() {
+        if (activeRequest) activeRequest.abort();
+        activeTerm = '';
+        rows = originalRows.slice();
+        rows.forEach(function (row) { body.insertBefore(row, noMatch); });
+        noMatch.hidden = true;
+        if (paginationCreated && pagination) {
+            pagination.remove();
+            pagination = null;
+            paginationCreated = false;
+        } else if (pagination) {
+            pagination.innerHTML = originalPagination;
+            pagination.hidden = false;
+        }
+        applyLocalFilter();
+        applySort();
+    }
+
+    search.addEventListener('input', function () {
+        window.clearTimeout(debounceTimer);
+        if (activeRequest) activeRequest.abort();
+        var term = search.value.trim();
+        if (!term) {
+            resetSearch();
+            return;
+        }
+        debounceTimer = window.setTimeout(function () {
+            loadBatchSearch(term, 1);
+        }, 300);
+    });
+
+    function applySort() {
+        rows.forEach(function (row) { body.insertBefore(row, noMatch); });
+        if (!activeTerm) applyLocalFilter();
+    }
+
     Array.prototype.forEach.call(table.querySelectorAll('thead button[data-sort]'), function (button, column) {
         button.addEventListener('click', function () {
             sortDirections[column] = !sortDirections[column];
@@ -435,11 +690,10 @@ switch ($normalizedRole) {
                 if (type === 'date') return left.localeCompare(right) * direction;
                 return left.localeCompare(right, undefined, {numeric: true, sensitivity: 'base'}) * direction;
             });
-            rows.forEach(function (row) { body.insertBefore(row, noMatch); });
-            applyFilters();
+            applySort();
         });
     });
-    applyFilters();
+    applyLocalFilter();
 })();
 </script>
 </body>

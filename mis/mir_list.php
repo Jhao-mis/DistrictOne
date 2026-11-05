@@ -730,7 +730,7 @@ if ($total_reports > 0) {
                             <i class="bx bx-show"></i><span class="mir-action-label">View</span>
                           </button>
 
-                          <a href="mir_print.php?id=<?= (int) $row['id'] ?>" target="_blank" class="btn btn-primary btn-sm" title="Print" aria-label="Print MIR <?= (int) $row['id'] ?>">
+                          <a href="mir_print.php?id=<?= (int) $row['id'] ?>" class="btn btn-primary btn-sm" title="Print" aria-label="Print MIR <?= (int) $row['id'] ?>">
                             <i class="bx bx-printer"></i><span class="mir-action-label">Print</span>
                           </a>
 
