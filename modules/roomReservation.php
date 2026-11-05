@@ -4,6 +4,13 @@ require '../vendor/autoload.php';
 include '../db.php';
 require 'login_verification.php';
 
+$availableRooms = [
+    'Training Room, 3rd Floor, CWD Main Building',
+    'Conference Room, 2nd Floor, CWD Warehouse',
+    'Conference Room, Operations Building, BPS Upper',
+    'Roof Deck, Operations Building, BPS Upper',
+];
+
 // ==============================
 // 🔍 AJAX ROOM AVAILABILITY CHECK
 // ==============================
@@ -34,6 +41,72 @@ if (isset($_POST['check_availability'])) {
 
     echo json_encode($reservedRooms);
 
+    $stmt->close();
+    $conn->close();
+    exit();
+}
+
+// ==============================
+// 🗓️ ROOM CALENDAR AVAILABILITY
+// ==============================
+if (isset($_GET['availability_calendar'])) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $month = (string) ($_GET['month'] ?? '');
+    $room = (string) ($_GET['room'] ?? '');
+    $validMonthFormat = preg_match('/^\d{4}-\d{2}$/', $month) === 1;
+    $monthStart = $validMonthFormat ? DateTimeImmutable::createFromFormat('!Y-m-d', $month . '-01') : false;
+    $dateErrors = DateTimeImmutable::getLastErrors();
+    $validMonth = $monthStart !== false
+        && ($dateErrors === false || ($dateErrors['warning_count'] === 0 && $dateErrors['error_count'] === 0))
+        && $monthStart->format('Y-m') === $month;
+
+    if (!$validMonth || ($room !== 'all' && !in_array($room, $availableRooms, true))) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Choose a valid month and room.']);
+        exit();
+    }
+
+    $monthEnd = $monthStart->modify('first day of next month');
+    $startDate = $monthStart->format('Y-m-d');
+    $endDate = $monthEnd->format('Y-m-d');
+    if ($room === 'all') {
+        $stmt = $conn->prepare("
+            SELECT room, reservation_date, start_time, end_time, status, purpose
+            FROM room_reservations
+            WHERE reservation_date >= ?
+              AND reservation_date < ?
+              AND status IN ('Pending', 'Approved')
+            ORDER BY reservation_date, room, start_time, end_time
+        ");
+        $stmt->bind_param('ss', $startDate, $endDate);
+    } else {
+        $stmt = $conn->prepare("
+            SELECT room, reservation_date, start_time, end_time, status, purpose
+            FROM room_reservations
+            WHERE room = ?
+              AND reservation_date >= ?
+              AND reservation_date < ?
+              AND status IN ('Pending', 'Approved')
+            ORDER BY reservation_date, start_time, end_time
+        ");
+        $stmt->bind_param('sss', $room, $startDate, $endDate);
+    }
+    $stmt->execute();
+    $reservationsByDate = [];
+    $reservationResult = $stmt->get_result();
+
+    while ($reservation = $reservationResult->fetch_assoc()) {
+        $reservationsByDate[$reservation['reservation_date']][] = [
+            'room' => $reservation['room'],
+            'start' => substr($reservation['start_time'], 0, 5),
+            'end' => substr($reservation['end_time'], 0, 5),
+            'status' => $reservation['status'],
+            'purpose' => $reservation['purpose'] ?? '',
+        ];
+    }
+
+    echo json_encode($reservationsByDate);
     $stmt->close();
     $conn->close();
     exit();
@@ -73,6 +146,8 @@ if ($user_name === '') {
     $user_name = $username;
 }
 $date_requested = date('Y-m-d');
+$calendar_month = date('Y-m');
+$calendar_date = date('Y-m-d');
 
 // ==============================
 // 🚀 FORM SUBMISSION
@@ -426,6 +501,184 @@ $stmt->close();
             transition: border-color .15s var(--tk-ease), color .15s var(--tk-ease);
         }
         .tk-modal-close:hover { border-color: var(--tk-primary); color: var(--tk-primary-deep); }
+
+        /* ── Room availability calendar ─────────────────────────── */
+        .availability-card { margin-bottom: 20px; }
+        .availability-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--tk-border);
+        }
+        .availability-heading { display: flex; align-items: center; gap: 10px; }
+        .availability-heading h6 { margin: 0; color: var(--tk-text); font-size: 14px; font-weight: 800; }
+        .availability-heading p { margin: 3px 0 0; color: var(--tk-text-muted); font-size: 12px; }
+        .availability-room {
+            width: min(100%, 340px);
+            min-height: 38px;
+            border: 1px solid var(--tk-border);
+            border-radius: 9px;
+            padding: 7px 10px;
+            color: var(--tk-text);
+            background: var(--tk-surface);
+            font-size: 12px;
+        }
+        .availability-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(260px, .85fr);
+            gap: 18px;
+            padding: 18px 20px 20px;
+        }
+        .availability-monthbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .availability-monthbar h6 { margin: 0; color: var(--tk-text); font-size: 14px; font-weight: 800; }
+        .availability-monthnav { display: flex; gap: 6px; }
+        .availability-navbtn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--tk-border);
+            border-radius: 8px;
+            color: var(--tk-text-muted);
+            background: #fff;
+            cursor: pointer;
+        }
+        .availability-navbtn:hover { color: var(--tk-primary-deep); border-color: var(--tk-primary); }
+        .availability-weekdays,
+        .availability-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+        .availability-weekdays { margin-bottom: 5px; }
+        .availability-weekdays span {
+            padding: 6px 0;
+            color: var(--tk-text-faint);
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .availability-day {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-height: 48px;
+            margin: 2px;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            color: var(--tk-text);
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .availability-day:hover { background: var(--tk-primary-soft); }
+        .availability-day.is-outside { color: #b6bdc7; }
+        .availability-day.is-today { border-color: #b7d7ff; font-weight: 800; }
+        .availability-day.is-selected { color: #fff; background: var(--tk-primary-dark); font-weight: 800; }
+        .availability-day.is-selected:hover { background: var(--tk-primary-deep); }
+        .availability-day[aria-disabled="true"] { cursor: default; }
+        .availability-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--tk-room);
+        }
+        .availability-day.is-selected .availability-dot { background: #fff; }
+        .availability-legend {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 9px;
+            color: var(--tk-text-muted);
+            font-size: 11px;
+        }
+        .availability-detail {
+            min-height: 250px;
+            padding: 15px;
+            border: 1px solid var(--tk-border);
+            border-radius: 11px;
+            background: #fbfcfe;
+        }
+        .availability-detail h6 { margin: 0; color: var(--tk-text); font-size: 13px; font-weight: 800; }
+        .availability-detail-subtitle { margin: 4px 0 12px; color: var(--tk-text-muted); font-size: 11px; }
+        .availability-list { display: grid; gap: 8px; }
+        .availability-room-group { margin: 8px 0 0; color: var(--tk-text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .availability-slot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 9px 10px;
+            border: 1px solid var(--tk-border);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--tk-text);
+            font-size: 11px;
+        }
+        button.availability-slot {
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+        }
+        button.availability-slot:focus-visible {
+            outline: 2px solid var(--tk-primary-dark);
+            outline-offset: 2px;
+        }
+        .availability-slot.is-open { border-color: #cbeed6; background: var(--tk-success-soft); color: var(--tk-success-deep); }
+        .availability-slot.is-busy { border-color: #f7d8d8; background: var(--tk-room-soft); color: var(--tk-room-deep); }
+        .availability-slot-label { font-weight: 800; }
+        .availability-event-detail {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid #d6e7ff;
+            border-radius: 9px;
+            background: #f2f7ff;
+        }
+        .availability-event-detail[hidden] { display: none; }
+        .availability-event-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--tk-text);
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .availability-event-status {
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: var(--tk-warning-soft);
+            color: var(--tk-warning-deep);
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+        .availability-event-status.is-approved { background: var(--tk-success-soft); color: var(--tk-success-deep); }
+        .availability-event-room { margin-top: 8px; color: var(--tk-text); font-size: 11px; font-weight: 700; }
+        .availability-event-time { margin-top: 8px; color: var(--tk-primary-deep); font-size: 11px; font-weight: 800; }
+        .availability-event-purpose-label { margin-top: 10px; color: var(--tk-text-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
+        .availability-event-purpose { margin: 6px 0 0; color: var(--tk-text-muted); font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .availability-empty { padding: 18px 4px; color: var(--tk-text-muted); font-size: 12px; line-height: 1.5; }
+        .availability-loading { opacity: .58; pointer-events: none; }
+        .availability-error { color: var(--tk-room-deep); }
+        @media (max-width: 767.98px) {
+            .availability-body { grid-template-columns: 1fr; padding: 14px; }
+            .availability-toolbar { align-items: stretch; padding: 14px; }
+            .availability-room { width: 100%; }
+        }
     </style>
 </head>
 
@@ -447,7 +700,7 @@ $stmt->close();
             <div class="tk-header">
                 <div>
                     <h2>Room Reservation Dashboard</h2>
-                    <p>Track your booking requests and reserve a room for your next meeting.</p>
+                    <p>Check room schedules and available times before submitting a reservation.</p>
                 </div>
                 <button class="tk-btn tk-btn-primary" id="app-calendar-sidebar" data-bs-toggle="offcanvas"
                     data-bs-target="#roomReservationSidebar" aria-controls="roomReservationSidebar">
@@ -455,6 +708,56 @@ $stmt->close();
                     Create Reservation
                 </button>
             </div>
+
+            <section class="tk-card availability-card" aria-labelledby="availabilityTitle">
+                <div class="availability-toolbar">
+                    <div class="availability-heading">
+                        <i class="bx bx-calendar" style="font-size:20px;color:var(--tk-primary-deep)" aria-hidden="true"></i>
+                        <div>
+                            <h6 id="availabilityTitle">Room Availability</h6>
+                            <p>Choose a room and date to review reservations and available times.</p>
+                        </div>
+                    </div>
+                    <label class="visually-hidden" for="availabilityRoom">Room to check</label>
+                    <select class="availability-room" id="availabilityRoom">
+                        <option value="all" selected>All Rooms</option>
+                        <?php foreach ($availableRooms as $index => $availableRoom): ?>
+                            <option value="<?= htmlspecialchars($availableRoom, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($availableRoom, ENT_QUOTES, 'UTF-8') ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="availability-body" id="availabilityCalendar" aria-busy="true">
+                    <div>
+                        <div class="availability-monthbar">
+                            <h6 id="availabilityMonthLabel"><?= htmlspecialchars(date('F Y'), ENT_QUOTES, 'UTF-8') ?></h6>
+                            <div class="availability-monthnav">
+                                <button type="button" class="availability-navbtn" id="availabilityPrev" aria-label="Previous month"><i class="bx bx-chevron-left"></i></button>
+                                <button type="button" class="availability-navbtn" id="availabilityNext" aria-label="Next month"><i class="bx bx-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="availability-weekdays" aria-hidden="true">
+                            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                        </div>
+                        <div class="availability-grid" id="availabilityDays" role="grid" aria-label="Room availability calendar"></div>
+                        <div class="availability-legend"><span class="availability-dot" aria-hidden="true"></span> Reservations on this date</div>
+                    </div>
+                    <aside class="availability-detail" aria-live="polite">
+                        <h6 id="availabilityDateLabel">Select a date</h6>
+                        <p class="availability-detail-subtitle" id="availabilityRoomLabel"></p>
+                        <div class="availability-list" id="availabilitySlots"></div>
+                        <div class="availability-event-detail" id="availabilityEventDetail" hidden>
+                            <div class="availability-event-heading">
+                                <span>Reservation details</span>
+                                <span class="availability-event-status" id="availabilityEventStatus"></span>
+                            </div>
+                            <div class="availability-event-room" id="availabilityEventRoom"></div>
+                            <div class="availability-event-time" id="availabilityEventTime"></div>
+                            <div class="availability-event-purpose-label">Event / purpose</div>
+                            <p class="availability-event-purpose" id="availabilityEventPurpose"></p>
+                        </div>
+                    </aside>
+                </div>
+            </section>
 
             <!-- Room Reservation Offcanvas -->
             <div class="offcanvas offcanvas-end event-sidebar" tabindex="-1" id="roomReservationSidebar"
@@ -505,11 +808,9 @@ $stmt->close();
                         <label>Select Room</label>
                         <select name="room" class="form-select" required>
                             <option value="" disabled selected>Select Room</option>
-                            <option value="Training Room, 3rd Floor, CWD Main Building">Training Room, 3rd Floor, CWD Main Building</option>
-                            <!-- <option value="Multipurpose Hall 5th Floor CWD Main Building">Multipurpose Hall 5th Floor CWD Main Building</option> -->
-                            <option value="Conference Room, 2nd Floor, CWD Warehouse">Conference Room, 2nd Floor, CWD Warehouse</option>
-                            <option value="Conference Room, Operations Building, BPS Upper">Conference Room, Operations Building, BPS Upper</option>
-                            <option value="Roof Deck, Operations Building, BPS Upper">Roof Deck, Operations Building, BPS Upper</option>
+                            <?php foreach ($availableRooms as $availableRoom): ?>
+                                <option value="<?= htmlspecialchars($availableRoom, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($availableRoom, ENT_QUOTES, 'UTF-8') ?></option>
+                            <?php endforeach; ?>
                         </select>
 
                         <div class="d-flex justify-content-sm-between justify-content-start mt-4 gap-2">
@@ -698,6 +999,237 @@ $stmt->close();
             dateInput.addEventListener('change', checkAvailability);
             startTimeInput.addEventListener('change', checkAvailability);
             endTimeInput.addEventListener('change', checkAvailability);
+
+            // ── Room availability calendar ─────────────────────────
+            const calendar = document.getElementById('availabilityCalendar');
+            const calendarRoom = document.getElementById('availabilityRoom');
+            const calendarDays = document.getElementById('availabilityDays');
+            const calendarMonthLabel = document.getElementById('availabilityMonthLabel');
+            const availabilityDateLabel = document.getElementById('availabilityDateLabel');
+            const availabilityRoomLabel = document.getElementById('availabilityRoomLabel');
+            const availabilitySlots = document.getElementById('availabilitySlots');
+            const availabilityEventDetail = document.getElementById('availabilityEventDetail');
+            const availabilityEventStatus = document.getElementById('availabilityEventStatus');
+            const availabilityEventRoom = document.getElementById('availabilityEventRoom');
+            const availabilityEventTime = document.getElementById('availabilityEventTime');
+            const availabilityEventPurpose = document.getElementById('availabilityEventPurpose');
+            const today = new Date();
+            let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            let selectedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            let reservationsByDate = {};
+            let calendarRequest;
+
+            function formatCalendarDate(dateString, options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) {
+                const [year, month, day] = dateString.split('-').map(Number);
+                return new Date(year, month - 1, day).toLocaleDateString(undefined, options);
+            }
+
+            function appendAvailabilitySlot(label, time, type, reservation = null) {
+                const slot = document.createElement(reservation ? 'button' : 'div');
+                if (reservation) {
+                    slot.type = 'button';
+                    slot.setAttribute('aria-label', `${reservation.room}, ${reservation.start} to ${reservation.end}, ${reservation.status}. Select to view reservation details.`);
+                    slot.addEventListener('click', () => {
+                        availabilityEventDetail.hidden = false;
+                        availabilityEventStatus.textContent = reservation.status;
+                        availabilityEventStatus.classList.toggle('is-approved', reservation.status === 'Approved');
+                        availabilityEventRoom.textContent = reservation.room;
+                        availabilityEventTime.textContent = `${reservation.start} – ${reservation.end}`;
+                        availabilityEventPurpose.textContent = reservation.purpose || 'No purpose provided.';
+                    });
+                }
+                slot.className = `availability-slot ${type}`;
+                const labelElement = document.createElement('span');
+                labelElement.className = 'availability-slot-label';
+                labelElement.textContent = label;
+                const timeElement = document.createElement('span');
+                timeElement.textContent = time;
+                slot.append(labelElement, timeElement);
+                availabilitySlots.appendChild(slot);
+            }
+
+            function renderSelectedDate() {
+                const dateReservations = reservationsByDate[selectedDate] || [];
+                availabilityDateLabel.textContent = formatCalendarDate(selectedDate);
+                availabilityRoomLabel.textContent = calendarRoom.value === 'all' ? 'All Rooms' : calendarRoom.value;
+                availabilitySlots.replaceChildren();
+                availabilityEventDetail.hidden = true;
+                availabilityEventStatus.classList.remove('is-approved');
+
+                if (!dateReservations.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'availability-empty';
+                    empty.textContent = calendarRoom.value === 'all'
+                        ? 'No pending or approved reservations are recorded for any room on this date.'
+                        : 'No pending or approved reservations are recorded for this room on this date.';
+                    availabilitySlots.appendChild(empty);
+                    return;
+                }
+
+                const reservationsByRoom = dateReservations.reduce((groups, reservation) => {
+                    if (!groups[reservation.room]) groups[reservation.room] = [];
+                    groups[reservation.room].push(reservation);
+                    return groups;
+                }, {});
+
+                Object.entries(reservationsByRoom).forEach(([roomName, roomReservations]) => {
+                    if (calendarRoom.value === 'all') {
+                        const roomHeading = document.createElement('div');
+                        roomHeading.className = 'availability-room-group';
+                        roomHeading.textContent = roomName;
+                        availabilitySlots.appendChild(roomHeading);
+                    }
+
+                    let previousEnd = null;
+                    roomReservations.forEach(reservation => {
+                        const [startHour, startMinute] = reservation.start.split(':').map(Number);
+                        const start = startHour * 60 + startMinute;
+                        const [endHour, endMinute] = reservation.end.split(':').map(Number);
+                        const end = endHour * 60 + endMinute;
+                        if (previousEnd !== null && start > previousEnd) {
+                            const endTime = `${String(Math.floor(previousEnd / 60)).padStart(2, '0')}:${String(previousEnd % 60).padStart(2, '0')}`;
+                            appendAvailabilitySlot('Available', `${endTime} – ${reservation.start}`, 'is-open');
+                        }
+
+                        appendAvailabilitySlot(
+                            'Reserved · ' + reservation.status,
+                            `${reservation.start} – ${reservation.end}`,
+                            'is-busy',
+                            reservation
+                        );
+                        previousEnd = Math.max(previousEnd ?? end, end);
+                    });
+                });
+
+            }
+
+            function renderCalendar() {
+                const year = visibleMonth.getFullYear();
+                const month = visibleMonth.getMonth();
+                calendarMonthLabel.textContent = visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+                calendarDays.replaceChildren();
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const cellCount = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+                for (let index = 0; index < cellCount; index++) {
+                    const date = new Date(year, month, index - firstDay + 1);
+                    const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                    const dayReservations = reservationsByDate[dateString] || [];
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'availability-day';
+                    button.setAttribute('role', 'gridcell');
+                    button.setAttribute('aria-label', `${formatCalendarDate(dateString)}${dayReservations.length ? `, ${dayReservations.length} reservation${dayReservations.length === 1 ? '' : 's'}` : ', no reservations'}`);
+                    if (date.getMonth() !== month) button.classList.add('is-outside');
+                    if (dateString === selectedDate) button.classList.add('is-selected');
+                    if (dateString === `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`) button.classList.add('is-today');
+                    button.appendChild(document.createTextNode(String(date.getDate())));
+                    if (dayReservations.length) {
+                        const dot = document.createElement('span');
+                        dot.className = 'availability-dot';
+                        dot.setAttribute('aria-hidden', 'true');
+                        button.appendChild(dot);
+                    }
+                    button.addEventListener('click', () => {
+                        selectedDate = dateString;
+                        dateInput.value = selectedDate;
+                        if (date.getMonth() !== month || date.getFullYear() !== year) {
+                            visibleMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+                            loadCalendarAvailability();
+                            return;
+                        }
+                        renderCalendar();
+                        renderSelectedDate();
+                        checkAvailability();
+                    });
+                    calendarDays.appendChild(button);
+                }
+                renderSelectedDate();
+            }
+
+            async function loadCalendarAvailability() {
+                if (calendarRequest) calendarRequest.abort();
+                const request = new AbortController();
+                calendarRequest = request;
+                calendar.setAttribute('aria-busy', 'true');
+                calendar.classList.add('availability-loading');
+                availabilitySlots.replaceChildren();
+                const loading = document.createElement('div');
+                loading.className = 'availability-empty';
+                loading.textContent = 'Loading room schedule…';
+                availabilitySlots.appendChild(loading);
+
+                const month = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, '0')}`;
+                const params = new URLSearchParams({
+                    availability_calendar: '1',
+                    month,
+                    room: calendarRoom.value
+                });
+
+                try {
+                    const response = await fetch(`roomReservation.php?${params.toString()}`, {
+                        headers: { 'Accept': 'application/json' },
+                        signal: request.signal
+                    });
+                    if (!response.ok) throw new Error(`Calendar request failed (${response.status}).`);
+                    reservationsByDate = await response.json();
+                    renderCalendar();
+                } catch (error) {
+                    if (error.name === 'AbortError') return;
+                    availabilitySlots.replaceChildren();
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'availability-empty availability-error';
+                    errorMessage.textContent = 'Unable to load availability. Please try again.';
+                    availabilitySlots.appendChild(errorMessage);
+                    console.error('Room availability calendar error:', error);
+                } finally {
+                    if (calendarRequest === request) {
+                        calendar.setAttribute('aria-busy', 'false');
+                        calendar.classList.remove('availability-loading');
+                    }
+                }
+            }
+
+            document.getElementById('availabilityPrev').addEventListener('click', () => {
+                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+                selectedDate = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, '0')}-01`;
+                dateInput.value = selectedDate;
+                loadCalendarAvailability();
+                checkAvailability();
+            });
+            document.getElementById('availabilityNext').addEventListener('click', () => {
+                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
+                selectedDate = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, '0')}-01`;
+                dateInput.value = selectedDate;
+                loadCalendarAvailability();
+                checkAvailability();
+            });
+            calendarRoom.addEventListener('change', () => {
+                if (calendarRoom.value !== 'all') roomSelect.value = calendarRoom.value;
+                checkAvailability();
+                loadCalendarAvailability();
+            });
+            dateInput.addEventListener('change', () => {
+                if (!dateInput.value) return;
+                const [year, month] = dateInput.value.split('-').map(Number);
+                selectedDate = dateInput.value;
+                if (visibleMonth.getFullYear() !== year || visibleMonth.getMonth() !== month - 1) {
+                    visibleMonth = new Date(year, month - 1, 1);
+                    loadCalendarAvailability();
+                } else {
+                    renderCalendar();
+                }
+            });
+
+            roomSelect.addEventListener('change', () => {
+                if (roomSelect.value) {
+                    calendarRoom.value = roomSelect.value;
+                    loadCalendarAvailability();
+                }
+            });
+            loadCalendarAvailability();
 
             // ── Reservation details modal ───────────────────────────
             const statusClass = { Approved: 'approved', Pending: 'pending', Rejected: 'rejected' };
