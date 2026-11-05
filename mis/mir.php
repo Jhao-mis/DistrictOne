@@ -313,6 +313,46 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       padding: 1.5rem;
       margin-bottom: 1.5rem;
       background: #fff;
+      box-shadow: 0 3px 14px rgba(34, 48, 73, .04);
+    }
+
+    .mir-form-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .mir-form-kicker {
+      margin-bottom: .35rem;
+      color: var(--mir-muted);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .mir-form-heading h2 {
+      margin: 0;
+      color: #344054;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -.025em;
+    }
+
+    .mir-form-heading p {
+      margin: .25rem 0 0;
+      color: var(--mir-muted);
+      font-size: .88rem;
+    }
+
+    .mir-form-heading .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      font-weight: 600;
+      white-space: nowrap;
     }
 
     .mir-section-header {
@@ -320,8 +360,9 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       align-items: center;
       gap: .6rem;
       margin-bottom: 1.25rem;
-      padding-bottom: .75rem;
-      border-bottom: 2px solid var(--mir-border);
+      padding-bottom: .85rem;
+      border-bottom: 1px solid var(--mir-border);
+      color: #344054;
       font-weight: 600;
       font-size: 1.05rem;
     }
@@ -336,7 +377,25 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
       border-radius: 10px;
       padding: 1rem;
       margin-bottom: 1rem;
-      background: #fbfbfd;
+      background: #f8faff;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .mir-item-row:focus-within {
+      border-color: #9dc5ff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, .08);
+    }
+
+    .mir-section .form-label,
+    .mir-item-row .col-form-label-sm {
+      color: #596579;
+      font-weight: 600;
+    }
+
+    .mir-section input.form-control:focus,
+    .mir-section select.form-select:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 .18rem rgba(0, 123, 255, .12);
     }
 
     .mir-item-row .col-form-label-sm {
@@ -442,6 +501,19 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
         margin-bottom: 1rem;
       }
 
+      .mir-form-heading {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .mir-form-heading h2 {
+        font-size: 1.2rem;
+      }
+
+      .mir-form-heading .btn {
+        align-self: flex-start;
+      }
+
       .mir-section-header {
         font-size: .95rem;
         margin-bottom: 1rem;
@@ -516,10 +588,16 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
   <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
 
-      <h4 class="fw-bold py-3 mb-4">
-        <span class="text-muted fw-light">Assets /</span>
-        <?= $edit_mode ? 'Edit MIR' : 'Machine Inspection Report' ?>
-      </h4>
+      <div class="mir-form-heading">
+        <div>
+          <div class="mir-form-kicker">Assets / Inspection Records</div>
+          <h2><?= $edit_mode ? 'Update Inspection Record' : 'New Machine Inspection Report' ?></h2>
+          <p>Enter report details and document each inspected asset.</p>
+        </div>
+        <a href="mir_list.php" class="btn btn-outline-primary">
+          <i class="bx bx-list-ul"></i> Record Register
+        </a>
+      </div>
 
       <form method="POST" enctype="multipart/form-data">
 

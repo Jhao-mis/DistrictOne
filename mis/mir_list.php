@@ -29,6 +29,21 @@ $query->close();
 
 $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 $total_reports = $mir_list->num_rows;
+$mir_item_search = [];
+
+if ($total_reports > 0) {
+  $item_search_result = $conn->query("
+    SELECT i.mir_id, i.description, i.remarks
+    FROM mir_items i
+    INNER JOIN mir_reports r ON r.id = i.mir_id
+  ");
+
+  while ($item_search_row = $item_search_result->fetch_assoc()) {
+    $mir_id = (int) $item_search_row['mir_id'];
+    $mir_item_search[$mir_id][] = $item_search_row['description'] ?? '';
+    $mir_item_search[$mir_id][] = $item_search_row['remarks'] ?? '';
+  }
+}
 
 ?>
 
@@ -76,6 +91,61 @@ $total_reports = $mir_list->num_rows;
       z-index: 100000 !important;
     }
 
+    .mir-page-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .mir-page-kicker {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      margin-bottom: .35rem;
+      color: var(--mir-muted);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .mir-page-kicker i {
+      color: var(--mir-primary);
+      font-size: 1rem;
+    }
+
+    .mir-page-heading h2 {
+      margin: 0;
+      color: #344054;
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -.025em;
+    }
+
+    .mir-page-heading p {
+      margin: .25rem 0 0;
+      color: var(--mir-muted);
+      font-size: .88rem;
+    }
+
+    .mir-page-heading .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .55rem .85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .mir-register-card {
+      overflow: hidden;
+      border: 1px solid var(--mir-border);
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(34, 48, 73, .045);
+    }
+
     /* =======================
        HEADER / TOOLBAR
        ======================= */
@@ -87,10 +157,29 @@ $total_reports = $mir_list->num_rows;
       flex-wrap: wrap;
     }
 
+    .mir-card-header {
+      min-height: 60px;
+      background: #fff;
+    }
+
     .mir-title-wrap {
       display: flex;
       align-items: center;
       gap: .6rem;
+    }
+
+    .mir-title-wrap h5 {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      color: #344054;
+      font-size: .98rem;
+      font-weight: 700;
+    }
+
+    .mir-title-wrap h5 i {
+      color: var(--mir-primary);
+      font-size: 1.15rem;
     }
 
     .mir-count-badge {
@@ -103,13 +192,25 @@ $total_reports = $mir_list->num_rows;
       letter-spacing: .02em;
     }
 
+    .mir-register-caption {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      color: var(--mir-muted);
+      font-size: .76rem;
+    }
+
     .mir-toolbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
-      margin-bottom: 1rem;
+      padding: .85rem;
+      margin-bottom: .9rem;
+      border: 1px solid var(--mir-border);
+      border-radius: 8px;
+      background: #f8faff;
     }
 
     .mir-search-wrap {
@@ -156,23 +257,30 @@ $total_reports = $mir_list->num_rows;
       white-space: nowrap;
     }
 
+    .mir-table-scroll .table {
+      border-color: #e9edf4;
+    }
+
     /* =======================
        TABLE
        ======================= */
     .mir-table-scroll {
-      max-height: 65vh;
+      max-height: min(68vh, 760px);
       overflow-y: auto;
       border: 1px solid var(--mir-border);
-      border-radius: 8px;
+      border-radius: 9px;
     }
 
     .mir-table-scroll thead th {
       position: sticky;
       top: 0;
-      z-index: 1;
+      z-index: 2;
+      padding: .8rem .75rem;
+      border-bottom: 1px solid #dfe5ef;
+      background: #f4f7fb;
       font-size: .74rem;
       text-transform: uppercase;
-      letter-spacing: .03em;
+      letter-spacing: .055em;
       color: var(--mir-muted);
     }
 
@@ -180,18 +288,32 @@ $total_reports = $mir_list->num_rows;
       margin-bottom: 0;
     }
 
+    .mir-table-scroll tbody td {
+      padding: .78rem .75rem;
+      color: #344054;
+      font-size: .85rem;
+      vertical-align: middle;
+    }
+
     .mir-row {
       cursor: pointer;
-      transition: background-color .12s ease;
+      transition: background-color .12s ease, box-shadow .12s ease;
+    }
+
+    .mir-row:nth-child(even) {
+      background: #fbfcfe;
     }
 
     .mir-row:hover {
-      background: var(--mir-hover);
+      background: #f0f6ff;
+      box-shadow: inset 3px 0 0 var(--mir-primary);
     }
 
     .mir-report-no {
       font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: .85rem;
+      color: #315b91;
+      font-size: .82rem;
+      font-weight: 700;
       letter-spacing: .01em;
     }
 
@@ -228,6 +350,10 @@ $total_reports = $mir_list->num_rows;
 
     .mir-empty .btn {
       margin-top: .5rem;
+    }
+
+    .mir-empty-row td {
+      padding: 0 !important;
     }
 
     #mirContent .spinner-border {
@@ -284,9 +410,26 @@ $total_reports = $mir_list->num_rows;
         padding-right: .75rem;
       }
 
+      .mir-page-heading {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .mir-page-heading h2 {
+        font-size: 1.25rem;
+      }
+
+      .mir-page-heading .btn {
+        align-self: flex-start;
+      }
+
       .card-header.mir-card-header {
         flex-direction: column;
         align-items: stretch;
+      }
+
+      .mir-register-caption {
+        display: none;
       }
 
       .card-header.mir-card-header .btn {
@@ -505,16 +648,24 @@ $total_reports = $mir_list->num_rows;
   <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
 
-      <div class="card">
+      <div class="mir-page-heading">
+        <div>
+          <div class="mir-page-kicker"><i class="bx bx-folder-open"></i> Asset Management / Records</div>
+          <h2>Machine Inspection Reports</h2>
+          <p>Browse, review, and manage inspection records in one place.</p>
+        </div>
+        <a href="mir.php" class="btn btn-primary mir-new-btn">
+          <i class="bx bx-plus"></i> New MIR
+        </a>
+      </div>
+
+      <div class="card mir-register-card">
         <div class="card-header mir-card-header">
           <div class="mir-title-wrap">
-            <h5 class="mb-0">MIR List</h5>
-            <span class="mir-count-badge"><?= (int) $total_reports ?> total</span>
+            <h5 class="mb-0"><i class="bx bx-list-ul"></i> Record Register</h5>
+            <span class="mir-count-badge"><?= (int) $total_reports ?> records</span>
           </div>
-
-          <a href="mir.php" class="btn btn-primary btn-sm mir-new-btn">
-            <i class="bx bx-plus"></i> New MIR
-          </a>
+          <span class="mir-register-caption"><i class="bx bx-sort-down"></i> Newest records first</span>
         </div>
 
         <div class="card-body">
@@ -522,7 +673,7 @@ $total_reports = $mir_list->num_rows;
           <div class="mir-toolbar">
             <div class="mir-search-wrap">
               <i class='bx bx-search'></i>
-              <input type="text" id="search" class="form-control" placeholder="Search by report no, end user, department...">
+              <input type="text" id="search" class="form-control" placeholder="Search report no, end user, department, description, remarks..." aria-label="Search inspection records by report details and item description or remarks">
               <kbd>/</kbd>
             </div>
             <span class="mir-result-count" id="resultCount"></span>
@@ -532,25 +683,25 @@ $total_reports = $mir_list->num_rows;
             <table class="table table-hover table-bordered align-middle">
               <thead class="table-light">
                 <tr>
-                  <th>#</th>
-                  <th>Report No</th>
-                  <th>End User</th>
-                  <th>Department</th>
-                  <th>Date</th>
-                  <th width="220">Actions</th>
+                  <th scope="col">Record</th>
+                  <th scope="col">Report No</th>
+                  <th scope="col">End User</th>
+                  <th scope="col">Department</th>
+                  <th scope="col">Report Date</th>
+                  <th scope="col" width="220">Actions</th>
                 </tr>
               </thead>
 
               <tbody>
                 <?php if ($mir_list->num_rows === 0): ?>
-                  <tr>
+                  <tr class="mir-empty-row">
                     <td colspan="6">
                       <div class="mir-empty">
                         <i class='bx bx-file-blank'></i>
-                        No MIR reports yet.
+                        No inspection records yet.
                         <div>
                           <a href="mir.php" class="btn btn-primary btn-sm">
-                            <i class="bx bx-plus"></i> Create your first MIR
+                            <i class="bx bx-plus"></i> Create first record
                           </a>
                         </div>
                       </div>
@@ -559,7 +710,7 @@ $total_reports = $mir_list->num_rows;
                 <?php else: ?>
                   <?php $i = 1;
                   while ($row = $mir_list->fetch_assoc()): ?>
-                    <tr class="mir-row" onclick="viewMIR(<?= (int) $row['id'] ?>)">
+                    <tr class="mir-row" data-search="<?= htmlspecialchars(implode(' ', $mir_item_search[(int) $row['id']] ?? []), ENT_QUOTES, 'UTF-8') ?>" onclick="viewMIR(<?= (int) $row['id'] ?>)">
                       <td data-label="#"><?= $i++ ?></td>
                       <td data-label="Report No" data-date="<?= htmlspecialchars($row['report_date']) ?>"><span class="mir-report-no"><?= htmlspecialchars($row['report_no']) ?></span></td>
                       <td data-label="End User">
@@ -753,7 +904,10 @@ $total_reports = $mir_list->num_rows;
     // =======================
     const searchInput = document.getElementById('search');
     const resultCountEl = document.getElementById('resultCount');
-    const allRows = document.querySelectorAll(".mir-table-scroll tbody tr.mir-row");
+    const allRows = Array.from(document.querySelectorAll(".mir-table-scroll tbody tr.mir-row"), row => ({
+      element: row,
+      searchText: `${row.innerText} ${row.dataset.search || ''}`.toLowerCase()
+    }));
     const totalRows = allRows.length;
 
     function updateResultCount(visible) {
@@ -765,12 +919,12 @@ $total_reports = $mir_list->num_rows;
     }
 
     function runSearch() {
-      const v = searchInput.value.toLowerCase();
+      const v = searchInput.value.trim().toLowerCase();
       let visibleCount = 0;
 
-      allRows.forEach(r => {
-        const match = r.innerText.toLowerCase().includes(v);
-        r.style.display = match ? '' : 'none';
+      allRows.forEach(({ element, searchText }) => {
+        const match = searchText.includes(v);
+        element.style.display = match ? '' : 'none';
         if (match) visibleCount++;
       });
 
@@ -779,7 +933,7 @@ $total_reports = $mir_list->num_rows;
     }
 
     let searchDebounce;
-    searchInput.addEventListener('keyup', function () {
+    searchInput.addEventListener('input', function () {
       clearTimeout(searchDebounce);
       searchDebounce = setTimeout(runSearch, 150);
     });
