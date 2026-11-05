@@ -56,11 +56,12 @@ $sql = "
         p.amount,
         p.remarks,
         p.account_code,
-        a.account_name,
-        a.account_type
+        COALESCE(NULLIF(TRIM(a.account_name), ''), TRIM(p.account_code)) AS account_name,
+        COALESCE(NULLIF(TRIM(p.account_type), ''), NULLIF(TRIM(a.account_type), '')) AS account_type
     FROM payroll p
-    INNER JOIN accounts a
-        ON UPPER(TRIM(a.account_code)) = UPPER(TRIM(p.account_code))
+    LEFT JOIN accounts a
+        ON REPLACE(REPLACE(UPPER(TRIM(a.account_code)), ' ', ''), '_', '') =
+           REPLACE(REPLACE(UPPER(TRIM(p.account_code)), ' ', ''), '_', '')
     WHERE p.emp_id = ?
       AND p.batch_id = ?
     ORDER BY p.id ASC
@@ -87,7 +88,12 @@ while ($row = $result->fetch_assoc()) {
 
     $amount  = (float)$row['amount'];
     $name    = $row['account_name'];
-    $type    = strtoupper($row['account_type']);
+    $type    = strtoupper(trim((string) $row['account_type']));
+    if ($type === 'DEDUCTION') {
+        $type = 'DEDUCTIONS';
+    } elseif ($type === 'EARNING') {
+        $type = 'INCOME';
+    }
     $code    = strtoupper(trim($row['account_code']));
     $remarks = trim((string)$row['remarks']);
 

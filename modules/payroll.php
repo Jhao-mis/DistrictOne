@@ -173,11 +173,12 @@ if ($selectedBatch) {
             REPLACE(REPLACE(UPPER(TRIM(p.account_code)), ' ', ''), '_', '') AS code,
             p.amount,
             p.remarks,
-            a.account_type,
-            a.account_name
+            COALESCE(NULLIF(TRIM(p.account_type), ''), NULLIF(TRIM(a.account_type), '')) AS account_type,
+            COALESCE(NULLIF(TRIM(a.account_name), ''), TRIM(p.account_code)) AS account_name
         FROM payroll p
-        INNER JOIN accounts a
-            ON UPPER(TRIM(a.account_code)) = UPPER(TRIM(p.account_code))
+        LEFT JOIN accounts a
+            ON REPLACE(REPLACE(UPPER(TRIM(a.account_code)), ' ', ''), '_', '') =
+               REPLACE(REPLACE(UPPER(TRIM(p.account_code)), ' ', ''), '_', '')
         WHERE p.emp_id = ?
           AND p.batch_id = ?
         ORDER BY p.id ASC
@@ -191,7 +192,12 @@ if ($selectedBatch) {
     while ($row = $res->fetch_assoc()) {
 
         $amount = (float)$row['amount'];
-        $type   = strtoupper($row['account_type']);
+        $type   = strtoupper(trim((string) $row['account_type']));
+        if ($type === 'DEDUCTION') {
+            $type = 'DEDUCTIONS';
+        } elseif ($type === 'EARNING') {
+            $type = 'INCOME';
+        }
 
         $details[] = [
             'code'         => $row['code'],
