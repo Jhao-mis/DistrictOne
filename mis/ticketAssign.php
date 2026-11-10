@@ -202,12 +202,14 @@ $assignedStats = ticketStatusBreakdown($result);
       color: var(--mir-ink);
       margin-bottom: .2rem;
       letter-spacing: -.01em;
+      font-size: 1.35rem;
     }
 
     .mir-page-head p {
       color: var(--mir-muted);
       font-size: .875rem;
       margin: 0;
+      line-height: 1.55;
     }
 
     /* =========================================================
@@ -289,6 +291,7 @@ $assignedStats = ticketStatusBreakdown($result);
       cursor: pointer;
       transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
       text-align: left;
+      min-width: 0;
     }
 
     .stat-card:hover {
@@ -305,6 +308,13 @@ $assignedStats = ticketStatusBreakdown($result);
     .stat-card.active .stat-value,
     .stat-card.active .stat-label {
       color: var(--mir-primary-dark);
+    }
+
+    .stat-card:focus-visible,
+    .table-controls button:focus-visible,
+    .table-controls select:focus-visible {
+      outline: 2px solid var(--mir-primary);
+      outline-offset: 2px;
     }
 
     .stat-icon {
@@ -340,7 +350,22 @@ $assignedStats = ticketStatusBreakdown($result);
     .results-count {
       font-size: .8rem;
       color: var(--mir-muted);
-      margin: -.5rem 0 .75rem;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .results-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin: -.2rem 0 .75rem;
+    }
+
+    .results-hint {
+      color: var(--mir-muted);
+      font-size: .78rem;
     }
 
     /* =========================================================
@@ -349,8 +374,9 @@ $assignedStats = ticketStatusBreakdown($result);
     .table-controls {
       display: flex;
       gap: .6rem;
-      margin-bottom: 1rem;
+      margin-bottom: .8rem;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .table-controls .mir-search-wrap {
@@ -410,6 +436,19 @@ $assignedStats = ticketStatusBreakdown($result);
       box-shadow: 0 0 0 3px var(--mir-primary-soft);
     }
 
+    .table-controls .reset-filters {
+      color: var(--mir-muted);
+      border-color: var(--mir-border);
+      background: var(--mir-surface);
+      white-space: nowrap;
+    }
+
+    .table-controls .reset-filters:hover {
+      color: var(--mir-primary);
+      border-color: var(--mir-primary);
+      background: var(--mir-primary-soft);
+    }
+
     /* =========================================================
        Table
        ========================================================= */
@@ -422,16 +461,112 @@ $assignedStats = ticketStatusBreakdown($result);
       font-weight: 700;
       background: var(--mir-canvas);
       border-bottom: 1px solid var(--mir-border);
+      padding: .8rem .85rem;
     }
 
     #tableRequests tbody tr,
     #tableAssigned tbody tr {
-      transition: background-color .1s ease;
+      transition: background-color .15s ease;
     }
 
     #tableRequests tbody tr:hover,
     #tableAssigned tbody tr:hover {
-      background-color: var(--mir-canvas);
+      background-color: #f8f9ff;
+    }
+
+    #tableRequests tbody td,
+    #tableAssigned tbody td {
+      padding: .8rem .85rem;
+      vertical-align: middle;
+      color: #42465a;
+      line-height: 1.45;
+    }
+
+    #tableRequests,
+    #tableAssigned {
+      min-width: 780px;
+    }
+
+    .ticket-key {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #e4e6f0;
+      border-radius: 7px;
+      background: #f7f8fc;
+      color: #4b5065;
+      padding: .28rem .48rem;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .015em;
+      white-space: nowrap;
+    }
+
+    .requester-cell,
+    .ticket-subject-cell,
+    .ticket-date-cell {
+      min-width: 0;
+    }
+
+    .requester-name,
+    .ticket-subject {
+      display: block;
+      color: var(--mir-ink);
+      font-size: .87rem;
+      font-weight: 650;
+      line-height: 1.35;
+    }
+
+    .requester-department,
+    .ticket-date-time {
+      display: block;
+      margin-top: .18rem;
+      color: var(--mir-muted);
+      font-size: .75rem;
+      font-weight: 400;
+      line-height: 1.35;
+    }
+
+    .ticket-subject {
+      max-width: 340px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ticket-preview {
+      display: -webkit-box;
+      max-width: 360px;
+      margin-top: .22rem;
+      overflow: hidden;
+      color: var(--mir-muted);
+      font-size: .76rem;
+      line-height: 1.4;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .ticket-date {
+      display: block;
+      color: #42465a;
+      font-size: .8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    #tableRequests tbody tr + tr td,
+    #tableAssigned tbody tr + tr td {
+      border-top-color: #f0f1f6;
+    }
+
+    #tableRequests tbody tr[data-ticket-details],
+    #tableAssigned tbody tr[data-ticket-details] {
+      cursor: pointer;
+    }
+
+    #tableRequests tbody tr[data-ticket-details]:focus-visible,
+    #tableAssigned tbody tr[data-ticket-details]:focus-visible {
+      outline: 2px solid var(--mir-primary);
+      outline-offset: -2px;
     }
 
     th.sortable {
@@ -459,13 +594,6 @@ $assignedStats = ticketStatusBreakdown($result);
       color: var(--mir-primary);
     }
 
-    .subject-col {
-      max-width: 240px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
     #tableRequests td i.bx,
     #tableAssigned td i.bx {
       color: var(--mir-muted);
@@ -489,29 +617,220 @@ $assignedStats = ticketStatusBreakdown($result);
       color: #15803d !important;
     }
 
+    #tableRequests .badge,
+    #tableAssigned .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .38rem;
+      border-radius: 999px;
+      padding: .42em .72em;
+      font-size: .72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    #tableRequests .badge::before,
+    #tableAssigned .badge::before {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      content: '';
+    }
+
     .table-scroll {
       max-height: 60vh;
       overflow-y: auto;
+      border: 1px solid var(--mir-border);
+      border-radius: var(--mir-radius-md);
+      background: var(--mir-surface);
+    }
+
+    .table-scroll table {
+      margin-bottom: 0;
     }
 
     .table-scroll thead th {
       position: sticky;
       top: 0;
       z-index: 1;
+      box-shadow: 0 1px 0 var(--mir-border);
     }
 
-    .action-cell .btn {
-      border-radius: 7px;
+    .table-responsive:not(.table-scroll) {
+      border: 1px solid var(--mir-border);
+      border-radius: var(--mir-radius-md);
+      background: var(--mir-surface);
+    }
+
+    .table-responsive:not(.table-scroll) table {
+      margin-bottom: 0;
+    }
+
+    #ticketDetailsModal .modal-content {
+      overflow: hidden;
+      border: 1px solid rgba(231, 232, 242, .9);
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(30, 33, 48, .2);
+    }
+
+    #ticketDetailsModal .modal-header {
+      align-items: flex-start;
+      padding: 1.35rem 1.5rem;
+      border-bottom: 1px solid var(--mir-border);
+      background: linear-gradient(135deg, #f8f9ff 0%, #fff 75%);
+    }
+
+    .ticket-modal-kicker {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      margin-bottom: .35rem;
+      color: var(--mir-muted);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .ticket-modal-kicker i {
+      color: var(--mir-primary);
+      font-size: 1rem;
+    }
+
+    #ticketDetailsTitle {
+      color: var(--mir-ink);
+      font-size: 1.2rem;
+      font-weight: 750;
+      letter-spacing: -.02em;
+    }
+
+    #ticketDetailsRequester {
+      color: var(--mir-muted);
+      font-size: .84rem;
+    }
+
+    #ticketDetailsModal .modal-body {
+      padding: 1.5rem;
+    }
+
+    .ticket-modal-subject {
+      margin-bottom: 1.25rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid #e8e9f8;
+      border-left: 4px solid var(--mir-primary);
+      border-radius: 10px;
+      background: #f8f8ff;
+    }
+
+    .ticket-modal-label {
+      display: block;
+      margin-bottom: .35rem;
+      color: var(--mir-muted);
+      font-size: .69rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    #ticketDetailsSubject {
+      color: var(--mir-ink);
+      font-size: 1.02rem;
+      font-weight: 700;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .ticket-modal-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .ticket-modal-meta-item {
+      min-width: 0;
+      padding: .8rem .9rem;
+      border: 1px solid var(--mir-border);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .ticket-modal-meta-value {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.35rem;
+      color: var(--mir-ink);
+      font-size: .86rem;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    #ticketDetailsStatus.badge {
+      min-height: auto;
+      padding: .4em .72em;
+      border-radius: 999px;
+      font-size: .75rem;
+    }
+
+    .ticket-modal-section {
+      margin-top: 1rem;
+    }
+
+    .ticket-modal-section h6 {
+      margin-bottom: .5rem;
+      color: var(--mir-ink);
       font-size: .8rem;
-      font-weight: 600;
-      padding: .35rem .8rem;
-      background: var(--mir-primary);
-      border-color: var(--mir-primary);
+      font-weight: 700;
     }
 
-    .action-cell .btn:hover {
-      background: var(--mir-primary-dark);
-      border-color: var(--mir-primary-dark);
+    .ticket-modal-copy {
+      min-height: 2.8rem;
+      margin: 0;
+      padding: .85rem 1rem;
+      border: 1px solid #eceef4;
+      border-radius: 10px;
+      background: #fafbfc;
+      color: #45495c;
+      font-size: .88rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    #ticketDetailsFeedback {
+      border-left: 3px solid #cfd3e2;
+      background: #fbfbfd;
+    }
+
+    #ticketDetailsModal .modal-footer {
+      gap: .5rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--mir-border);
+      background: #fcfcfe;
+    }
+
+    @media (max-width: 575.98px) {
+      #ticketDetailsModal .modal-dialog {
+        margin: .65rem;
+      }
+
+      #ticketDetailsModal .modal-header,
+      #ticketDetailsModal .modal-body {
+        padding: 1rem;
+      }
+
+      #ticketDetailsModal .modal-footer {
+        padding: .8rem 1rem;
+      }
+
+      .ticket-modal-meta {
+        gap: .5rem;
+      }
+
+      .ticket-modal-meta-item {
+        padding: .7rem;
+      }
     }
 
     /* Status accent on rows (desktop) */
@@ -526,6 +845,9 @@ $assignedStats = ticketStatusBreakdown($result);
       text-align: center;
       padding: 3rem 1rem;
       color: var(--mir-muted);
+      border: 1px dashed var(--mir-border);
+      border-radius: var(--mir-radius-md);
+      background: #fcfcfe;
     }
 
     .mir-empty i {
@@ -565,15 +887,37 @@ $assignedStats = ticketStatusBreakdown($result);
 
       .table-controls {
         flex-direction: column;
+        align-items: stretch;
       }
 
       .table-controls select {
         width: 100% !important;
       }
 
+      .table-controls .reset-filters {
+        width: 100%;
+      }
+
+      .results-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .25rem;
+      }
+
       /* Convert tables into stacked cards on phones */
       .table-scroll {
         max-height: none;
+      }
+
+      .table-responsive:not(.table-scroll) {
+        border: 0;
+        background: transparent;
+        overflow: visible;
+      }
+
+      #tableRequests,
+      #tableAssigned {
+        min-width: 0;
       }
 
       table.table-smaller,
@@ -602,6 +946,8 @@ $assignedStats = ticketStatusBreakdown($result);
         padding: .3rem 0 !important;
         white-space: normal !important;
         max-width: 100% !important;
+        width: auto;
+        min-width: 0;
       }
 
       table.table-smaller td::before {
@@ -612,21 +958,6 @@ $assignedStats = ticketStatusBreakdown($result);
         letter-spacing: .03em;
         color: var(--mir-muted);
         margin-bottom: .1rem;
-      }
-
-      table.table-smaller td.action-cell {
-        padding-top: .5rem !important;
-        border-top: 1px solid var(--mir-border) !important;
-        margin-top: .4rem;
-      }
-
-      table.table-smaller td.action-cell::before {
-        content: '';
-        margin: 0;
-      }
-
-      table.table-smaller td.action-cell .btn {
-        width: 100%;
       }
 
       /* Stat cards: 2x2 grid on phones */
@@ -651,16 +982,16 @@ $assignedStats = ticketStatusBreakdown($result);
       /* Compact app-style ticket card layout */
       table.table-smaller tbody tr {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
           "ticket status"
-          "subject subject"
-          "name date"
-          "action action";
+          "requester date"
+          "subject subject";
         gap: .3rem .5rem;
         align-items: center;
         position: relative;
-        padding-left: 1rem;
+        padding: .85rem .85rem .85rem 1rem;
+        box-shadow: 0 2px 8px rgba(30, 33, 48, .04);
       }
 
       table.table-smaller tbody tr.row-pending { border-left: 4px solid var(--mir-pending); }
@@ -679,7 +1010,7 @@ $assignedStats = ticketStatusBreakdown($result);
       }
 
       table.table-smaller td:nth-child(2) {
-        grid-area: name;
+        grid-area: requester;
         font-size: .82rem;
         color: var(--mir-muted);
       }
@@ -693,23 +1024,35 @@ $assignedStats = ticketStatusBreakdown($result);
 
       table.table-smaller td:nth-child(4) {
         grid-area: status;
-        justify-self: end;
+        text-align: right;
       }
 
       table.table-smaller td:nth-child(5) {
         grid-area: date;
         font-size: .78rem;
         color: var(--mir-muted);
-        justify-self: end;
+        text-align: right;
       }
 
-      table.table-smaller td.action-cell {
-        grid-area: action;
+      .ticket-subject,
+      .ticket-preview {
+        max-width: 100%;
+        white-space: normal;
+      }
+
+      .ticket-date {
+        white-space: normal;
       }
 
       table.table-smaller td i.bx {
         font-size: .9rem;
         margin-right: .2rem;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 991.98px) {
+      .stat-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -776,8 +1119,8 @@ $assignedStats = ticketStatusBreakdown($result);
             <button class="nav-link active" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests"
               type="button" role="tab" aria-selected="true">
               <i class='bx bx-list-ul'></i> Ticket Requests
-              <span class="badge <?= $activeRequestsCount > 0 ? 'bg-primary' : 'bg-secondary' ?> ms-1">
-                <?= $activeRequestsCount ?>
+              <span class="badge <?= $activeRequestsCount > 0 ? 'bg-primary' : 'bg-secondary' ?> ms-1" title="Active tickets">
+                <?= $activeRequestsCount ?> active
               </span>
             </button>
           </li>
@@ -785,8 +1128,8 @@ $assignedStats = ticketStatusBreakdown($result);
             <button class="nav-link" id="assigned-tab" data-bs-toggle="tab" data-bs-target="#assigned" type="button"
               role="tab" aria-selected="false">
               <i class='bx bx-user-check'></i> Assigned Tickets
-              <span class="badge <?= $activeAssignedCount > 0 ? 'bg-primary' : 'bg-secondary' ?> ms-1">
-                <?= $activeAssignedCount ?>
+              <span class="badge <?= $activeAssignedCount > 0 ? 'bg-primary' : 'bg-secondary' ?> ms-1" title="Active tickets">
+                <?= $activeAssignedCount ?> active
               </span>
             </button>
           </li>
@@ -833,7 +1176,7 @@ $assignedStats = ticketStatusBreakdown($result);
               <div class="mir-search-wrap">
                 <i class='bx bx-search'></i>
                 <input type="text" id="searchRequests" class="form-control form-control-sm"
-                  placeholder="Search ticket #, name, subject, description..." aria-label="Search ticket requests">
+                  placeholder="Search ticket #, requester, department, subject, feedback..." aria-label="Search ticket requests">
                 <button type="button" class="mir-search-clear" id="clearRequests" aria-label="Clear search">&times;</button>
               </div>
               <select id="filterRequests" class="form-select form-select-sm w-auto" aria-label="Filter ticket requests by status">
@@ -842,21 +1185,26 @@ $assignedStats = ticketStatusBreakdown($result);
                 <option value="In Progress">In Progress</option>
                 <option value="Resolved">Resolved</option>
               </select>
+              <button type="button" class="btn btn-sm reset-filters" data-reset-search="searchRequests" data-reset-filter="filterRequests">
+                <i class='bx bx-reset'></i> Reset
+              </button>
             </div>
 
-            <div class="results-count" id="countRequests"></div>
+            <div class="results-toolbar">
+              <div class="results-count" id="countRequests" aria-live="polite"></div>
+              <span class="results-hint"><i class='bx bx-info-circle'></i> Select a ticket row to preview its details.</span>
+            </div>
 
             <?php if ($result_all->num_rows > 0): ?>
               <div class="table-responsive text-nowrap <?= ($result_all->num_rows > 5) ? 'table-scroll' : ''; ?>">
                 <table class="table table-smaller" id="tableRequests">
                   <thead>
                     <tr>
-                      <th class="sortable">Ticket #</th>
-                      <th class="sortable">Name</th>
-                      <th class="sortable">Subject</th>
+                      <th class="sortable">Ticket</th>
+                      <th class="sortable">Requester</th>
+                      <th class="sortable">Request</th>
                       <th class="sortable">Status</th>
-                      <th class="sortable">Created At</th>
-                      <th>Action</th>
+                      <th class="sortable">Submitted</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -876,21 +1224,33 @@ $assignedStats = ticketStatusBreakdown($result);
                         default => ''
                       };
                       ?>
-                      <tr class="<?= $rowClass ?>" data-search="<?= htmlspecialchars(($row_all['subject'] ?? '') . ' ' . ($row_all['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
-                        <td data-label="Ticket #">#<?= $row_all['id']; ?></td>
-                        <td data-label="Name"><i class='bx bx-user'></i><?= htmlspecialchars($row_all['user_name']); ?></td>
-                        <td data-label="Subject" class="subject-col" title="<?= htmlspecialchars($row_all['subject']); ?>">
-                          <?= htmlspecialchars($row_all['subject']); ?>
+                      <tr class="<?= $rowClass ?>" tabindex="0" aria-label="Preview ticket #<?= htmlspecialchars((string) $row_all['id'], ENT_QUOTES, 'UTF-8'); ?>" data-ticket-details
+                        data-ticket-id="<?= htmlspecialchars((string) $row_all['id'], ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-name="<?= htmlspecialchars($row_all['user_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-department="<?= htmlspecialchars($row_all['department_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-subject="<?= htmlspecialchars($row_all['subject'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-status="<?= htmlspecialchars($row_all['status'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-description="<?= htmlspecialchars($row_all['description'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-feedback="<?= htmlspecialchars($row_all['feedback'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-created="<?= htmlspecialchars($row_all['created_at'] ? date("M d, Y h:i A", strtotime($row_all['created_at'])) : 'N/A', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-search="<?= htmlspecialchars(($row_all['subject'] ?? '') . ' ' . ($row_all['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                        <td data-label="Ticket"><span class="ticket-key">#<?= htmlspecialchars((string) $row_all['id'], ENT_QUOTES, 'UTF-8'); ?></span></td>
+                        <td data-label="Requester" class="requester-cell">
+                          <span class="requester-name"><i class='bx bx-user'></i><?= htmlspecialchars($row_all['user_name'] ?? 'Unknown requester'); ?></span>
+                          <span class="requester-department"><?= htmlspecialchars($row_all['department_name'] ?? ''); ?></span>
+                        </td>
+                        <td data-label="Request" class="ticket-subject-cell">
+                          <span class="ticket-subject" title="<?= htmlspecialchars($row_all['subject'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($row_all['subject'] ?? 'Untitled request'); ?></span>
+                          <span class="ticket-preview"><?= htmlspecialchars($row_all['description'] ?? 'No description provided.'); ?></span>
                         </td>
                         <td data-label="Status">
                           <span class="badge <?= $badge ?> me-1"><?= $status ?></span>
                         </td>
-                        <td data-label="Created At"><i class='bx bx-calendar'></i><?= $row_all['created_at'] ? date("M d, Y h:i A", strtotime($row_all['created_at'])) : 'N/A' ?>
-                        </td>
-                        <td data-label="Action" class="action-cell">
-                          <a href="viewTicket.php?ticket_id=<?= $row_all['id'] ?>" class="btn btn-sm btn-primary">
-                            <i class='bx bx-show'></i> View
-                          </a>
+                        <td data-label="Submitted" class="ticket-date-cell" data-sort="<?= $row_all['created_at'] ? strtotime($row_all['created_at']) : 0; ?>">
+                          <span class="ticket-date"><?= $row_all['created_at'] ? date("M d, Y", strtotime($row_all['created_at'])) : 'N/A' ?></span>
+                          <?php if ($row_all['created_at']): ?>
+                            <span class="ticket-date-time"><?= date("h:i A", strtotime($row_all['created_at'])); ?></span>
+                          <?php endif; ?>
                         </td>
                       </tr>
                     <?php endwhile; ?>
@@ -949,7 +1309,7 @@ $assignedStats = ticketStatusBreakdown($result);
               <div class="mir-search-wrap">
                 <i class='bx bx-search'></i>
                 <input type="text" id="searchAssigned" class="form-control form-control-sm"
-                  placeholder="Search ticket #, name, subject, description..." aria-label="Search assigned tickets">
+                  placeholder="Search ticket #, requester, department, subject, feedback..." aria-label="Search assigned tickets">
                 <button type="button" class="mir-search-clear" id="clearAssigned" aria-label="Clear search">&times;</button>
               </div>
               <select id="filterAssigned" class="form-select form-select-sm w-auto" aria-label="Filter assigned tickets by status">
@@ -958,21 +1318,26 @@ $assignedStats = ticketStatusBreakdown($result);
                 <option value="In Progress">In Progress</option>
                 <option value="Resolved">Resolved</option>
               </select>
+              <button type="button" class="btn btn-sm reset-filters" data-reset-search="searchAssigned" data-reset-filter="filterAssigned">
+                <i class='bx bx-reset'></i> Reset
+              </button>
             </div>
 
-            <div class="results-count" id="countAssigned"></div>
+            <div class="results-toolbar">
+              <div class="results-count" id="countAssigned" aria-live="polite"></div>
+              <span class="results-hint"><i class='bx bx-info-circle'></i> Select a ticket row to preview its details.</span>
+            </div>
 
             <?php if ($result->num_rows > 0): ?>
               <div class="table-responsive text-nowrap <?= ($result->num_rows > 5) ? 'table-scroll' : ''; ?>">
                 <table class="table table-smaller" id="tableAssigned">
                   <thead>
                     <tr>
-                      <th class="sortable">Ticket #</th>
-                      <th class="sortable">Name</th>
-                      <th class="sortable">Subject</th>
+                      <th class="sortable">Ticket</th>
+                      <th class="sortable">Requester</th>
+                      <th class="sortable">Request</th>
                       <th class="sortable">Status</th>
-                      <th class="sortable">Created At</th>
-                      <th>Action</th>
+                      <th class="sortable">Submitted</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -992,20 +1357,33 @@ $assignedStats = ticketStatusBreakdown($result);
                         default => ''
                       };
                       ?>
-                      <tr class="<?= $rowClass ?>" data-search="<?= htmlspecialchars(($row['subject'] ?? '') . ' ' . ($row['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
-                        <td data-label="Ticket #">#<?= $row['id']; ?></td>
-                        <td data-label="Name"><i class='bx bx-user'></i><?= htmlspecialchars($row['user_name']); ?></td>
-                        <td data-label="Subject" class="subject-col" title="<?= htmlspecialchars($row['subject']); ?>">
-                          <?= htmlspecialchars($row['subject']); ?>
+                      <tr class="<?= $rowClass ?>" tabindex="0" aria-label="Preview ticket #<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?>" data-ticket-details
+                        data-ticket-id="<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-name="<?= htmlspecialchars($row['user_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-department="<?= htmlspecialchars($row['department_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-subject="<?= htmlspecialchars($row['subject'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-status="<?= htmlspecialchars($row['status'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-description="<?= htmlspecialchars($row['description'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-feedback="<?= htmlspecialchars($row['feedback'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-created="<?= htmlspecialchars($row['created_at'] ? date("M d, Y h:i A", strtotime($row['created_at'])) : 'N/A', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-search="<?= htmlspecialchars(($row['subject'] ?? '') . ' ' . ($row['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
+                        <td data-label="Ticket"><span class="ticket-key">#<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?></span></td>
+                        <td data-label="Requester" class="requester-cell">
+                          <span class="requester-name"><i class='bx bx-user'></i><?= htmlspecialchars($row['user_name'] ?? 'Unknown requester'); ?></span>
+                          <span class="requester-department"><?= htmlspecialchars($row['department_name'] ?? ''); ?></span>
+                        </td>
+                        <td data-label="Request" class="ticket-subject-cell">
+                          <span class="ticket-subject" title="<?= htmlspecialchars($row['subject'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($row['subject'] ?? 'Untitled request'); ?></span>
+                          <span class="ticket-preview"><?= htmlspecialchars($row['description'] ?? 'No description provided.'); ?></span>
                         </td>
                         <td data-label="Status">
                           <span class="badge <?= $badge ?> me-1"><?= $status ?></span>
                         </td>
-                        <td data-label="Created At"><i class='bx bx-calendar'></i><?= $row['created_at'] ? date("M d, Y h:i A", strtotime($row['created_at'])) : 'N/A' ?></td>
-                        <td data-label="Action" class="action-cell">
-                          <a href="viewTicket.php?ticket_id=<?= $row['id'] ?>" class="btn btn-sm btn-primary">
-                            <i class='bx bx-show'></i> View
-                          </a>
+                        <td data-label="Submitted" class="ticket-date-cell" data-sort="<?= $row['created_at'] ? strtotime($row['created_at']) : 0; ?>">
+                          <span class="ticket-date"><?= $row['created_at'] ? date("M d, Y", strtotime($row['created_at'])) : 'N/A' ?></span>
+                          <?php if ($row['created_at']): ?>
+                            <span class="ticket-date-time"><?= date("h:i A", strtotime($row['created_at'])); ?></span>
+                          <?php endif; ?>
                         </td>
                       </tr>
                     <?php endwhile; ?>
@@ -1026,6 +1404,55 @@ $assignedStats = ticketStatusBreakdown($result);
             <?php endif; ?>
           </div>
         </div> <!-- end tab content -->
+
+        <div class="modal fade" id="ticketDetailsModal" tabindex="-1" aria-labelledby="ticketDetailsTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <div>
+                  <div class="ticket-modal-kicker"><i class='bx bx-receipt'></i> Ticket preview</div>
+                  <h5 class="modal-title mb-1" id="ticketDetailsTitle">Ticket details</h5>
+                  <div id="ticketDetailsRequester"></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="ticket-modal-subject">
+                  <span class="ticket-modal-label">Subject</span>
+                  <div id="ticketDetailsSubject"></div>
+                </div>
+
+                <div class="ticket-modal-meta">
+                  <div class="ticket-modal-meta-item">
+                    <span class="ticket-modal-label">Status</span>
+                    <span class="ticket-modal-meta-value badge" id="ticketDetailsStatus"></span>
+                  </div>
+                  <div class="ticket-modal-meta-item">
+                    <span class="ticket-modal-label">Submitted</span>
+                    <span class="ticket-modal-meta-value" id="ticketDetailsCreated"></span>
+                  </div>
+                </div>
+
+                <section class="ticket-modal-section" aria-labelledby="ticketDescriptionHeading">
+                  <h6 id="ticketDescriptionHeading"><i class='bx bx-detail'></i> Request details</h6>
+                  <p class="ticket-modal-copy" id="ticketDetailsDescription"></p>
+                </section>
+
+                <section class="ticket-modal-section" aria-labelledby="ticketFeedbackHeading">
+                  <h6 id="ticketFeedbackHeading"><i class='bx bx-message-detail'></i> Staff feedback</h6>
+                  <p class="ticket-modal-copy" id="ticketDetailsFeedback"></p>
+                </section>
+              </div>
+              <div class="modal-footer">
+                <a class="btn btn-primary" id="ticketDetailsViewLink" href="#">
+                  <i class='bx bx-right-arrow-alt'></i> Manage ticket
+                </a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1054,8 +1481,8 @@ $assignedStats = ticketStatusBreakdown($result);
       const total = rows.length;
       const searchableRows = rows.map(row => ({
         row,
-        text: `${row.innerText} ${row.dataset.search || ''}`.toLowerCase(),
-        status: row.cells[3].innerText.toLowerCase()
+        text: `${row.innerText} ${row.dataset.search || ''} ${row.dataset.ticketDepartment || ''} ${row.dataset.ticketFeedback || ''}`.toLowerCase(),
+        status: (row.dataset.ticketStatus || row.cells[3].innerText).toLowerCase()
       }));
       let sortDir = {};
       let searchTimeout;
@@ -1112,8 +1539,8 @@ $assignedStats = ticketStatusBreakdown($result);
           const asc = !sortDir[i];
           sortDir[i] = asc;
           const sorted = [...rows].sort((a, b) => {
-            const aText = a.cells[i].innerText.trim().toLowerCase().replace(/^#/, '');
-            const bText = b.cells[i].innerText.trim().toLowerCase().replace(/^#/, '');
+            const aText = (a.cells[i].dataset.sort || a.cells[i].innerText).trim().toLowerCase().replace(/^#/, '');
+            const bText = (b.cells[i].dataset.sort || b.cells[i].innerText).trim().toLowerCase().replace(/^#/, '');
             if (!isNaN(aText) && !isNaN(bText) && aText !== '' && bText !== '') {
               return asc ? aText - bText : bText - aText;
             }
@@ -1131,6 +1558,63 @@ $assignedStats = ticketStatusBreakdown($result);
     // Initialize for both tables
     initTableControls('tableRequests', 'searchRequests', 'filterRequests', 'noResultsRequests', 'countRequests', 'clearRequests');
     initTableControls('tableAssigned', 'searchAssigned', 'filterAssigned', 'noResultsAssigned', 'countAssigned', 'clearAssigned');
+
+    document.querySelectorAll('.reset-filters').forEach(button => {
+      button.addEventListener('click', () => {
+        const search = document.getElementById(button.dataset.resetSearch);
+        const filter = document.getElementById(button.dataset.resetFilter);
+        if (!search || !filter) return;
+
+        search.value = '';
+        filter.value = 'all';
+        search.dispatchEvent(new Event('input'));
+        filter.dispatchEvent(new Event('change'));
+        search.focus();
+      });
+    });
+
+    const ticketDetailsModalElement = document.getElementById('ticketDetailsModal');
+    const ticketDetailsModal = ticketDetailsModalElement
+      ? new bootstrap.Modal(ticketDetailsModalElement)
+      : null;
+
+    function showTicketDetails(row) {
+      if (!ticketDetailsModal) return;
+
+      const ticketId = row.dataset.ticketId;
+      document.getElementById('ticketDetailsTitle').textContent = `Ticket #${ticketId}`;
+      document.getElementById('ticketDetailsRequester').textContent =
+        `${row.dataset.ticketName || 'Unknown requester'}${row.dataset.ticketDepartment ? ` · ${row.dataset.ticketDepartment}` : ''}`;
+      document.getElementById('ticketDetailsSubject').textContent = row.dataset.ticketSubject || 'N/A';
+      const ticketStatus = document.getElementById('ticketDetailsStatus');
+      const status = row.dataset.ticketStatus || 'Unknown';
+      const statusBadgeClass = {
+        'Pending': 'bg-label-warning',
+        'In Progress': 'bg-label-info',
+        'Resolved': 'bg-label-success'
+      }[status] || 'bg-label-secondary';
+      ticketStatus.textContent = status;
+      ticketStatus.className = `ticket-modal-meta-value badge ${statusBadgeClass}`;
+      document.getElementById('ticketDetailsCreated').textContent = row.dataset.ticketCreated || 'N/A';
+      document.getElementById('ticketDetailsDescription').textContent = row.dataset.ticketDescription || 'No description provided.';
+      document.getElementById('ticketDetailsFeedback').textContent = row.dataset.ticketFeedback || 'No feedback yet.';
+      document.getElementById('ticketDetailsViewLink').href = `viewTicket.php?ticket_id=${encodeURIComponent(ticketId)}`;
+      ticketDetailsModal.show();
+    }
+
+    document.querySelectorAll('tr[data-ticket-details]').forEach(row => {
+      row.addEventListener('click', event => {
+        if (event.target.closest('a, button, input, select, textarea, label')) return;
+        showTicketDetails(row);
+      });
+
+      row.addEventListener('keydown', event => {
+        if (event.target.closest('a, button, input, select, textarea, label')) return;
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        showTicketDetails(row);
+      });
+    });
 
     // Stat cards act as quick filters
     document.querySelectorAll('.stat-card').forEach(card => {

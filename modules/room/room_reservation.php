@@ -2,6 +2,7 @@
 session_start();
 require '../../vendor/autoload.php';
 include '../../db.php';
+require_once '../../lib/access_control.php';
 
 // ✅ Ensure user is logged in
 if (!isset($_SESSION['username'])) {
@@ -24,7 +25,7 @@ $query->close();
 // ✅ Ensure user details are properly stored in session
 $_SESSION['user_id'] = $user_id;
 $_SESSION['name'] = trim("$firstname $middlename $lastname") ?: "Unknown User";
-$_SESSION['role'] = $user_role;
+$_SESSION['role'] = access_normalize_role((string) $user_role);
 
 // 🔧 Pre-populate fields
 $user_name = $_SESSION["name"];

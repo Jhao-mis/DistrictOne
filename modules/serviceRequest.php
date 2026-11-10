@@ -41,15 +41,14 @@ SELECT t.*,
        (SELECT MAX(th.timestamp) 
         FROM ticket_history th 
         WHERE th.ticket_id = t.id) AS last_update,
-       TRIM(REPLACE(
-         (SELECT SUBSTRING_INDEX(th.action, ' by ', 1) 
-          FROM ticket_history th 
-          WHERE th.ticket_id = t.id 
-            AND th.action LIKE 'Ticket assigned to%'
-          ORDER BY th.timestamp DESC
-          LIMIT 1), 'Ticket assigned to', '')
-       ) AS assigned_to
+       TRIM(CONCAT_WS(
+         ' ',
+         NULLIF(assigned_mis.firstname, ''),
+         NULLIF(assigned_mis.middlename, ''),
+         NULLIF(assigned_mis.lastname, '')
+       )) AS assigned_name
 FROM tickets t
+LEFT JOIN users assigned_mis ON t.assigned_to = assigned_mis.id
 WHERE t.user_id = ? 
   AND t.status IN ('Pending','In Progress','Cancelled')
 ORDER BY t.created_at DESC
@@ -66,15 +65,14 @@ SELECT t.*,
        (SELECT MAX(th.timestamp) 
         FROM ticket_history th 
         WHERE th.ticket_id = t.id) AS last_update,
-       TRIM(REPLACE(
-         (SELECT SUBSTRING_INDEX(th.action, ' by ', 1) 
-          FROM ticket_history th 
-          WHERE th.ticket_id = t.id 
-            AND th.action LIKE 'Ticket assigned to%'
-          ORDER BY th.timestamp DESC
-          LIMIT 1), 'Ticket assigned to', '')
-       ) AS assigned_to
+       TRIM(CONCAT_WS(
+         ' ',
+         NULLIF(assigned_mis.firstname, ''),
+         NULLIF(assigned_mis.middlename, ''),
+         NULLIF(assigned_mis.lastname, '')
+       )) AS assigned_name
 FROM tickets t
+LEFT JOIN users assigned_mis ON t.assigned_to = assigned_mis.id
 WHERE t.user_id = ? 
   AND t.status = 'Resolved'
 ORDER BY t.created_at DESC
@@ -90,16 +88,15 @@ SELECT t.*,
        (SELECT MAX(th.timestamp) 
         FROM ticket_history th 
         WHERE th.ticket_id = t.id) AS last_update,
-       TRIM(REPLACE(
-         (SELECT SUBSTRING_INDEX(th.action, ' by ', 1) 
-          FROM ticket_history th 
-          WHERE th.ticket_id = t.id 
-            AND th.action LIKE 'Ticket assigned to%'
-          ORDER BY th.timestamp DESC
-          LIMIT 1), 'Ticket assigned to', '')
-       ) AS assigned_to
+       TRIM(CONCAT_WS(
+         ' ',
+         NULLIF(assigned_mis.firstname, ''),
+         NULLIF(assigned_mis.middlename, ''),
+         NULLIF(assigned_mis.lastname, '')
+       )) AS assigned_name
 FROM tickets t
 JOIN users u ON t.user_id = u.id
+LEFT JOIN users assigned_mis ON t.assigned_to = assigned_mis.id
 WHERE t.user_id = ? 
   AND t.status = 'Rejected'
 ORDER BY t.created_at DESC
@@ -842,9 +839,10 @@ $total = count($all_tickets);
                       'Cancelled' => 'st-cancelled',
                       default => 'st-pending'
                     };
-                    $assignedRaw = $row['assigned_to'] ? htmlspecialchars($row['assigned_to']) : 'Unassigned';
-                    $initials = $row['assigned_to']
-                      ? strtoupper(substr($assignedRaw, 0, 1) . (strpos($assignedRaw, ' ') !== false ? substr($assignedRaw, strpos($assignedRaw, ' ') + 1, 1) : ''))
+                    $assignedName = trim((string) ($row['assigned_name'] ?? ''));
+                    $assignedRaw = $assignedName !== '' ? htmlspecialchars($assignedName, ENT_QUOTES, 'UTF-8') : 'Unassigned';
+                    $initials = $assignedName !== ''
+                      ? strtoupper(substr($assignedName, 0, 1) . (strpos($assignedName, ' ') !== false ? substr($assignedName, strpos($assignedName, ' ') + 1, 1) : ''))
                       : '–';
                   ?>
                     <tr class="ticket-row" data-ticket-id="<?= htmlspecialchars($row['id']) ?>"
@@ -863,7 +861,7 @@ $total = count($all_tickets);
                       </td>
                       <td>
                         <div class="tk-assignee">
-                          <div class="tk-avatar <?= $row['assigned_to'] ? '' : 'is-unassigned' ?>"><?= $initials ?></div>
+                          <div class="tk-avatar <?= $assignedName !== '' ? '' : 'is-unassigned' ?>"><?= $initials ?></div>
                           <?= $assignedRaw ?>
                         </div>
                       </td>

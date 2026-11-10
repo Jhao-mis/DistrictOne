@@ -104,21 +104,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'])) {
 
 // ✅ Handle Get Ticket
 if (isset($_POST['get_ticket'])) {
-  $assign_sql = "UPDATE tickets SET assigned_to = ? WHERE id = ? AND (assigned_to IS NULL OR assigned_to = 0)";
+  $assign_sql = "UPDATE tickets SET assigned_to = ?, status = 'In Progress' WHERE id = ? AND (assigned_to IS NULL OR assigned_to = 0)";
   $assign_stmt = $conn->prepare($assign_sql);
   $assign_stmt->bind_param("ii", $user_id, $ticket_id);
   $assign_stmt->execute();
+  $ticket_was_assigned = $assign_stmt->affected_rows > 0;
   $assign_stmt->close();
 
-  // Log the action with real name
-  $action = "Ticket was taken by " . $mis_fullname;
-  $history_sql = "INSERT INTO ticket_history (ticket_id, action, timestamp) VALUES (?, ?, NOW())";
-  $history_stmt = $conn->prepare($history_sql);
-  $history_stmt->bind_param("is", $ticket_id, $action);
-  $history_stmt->execute();
-  $history_stmt->close();
+  if ($ticket_was_assigned) {
+    $actions = ["Ticket was taken by " . $mis_fullname];
+    if ($ticket['status'] !== 'In Progress') {
+      $actions[] = "Status changed to 'In Progress' by " . $mis_fullname;
+    }
 
-  header("Location: viewTicket.php?ticket_id=" . $ticket_id . "&assigned=1");
+    foreach ($actions as $action) {
+      $history_sql = "INSERT INTO ticket_history (ticket_id, action, action_by, timestamp) VALUES (?, ?, ?, NOW())";
+      $history_stmt = $conn->prepare($history_sql);
+      $history_stmt->bind_param("isi", $ticket_id, $action, $user_id);
+      $history_stmt->execute();
+      $history_stmt->close();
+    }
+  }
+
+  $redirect_status = $ticket_was_assigned ? "&assigned=1" : "";
+  header("Location: viewTicket.php?ticket_id=" . $ticket_id . $redirect_status);
   exit;
 }
 

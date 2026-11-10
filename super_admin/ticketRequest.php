@@ -82,14 +82,15 @@ if ($search !== '') {
   $where .= " AND (
     CAST(t.id AS CHAR) LIKE ?
     OR CONCAT_WS(' ', u.firstname, u.middlename, u.lastname) LIKE ?
+    OR u.department LIKE ?
     OR t.subject LIKE ?
     OR t.description LIKE ?
     OR t.status LIKE ?
     OR DATE_FORMAT(t.created_at, '%Y-%m-%d %h:%i %p') LIKE ?
   )";
   $searchTerm = '%' . $search . '%';
-  $parameterTypes .= 'ssssss';
-  array_push($parameters, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+  $parameterTypes .= 'sssssss';
+  array_push($parameters, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
 }
 
 $bindParameters = static function (mysqli_stmt $statement, string $types, array &$values): void {
@@ -130,6 +131,7 @@ $ticketStatement = $conn->prepare("
     t.id,
     t.description,
     CONCAT(u.firstname, ' ', u.middlename, ' ', u.lastname) AS user_name,
+    u.department AS department_name,
     t.subject,
     t.status,
     t.created_at,
@@ -140,18 +142,15 @@ $ticketStatement = $conn->prepare("
       ORDER BY th.timestamp DESC
       LIMIT 1
     ) AS last_update,
-    TRIM(REPLACE(
-      (
-        SELECT SUBSTRING_INDEX(th2.action, ' by ', 1)
-        FROM ticket_history th2
-        WHERE th2.ticket_id = t.id
-          AND th2.action LIKE 'Ticket assigned to%'
-        ORDER BY th2.timestamp DESC
-        LIMIT 1
-      ), 'Ticket assigned to', '')
-    ) AS assigned_to
+    TRIM(CONCAT_WS(
+      ' ',
+      NULLIF(assigned_mis.firstname, ''),
+      NULLIF(assigned_mis.middlename, ''),
+      NULLIF(assigned_mis.lastname, '')
+    )) AS assigned_to
   FROM tickets t
   JOIN users u ON t.user_id = u.id
+  LEFT JOIN users assigned_mis ON t.assigned_to = assigned_mis.id
   WHERE $where
   ORDER BY {$sortColumns[$sort]} $direction, t.id DESC
   LIMIT ? OFFSET ?
@@ -175,12 +174,13 @@ if ($isAjaxRequest) {
   echo json_encode([
     'tickets' => array_map(static function (array $ticket): array {
       $ticket['created_display'] = $ticket['created_at']
-        ? date('Y-m-d h:i A', strtotime($ticket['created_at']))
+        ? date('M d, Y h:i A', strtotime($ticket['created_at']))
         : '—';
       $ticket['updated_display'] = $ticket['last_update']
-        ? date('Y-m-d h:i A', strtotime($ticket['last_update']))
+        ? date('M d, Y h:i A', strtotime($ticket['last_update']))
         : '—';
       $ticket['assigned_to'] = $ticket['assigned_to'] ?: 'Pending Assignment';
+      $ticket['department_name'] = $ticket['department_name'] ?? '';
       return $ticket;
     }, $tickets),
     'matchingCount' => $matchingCount,
@@ -302,18 +302,25 @@ $pageUrl = static function (array $changes): string {
     .tk-select { border: 1.5px solid var(--tk-border); border-radius: var(--tk-radius-sm); padding: 8px 30px 8px 12px; font-size: 13px; font-weight: 600; color: var(--tk-text); background: var(--tk-surface); cursor: pointer; }
     .tk-select:focus { outline: none; border-color: var(--tk-primary); box-shadow: 0 0 0 3px var(--tk-primary-soft); }
 
-    .tk-table-wrap { max-height: 560px; overflow-y: auto; }
-    .tk-table { width: 100%; border-collapse: collapse; }
-    .tk-table thead th { position: sticky; top: 0; z-index: 1; background: var(--tk-bg); font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; font-weight: 800; color: var(--tk-text-muted); padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--tk-border); white-space: nowrap; user-select: none; }
+    .tk-table-wrap { max-height: 560px; overflow-y: auto; border: 1px solid var(--tk-border); border-radius: 12px; background: var(--tk-surface); }
+    .tk-table { width: 100%; min-width: 780px; border-collapse: collapse; }
+    .tk-table thead th { position: sticky; top: 0; z-index: 1; background: var(--tk-bg); font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; font-weight: 800; color: var(--tk-text-muted); padding: 13px 15px; text-align: left; border-bottom: 1px solid var(--tk-border); white-space: nowrap; user-select: none; }
     .tk-table thead th.sortable:hover { color: var(--tk-primary-deep); cursor: pointer; }
     .tk-table thead th.sortable a { color: inherit; text-decoration: none; }
     .tk-table thead th.asc::after { content: " ▲"; font-size: 9px; }
     .tk-table thead th.desc::after { content: " ▼"; font-size: 9px; }
-    .tk-table tbody td { padding: 11px 16px; font-size: 13px; color: var(--tk-text); border-bottom: 1px solid var(--tk-border); vertical-align: middle; }
+    .tk-table tbody td { padding: 13px 15px; font-size: 13px; color: var(--tk-text); border-bottom: 1px solid var(--tk-border); vertical-align: middle; line-height: 1.45; }
     .tk-table tbody tr { cursor: pointer; transition: background .12s var(--tk-ease); }
-    .tk-table tbody tr:hover { background: var(--tk-bg); }
+    .tk-table tbody tr:hover { background: #f8f9ff; }
+    .tk-table tbody tr:focus-visible { outline: 2px solid var(--tk-primary-deep); outline-offset: -2px; }
     .tk-table tbody tr:last-child td { border-bottom: none; }
-    .tk-table .subject-col { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tk-table .ticket-key { display: inline-flex; border: 1px solid #e4e6f0; border-radius: 7px; background: #f7f8fc; color: #4b5065; padding: 4px 7px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .tk-table .requester-name, .tk-table .ticket-subject { display: block; color: var(--tk-text); font-size: 13px; font-weight: 700; line-height: 1.35; }
+    .tk-table .requester-department, .tk-table .ticket-date-time { display: block; margin-top: 3px; color: var(--tk-text-muted); font-size: 11px; }
+    .tk-table .ticket-subject { max-width: 330px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tk-table .ticket-preview { display: -webkit-box; max-width: 360px; margin-top: 3px; overflow: hidden; color: var(--tk-text-muted); font-size: 11.5px; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .tk-table .ticket-date { color: var(--tk-text); font-size: 12px; font-weight: 650; white-space: nowrap; }
+    .tk-table .assigned-name { display: block; max-width: 160px; overflow: hidden; color: var(--tk-text-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 
     .tk-status { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 800; letter-spacing: .2px; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
     .tk-status.pending { background: var(--tk-warning-soft); color: var(--tk-warning-deep); }
@@ -322,7 +329,7 @@ $pageUrl = static function (array $changes): string {
     .tk-status.rejected { background: var(--tk-room-soft); color: var(--tk-room-deep); }
     .tk-status.other { background: var(--tk-bg); color: var(--tk-text-faint); border: 1px solid var(--tk-border); }
 
-    .tk-btn-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 800; padding: 6px 12px; border-radius: 999px; border: 1.5px solid transparent; transition: all .15s var(--tk-ease); white-space: nowrap; text-decoration: none; cursor: pointer; }
+    .tk-btn-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 800; padding: 8px 14px; border-radius: 9px; border: 1.5px solid transparent; transition: all .15s var(--tk-ease); white-space: nowrap; text-decoration: none; cursor: pointer; }
     .tk-btn-pill.is-primary { background: var(--tk-primary-soft); color: var(--tk-primary-deep); }
     .tk-btn-pill.is-primary:hover { background: var(--tk-primary-dark); color: #fff; }
 
@@ -364,21 +371,61 @@ $pageUrl = static function (array $changes): string {
     .tk-page-indicator { font-size: 12.5px; font-weight: 700; color: var(--tk-text); white-space: nowrap; min-width: 90px; text-align: center; }
 
     /* ── Modal ──────────────────────────────────────────────── */
-    .tk-modal .modal-content { border: none; border-radius: 18px; overflow: hidden; box-shadow: var(--tk-shadow-lg); }
-    .tk-modal .modal-header { padding: 20px 24px; border-bottom: none; background: linear-gradient(135deg, var(--tk-primary) 0%, var(--tk-primary-deep) 100%); }
-    .tk-modal .modal-title { color: #fff; font-size: 16px; font-weight: 800; letter-spacing: -.2px; }
-    .tk-modal .btn-close { filter: brightness(0) invert(1); opacity: .85; }
-    .tk-modal .btn-close:hover { opacity: 1; }
-    .tk-modal .modal-body { padding: 22px 24px; font-size: 13.5px; color: var(--tk-text); }
-    .tk-modal .modal-footer { border-top: 1px solid var(--tk-border); background: var(--tk-bg); padding: 14px 24px; }
+    .tk-modal .modal-content { border: 1px solid rgba(232, 234, 238, .9); border-radius: 18px; overflow: hidden; box-shadow: var(--tk-shadow-lg); }
+    .tk-modal .modal-header { align-items: flex-start; padding: 22px 24px; border-bottom: 1px solid var(--tk-border); background: linear-gradient(135deg, #f8f9ff 0%, #fff 75%); }
+    .tk-modal .modal-title { color: var(--tk-text); font-size: 19px; font-weight: 800; letter-spacing: -.3px; }
+    .tk-modal-kicker { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: var(--tk-text-muted); font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; }
+    .tk-modal-kicker svg { width: 14px; height: 14px; color: var(--tk-primary-deep); }
+    .tk-modal .btn-close { filter: none; opacity: .65; }
+    .tk-modal .modal-body { padding: 24px; font-size: 13.5px; color: var(--tk-text); }
+    .tk-modal-requester { margin-top: 4px; color: var(--tk-text-muted); font-size: 12.5px; }
+    .tk-modal-subject { margin-bottom: 16px; padding: 15px 17px; border: 1px solid #e8e9f8; border-left: 4px solid var(--tk-primary-deep); border-radius: 10px; background: #f8f8ff; }
+    .tk-modal-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .tk-modal-meta-item { min-width: 0; padding: 12px 14px; border: 1px solid var(--tk-border); border-radius: 10px; background: var(--tk-surface); }
+    .tk-modal-meta-value { display: inline-flex; align-items: center; min-height: 20px; color: var(--tk-text); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    .tk-modal-section { margin-top: 16px; }
+    .tk-modal-section h6 { margin-bottom: 7px; color: var(--tk-text); font-size: 12px; font-weight: 800; }
+    .tk-modal-section h6 svg { width: 14px; height: 14px; margin-right: 4px; vertical-align: -2px; color: var(--tk-primary-deep); }
+    .tk-modal .tk-detail-desc { min-height: 46px; padding: 13px 15px; border: 1px solid #eceef4; border-radius: 10px; background: #fafbfc; line-height: 1.65; overflow-wrap: anywhere; }
+    .tk-modal #modalTicketStatus { gap: 6px; }
+    .tk-modal #modalTicketStatus::before { width: 6px; height: 6px; border-radius: 50%; background: currentColor; content: ''; }
+    .tk-modal .modal-footer { display: flex; gap: 8px; border-top: 1px solid var(--tk-border); background: #fcfcfe; padding: 14px 24px; }
     .tk-modal-close { background: var(--tk-surface); border: 1.5px solid var(--tk-border); color: var(--tk-text); font-weight: 700; font-size: 13.5px; padding: 9px 18px; border-radius: 10px; cursor: pointer; transition: border-color .15s var(--tk-ease), color .15s var(--tk-ease); }
     .tk-modal-close:hover { border-color: var(--tk-primary); color: var(--tk-primary-deep); }
 
-    .tk-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; margin-bottom: 16px; }
+    .tk-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
     .tk-detail-grid .full { grid-column: 1 / -1; }
     .tk-detail-label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--tk-text-muted); margin-bottom: 3px; }
-    .tk-detail-value { font-size: 14px; font-weight: 600; color: var(--tk-text); }
+    .tk-detail-value { font-size: 14px; font-weight: 600; color: var(--tk-text); overflow-wrap: anywhere; }
     .tk-detail-desc { white-space: pre-wrap; background: var(--tk-bg); border: 1px solid var(--tk-border); border-radius: var(--tk-radius-sm); padding: 12px 14px; font-size: 13px; color: var(--tk-text); min-height: 70px; }
+    @media (max-width: 767.98px) {
+      .tk-table-wrap { max-height: none; overflow: visible; border: 0; background: transparent; }
+      .tk-table { min-width: 0; }
+      .tk-table thead { display: none; }
+      .tk-table, .tk-table tbody { display: block; width: 100%; }
+      .tk-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "ticket status" "requester assigned" "request request" "submitted submitted"; gap: 8px 10px; margin-bottom: 10px; padding: 13px; border: 1px solid var(--tk-border); border-left: 4px solid var(--tk-primary); border-radius: 12px; background: var(--tk-surface); box-shadow: 0 2px 8px rgba(30, 33, 48, .04); }
+      .tk-table tbody td { min-width: 0; padding: 0; border: 0; }
+      .tk-table tbody td:nth-child(1) { grid-area: ticket; }
+      .tk-table tbody td:nth-child(2) { grid-area: requester; }
+      .tk-table tbody td:nth-child(3) { grid-area: request; }
+      .tk-table tbody td:nth-child(4) { grid-area: status; text-align: right; }
+      .tk-table tbody td:nth-child(5) { grid-area: assigned; text-align: right; }
+      .tk-table tbody td:nth-child(6) { grid-area: submitted; border-top: 1px solid var(--tk-border); padding-top: 7px; }
+      .tk-table .ticket-subject, .tk-table .ticket-preview { max-width: 100%; white-space: normal; }
+      .tk-table .assigned-name { max-width: 145px; white-space: normal; }
+      .tk-table .ticket-date { white-space: normal; }
+      .tk-card-body { align-items: stretch; }
+      .tk-toolbar { width: 100%; }
+      .tk-search, .tk-search input { width: 100%; }
+      .tk-toolbar .tk-select { flex: 1; }
+    }
+    @media (max-width: 575.98px) {
+      .tk-modal .modal-dialog { margin: .65rem; }
+      .tk-modal .modal-header, .tk-modal .modal-body { padding: 16px; }
+      .tk-modal .modal-footer { padding: 12px 16px; }
+      .tk-modal-meta { gap: 7px; }
+      .tk-modal-meta-item { padding: 10px; }
+    }
   </style>
 </head>
 
@@ -455,7 +502,7 @@ $pageUrl = static function (array $changes): string {
           <form class="tk-toolbar" method="get" id="ticketFilters">
             <div class="tk-search">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-              <input type="search" name="search" id="searchInput" placeholder="Search ticket #, name, subject, description..." aria-label="Search tickets by number, name, subject, or description" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
+              <input type="search" name="search" id="searchInput" placeholder="Search ticket #, requester, department, subject..." aria-label="Search tickets by number, requester, department, subject, or description" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
             </div>
             <select class="tk-select" name="status" id="statusFilter">
               <option value="all" <?= $status === 'all' ? 'selected' : '' ?>>All Statuses</option>
@@ -476,13 +523,12 @@ $pageUrl = static function (array $changes): string {
                 <tr>
                   <?php
                   $sortLabels = [
-                    'id' => 'Ticket #',
-                    'name' => 'Name',
-                    'subject' => 'Subject',
+                    'id' => 'Ticket',
+                    'name' => 'Requester',
+                    'subject' => 'Request',
                     'status' => 'Status',
                     'assigned' => 'Assigned To',
-                    'created' => 'Created At',
-                    'updated' => 'Last Updated',
+                    'created' => 'Submitted',
                   ];
                   foreach ($sortLabels as $sortKey => $label):
                     $nextDirection = $sort === $sortKey && $direction === 'ASC' ? 'desc' : 'asc';
@@ -491,36 +537,44 @@ $pageUrl = static function (array $changes): string {
                       <a href="<?= htmlspecialchars($pageUrl(['sort' => $sortKey, 'direction' => $nextDirection, 'page' => 1]), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></a>
                     </th>
                   <?php endforeach; ?>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 <?php foreach ($tickets as $row):
                   $statusCls = statusClass($row['status']);
-                  $createdDisplay = htmlspecialchars(date('Y-m-d h:i A', strtotime($row['created_at'])));
-                  $updatedDisplay = $row['last_update'] ? htmlspecialchars(date('Y-m-d h:i A', strtotime($row['last_update']))) : '—';
+                  $createdDisplay = $row['created_at'] ? date('M d, Y h:i A', strtotime($row['created_at'])) : 'N/A';
+                  $updatedDisplay = $row['last_update'] ? htmlspecialchars(date('M d, Y h:i A', strtotime($row['last_update']))) : '—';
                   $assignedDisplay = htmlspecialchars($row['assigned_to'] ?: 'Pending Assignment');
                   $link = 'viewticketSuperadmin.php?ticket_id=' . $row['id'];
                   ?>
-                  <tr class="clickable-row"
+                  <tr class="clickable-row" tabindex="0" role="button" aria-label="Preview ticket #<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?>"
                     data-id="<?= htmlspecialchars($row['id']); ?>"
                     data-name="<?= htmlspecialchars($row['user_name']); ?>"
+                    data-department="<?= htmlspecialchars($row['department_name'] ?? ''); ?>"
                     data-subject="<?= htmlspecialchars($row['subject']); ?>"
                     data-status="<?= htmlspecialchars($row['status']); ?>"
                     data-assigned="<?= $assignedDisplay; ?>"
                     data-created="<?= $createdDisplay; ?>"
                     data-updated="<?= $updatedDisplay; ?>"
                     data-description="<?= htmlspecialchars($row['description']); ?>"
-                    data-link="<?= htmlspecialchars($link); ?>"
-                    title="Click to view details">
-                    <td><?= $row['id']; ?></td>
-                    <td><?= htmlspecialchars($row['user_name']); ?></td>
-                    <td class="subject-col"><?= htmlspecialchars($row['subject']); ?></td>
+                    data-link="<?= htmlspecialchars($link); ?>">
+                    <td><span class="ticket-key">#<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?></span></td>
+                    <td>
+                      <span class="requester-name"><?= htmlspecialchars($row['user_name'] ?? 'Unknown requester'); ?></span>
+                      <span class="requester-department"><?= htmlspecialchars($row['department_name'] ?? ''); ?></span>
+                    </td>
+                    <td class="request-cell">
+                      <span class="ticket-subject" title="<?= htmlspecialchars($row['subject'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($row['subject'] ?? 'Untitled request'); ?></span>
+                      <span class="ticket-preview"><?= htmlspecialchars($row['description'] ?? 'No description provided.'); ?></span>
+                    </td>
                     <td class="status-cell"><span class="tk-status <?= $statusCls ?>"><?= htmlspecialchars($row['status']); ?></span></td>
-                    <td><?= $assignedDisplay; ?></td>
-                    <td><?= $createdDisplay; ?></td>
-                    <td><?= $updatedDisplay; ?></td>
-                    <td><a href="<?= htmlspecialchars($link); ?>" class="tk-btn-pill is-primary" onclick="event.stopPropagation();">View</a></td>
+                    <td><span class="assigned-name"><?= $assignedDisplay; ?></span></td>
+                    <td data-sort="<?= $row['created_at'] ? strtotime($row['created_at']) : 0; ?>">
+                      <span class="ticket-date"><?= $row['created_at'] ? date('M d, Y', strtotime($row['created_at'])) : 'N/A'; ?></span>
+                      <?php if ($row['created_at']): ?>
+                        <span class="ticket-date-time"><?= date('h:i A', strtotime($row['created_at'])); ?></span>
+                      <?php endif; ?>
+                    </td>
                   </tr>
                 <?php endforeach; ?>
               </tbody>
@@ -569,49 +623,54 @@ $pageUrl = static function (array $changes): string {
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="ticketModalLabel">Ticket Details</h5>
+          <div>
+            <div class="tk-modal-kicker">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v6h6M9 14h6M9 18h6"/></svg>
+              Ticket preview
+            </div>
+            <h5 class="modal-title" id="ticketModalLabel">Ticket details</h5>
+            <div class="tk-modal-requester" id="modalTicketRequester"></div>
+          </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
-          <div class="tk-detail-grid">
-            <div>
-              <div class="tk-detail-label">Ticket #</div>
-              <div class="tk-detail-value" id="modalTicketId"></div>
-            </div>
-            <div>
+          <div class="tk-modal-subject">
+            <div class="tk-detail-label">Subject</div>
+            <div class="tk-detail-value" id="modalTicketSubject"></div>
+          </div>
+
+          <div class="tk-modal-meta">
+            <div class="tk-modal-meta-item">
               <div class="tk-detail-label">Status</div>
               <span id="modalTicketStatus" class="tk-status"></span>
             </div>
-            <div>
-              <div class="tk-detail-label">Submitted By</div>
-              <div class="tk-detail-value" id="modalTicketName"></div>
+            <div class="tk-modal-meta-item">
+              <div class="tk-detail-label">Assigned to</div>
+              <div class="tk-modal-meta-value" id="modalTicketAssigned"></div>
             </div>
-            <div>
-              <div class="tk-detail-label">Assigned To</div>
-              <div class="tk-detail-value" id="modalTicketAssigned"></div>
+            <div class="tk-modal-meta-item">
+              <div class="tk-detail-label">Submitted</div>
+              <div class="tk-modal-meta-value" id="modalTicketCreated"></div>
             </div>
-            <div>
-              <div class="tk-detail-label">Created At</div>
-              <div class="tk-detail-value" id="modalTicketCreated"></div>
-            </div>
-            <div>
-              <div class="tk-detail-label">Last Updated</div>
-              <div class="tk-detail-value" id="modalTicketUpdated"></div>
-            </div>
-            <div class="full">
-              <div class="tk-detail-label">Subject</div>
-              <div class="tk-detail-value" id="modalTicketSubject"></div>
+            <div class="tk-modal-meta-item">
+              <div class="tk-detail-label">Last updated</div>
+              <div class="tk-modal-meta-value" id="modalTicketUpdated"></div>
             </div>
           </div>
 
-          <div class="tk-detail-label">Description</div>
-          <div id="modalTicketDescription" class="tk-detail-desc"></div>
+          <section class="tk-modal-section" aria-labelledby="modalDescriptionHeading">
+            <h6 id="modalDescriptionHeading">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 10h16M4 15h10M4 20h10"/></svg>
+              Request details
+            </h6>
+            <div id="modalTicketDescription" class="tk-detail-desc"></div>
+          </section>
         </div>
 
         <div class="modal-footer">
           <button type="button" class="tk-modal-close" data-bs-dismiss="modal">Close</button>
-          <a id="viewTicketLink" href="#" class="tk-btn-pill is-primary">View Full Ticket</a>
+          <a id="viewTicketLink" href="#" class="tk-btn-pill is-primary">Manage ticket</a>
         </div>
       </div>
     </div>
@@ -668,9 +727,21 @@ $pageUrl = static function (array $changes): string {
         }
 
         const row = event.target.closest('tr.clickable-row');
-        if (!row || event.target.closest('a')) return;
-        document.getElementById('modalTicketId').textContent = row.dataset.id;
-        document.getElementById('modalTicketName').textContent = row.dataset.name;
+        if (!row || event.target.closest('a, button, input, select, textarea')) return;
+        showTicketDetails(row);
+      });
+
+      results.addEventListener('keydown', event => {
+        const row = event.target.closest('tr.clickable-row');
+        if (!row || (event.key !== 'Enter' && event.key !== ' ')) return;
+        event.preventDefault();
+        showTicketDetails(row);
+      });
+
+      function showTicketDetails(row) {
+        document.getElementById('ticketModalLabel').textContent = `Ticket #${row.dataset.id}`;
+        document.getElementById('modalTicketRequester').textContent =
+          `${row.dataset.name || 'Unknown requester'}${row.dataset.department ? ` · ${row.dataset.department}` : ''}`;
         document.getElementById('modalTicketSubject').textContent = row.dataset.subject;
         document.getElementById('modalTicketAssigned').textContent = row.dataset.assigned;
         document.getElementById('modalTicketCreated').textContent = row.dataset.created;
@@ -683,7 +754,7 @@ $pageUrl = static function (array $changes): string {
         badge.textContent = status;
         badge.className = 'tk-status ' + (statusModifier[status.toLowerCase()] || 'other');
         modal.show();
-      });
+      }
 
       function currentParams(page) {
         const params = new URLSearchParams(window.location.search);
@@ -722,9 +793,8 @@ $pageUrl = static function (array $changes): string {
         table.id = 'ticketTable';
         const header = table.createTHead().insertRow();
         const sortLabels = [
-          ['id', 'Ticket #'], ['name', 'Name'], ['subject', 'Subject'],
-          ['status', 'Status'], ['assigned', 'Assigned To'],
-          ['created', 'Created At'], ['updated', 'Last Updated']
+          ['id', 'Ticket'], ['name', 'Requester'], ['subject', 'Request'],
+          ['status', 'Status'], ['assigned', 'Assigned To'], ['created', 'Submitted']
         ];
         const current = new URLSearchParams(window.location.search);
         sortLabels.forEach(([key, label]) => {
@@ -742,16 +812,16 @@ $pageUrl = static function (array $changes): string {
           cell.appendChild(link);
           header.appendChild(cell);
         });
-        const actionHeader = document.createElement('th');
-        actionHeader.textContent = 'Action';
-        header.appendChild(actionHeader);
-
         const body = table.createTBody();
         data.tickets.forEach(ticket => {
           const row = body.insertRow();
           row.className = 'clickable-row';
+          row.tabIndex = 0;
+          row.setAttribute('role', 'button');
+          row.setAttribute('aria-label', `Preview ticket #${ticket.id}`);
           row.dataset.id = ticket.id;
           row.dataset.name = ticket.user_name;
+          row.dataset.department = ticket.department_name || '';
           row.dataset.subject = ticket.subject;
           row.dataset.status = ticket.status;
           row.dataset.assigned = ticket.assigned_to;
@@ -759,11 +829,34 @@ $pageUrl = static function (array $changes): string {
           row.dataset.updated = ticket.updated_display;
           row.dataset.description = ticket.description;
           row.dataset.link = `viewticketSuperadmin.php?ticket_id=${encodeURIComponent(ticket.id)}`;
-          row.title = 'Click to view details';
+          const ticketCell = document.createElement('td');
+          const ticketKey = document.createElement('span');
+          ticketKey.className = 'ticket-key';
+          ticketKey.textContent = `#${ticket.id}`;
+          ticketCell.appendChild(ticketKey);
+          row.appendChild(ticketCell);
 
-          setTextCell(row, ticket.id);
-          setTextCell(row, ticket.user_name);
-          setTextCell(row, ticket.subject, 'subject-col');
+          const requesterCell = document.createElement('td');
+          const requesterName = document.createElement('span');
+          requesterName.className = 'requester-name';
+          requesterName.textContent = ticket.user_name || 'Unknown requester';
+          const requesterDepartment = document.createElement('span');
+          requesterDepartment.className = 'requester-department';
+          requesterDepartment.textContent = ticket.department_name || '';
+          requesterCell.append(requesterName, requesterDepartment);
+          row.appendChild(requesterCell);
+
+          const requestCell = document.createElement('td');
+          const ticketSubject = document.createElement('span');
+          ticketSubject.className = 'ticket-subject';
+          ticketSubject.title = ticket.subject || '';
+          ticketSubject.textContent = ticket.subject || 'Untitled request';
+          const ticketPreview = document.createElement('span');
+          ticketPreview.className = 'ticket-preview';
+          ticketPreview.textContent = ticket.description || 'No description provided.';
+          requestCell.append(ticketSubject, ticketPreview);
+          row.appendChild(requestCell);
+
           const statusCell = document.createElement('td');
           statusCell.className = 'status-cell';
           const badge = document.createElement('span');
@@ -771,16 +864,22 @@ $pageUrl = static function (array $changes): string {
           badge.textContent = ticket.status;
           statusCell.appendChild(badge);
           row.appendChild(statusCell);
-          setTextCell(row, ticket.assigned_to);
-          setTextCell(row, ticket.created_display);
-          setTextCell(row, ticket.updated_display);
-          const actionCell = document.createElement('td');
-          const link = document.createElement('a');
-          link.href = row.dataset.link;
-          link.className = 'tk-btn-pill is-primary';
-          link.textContent = 'View';
-          actionCell.appendChild(link);
-          row.appendChild(actionCell);
+          setTextCell(row, ticket.assigned_to, 'assigned-name');
+          const submittedCell = document.createElement('td');
+          submittedCell.dataset.sort = ticket.created_at ? String(Math.floor(new Date(ticket.created_at).getTime() / 1000)) : '0';
+          const submittedDate = document.createElement('span');
+          submittedDate.className = 'ticket-date';
+          const submittedTime = document.createElement('span');
+          submittedTime.className = 'ticket-date-time';
+          if (ticket.created_display && ticket.created_display !== '—') {
+            const dateTime = ticket.created_display.split(' ');
+            submittedDate.textContent = dateTime.slice(0, 3).join(' ');
+            submittedTime.textContent = dateTime.slice(3).join(' ');
+          } else {
+            submittedDate.textContent = 'N/A';
+          }
+          submittedCell.append(submittedDate, submittedTime);
+          row.appendChild(submittedCell);
         });
         wrap.appendChild(table);
         results.appendChild(wrap);

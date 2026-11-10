@@ -33,14 +33,13 @@ $query->close();
 $_SESSION['user_id'] = $user_id;
 $_SESSION['firstname'] = $firstname;
 $_SESSION['lastname'] = $lastname;
-$_SESSION['role'] = $role;
+$normalizedRole = access_normalize_role($role);
+$_SESSION['role'] = $normalizedRole;
 
 if (!access_can('special.live_report')) {
   header("Location: ../index.php");
   exit;
 }
-
-$normalizedRole = access_normalize_role($role);
 
 /* =================================
    FETCH COUNTS (REAL-TIME)

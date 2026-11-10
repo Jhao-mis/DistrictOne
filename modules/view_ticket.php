@@ -113,12 +113,17 @@ if (!isset($_GET['ticket_id']) || empty($_GET['ticket_id'])) {
 
 $ticket_id = intval($_GET['ticket_id']); // Ensure ticket_id is an integer
 
-// ✅ Adjusted query: handles tickets without "assigned_to"
+// Resolve the stored assignee user ID to a display name.
 $query = "SELECT tickets.*, 
-                 CONCAT(users.firstname, ' ', IFNULL(users.middlename, ''), ' ', users.lastname) AS mis_name, 
-                 users.department AS mis_department 
+                 TRIM(CONCAT_WS(
+                   ' ',
+                   NULLIF(assigned_mis.firstname, ''),
+                   NULLIF(assigned_mis.middlename, ''),
+                   NULLIF(assigned_mis.lastname, '')
+                 )) AS mis_name,
+                 assigned_mis.department AS mis_department
           FROM tickets 
-          LEFT JOIN users ON tickets.assigned_to = users.id 
+          LEFT JOIN users AS assigned_mis ON tickets.assigned_to = assigned_mis.id
           WHERE tickets.id = ?";
 
 $stmt = $conn->prepare($query);
