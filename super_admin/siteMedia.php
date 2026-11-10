@@ -129,6 +129,58 @@ function site_media_save_carousel(mysqli $conn, string $directory, array $files)
     }
 }
 
+function site_media_reorder_carousel(mysqli $conn, array $submittedIds): void
+{
+    if (count($submittedIds) > 10) {
+        throw new RuntimeException('The carousel order is invalid. Refresh the page and try again.');
+    }
+
+    $orderedIds = [];
+    foreach ($submittedIds as $submittedId) {
+        $mediaId = filter_var($submittedId, FILTER_VALIDATE_INT);
+        if ($mediaId === false || $mediaId < 1 || in_array($mediaId, $orderedIds, true)) {
+            throw new RuntimeException('The carousel order is invalid. Refresh the page and try again.');
+        }
+        $orderedIds[] = $mediaId;
+    }
+
+    $conn->begin_transaction();
+    try {
+        $result = $conn->query(
+            "SELECT id, position FROM site_media WHERE media_type = 'carousel' FOR UPDATE"
+        );
+        $existingIds = [];
+        while ($row = $result->fetch_assoc()) {
+            $existingIds[] = (int) $row['id'];
+        }
+
+        $expectedIds = $existingIds;
+        sort($expectedIds);
+        $submittedSet = $orderedIds;
+        sort($submittedSet);
+        if ($submittedSet !== $expectedIds) {
+            throw new RuntimeException('The carousel changed while you were editing it. Refresh the page and try again.');
+        }
+
+        $conn->query(
+            "UPDATE site_media SET position = position + 10 WHERE media_type = 'carousel'"
+        );
+        $update = $conn->prepare(
+            "UPDATE site_media SET position = ? WHERE id = ? AND media_type = 'carousel'"
+        );
+        foreach ($orderedIds as $index => $mediaId) {
+            $position = $index + 1;
+            $update->bind_param('ii', $position, $mediaId);
+            $update->execute();
+        }
+        $update->close();
+        $conn->commit();
+    } catch (Throwable $exception) {
+        $conn->rollback();
+        throw $exception;
+    }
+}
+
 function site_media_save_login_background(mysqli $conn, string $directory, array $file): ?string
 {
     site_media_ensure_upload_directory($directory);
@@ -197,11 +249,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new RuntimeException('Your session expired. Refresh this page and try again.');
         }
 
-        $action = (string) ($_POST['action'] ?? '');
+        $action = isset($_POST['delete_media_id'])
+            ? 'delete_carousel'
+            : (string) ($_POST['action'] ?? '');
         if ($action === 'upload_carousel') {
             $files = site_media_upload_files($_FILES['carousel_images'] ?? []);
             site_media_save_carousel($conn, $uploadDirectory, $files);
             $_SESSION['site_media_flash'] = ['success', 'Carousel images uploaded successfully.'];
+        } elseif ($action === 'reorder_carousel') {
+            $mediaIds = $_POST['media_ids'] ?? null;
+            if (!is_array($mediaIds)) {
+                throw new RuntimeException('The carousel order is invalid. Refresh the page and try again.');
+            }
+            site_media_reorder_carousel($conn, $mediaIds);
+            $_SESSION['site_media_flash'] = ['success', 'Carousel order saved successfully.'];
         } elseif ($action === 'upload_login_background') {
             $files = site_media_upload_files($_FILES['login_background'] ?? []);
             if (count($files) !== 1) {
@@ -215,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['site_media_flash'] = ['success', 'Login background updated successfully.'];
             }
         } elseif ($action === 'delete_carousel') {
-            $fileName = site_media_delete_record($conn, (int) ($_POST['media_id'] ?? 0), 'carousel');
+            $fileName = site_media_delete_record($conn, (int) ($_POST['delete_media_id'] ?? 0), 'carousel');
             if (!site_media_remove_file($uploadDirectory, $fileName)) {
                 error_log('Site media: unable to remove deleted carousel image ' . $fileName);
                 $_SESSION['site_media_flash'] = ['error', 'The image was removed from the carousel, but its file could not be deleted.'];
@@ -303,10 +364,15 @@ $currentLoginBackground = $loginBackground
         .media-form { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
         .media-form .form-control { max-width: 520px; }
         .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 20px; }
-        .media-item { border: 1px solid #e8eaee; border-radius: 10px; overflow: hidden; background: #fff; }
+        .media-item { border: 1px solid #e8eaee; border-radius: 10px; overflow: hidden; background: #fff; cursor: grab; }
+        .media-item:active { cursor: grabbing; }
+        .media-item.is-dragging { opacity: .45; }
+        .media-item.is-drop-target { outline: 2px solid #696cff; outline-offset: 2px; }
         .media-item img { display: block; width: 100%; height: 125px; object-fit: cover; }
         .media-item-footer { padding: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .media-item-footer span { font-size: 12px; color: #767e8c; }
+        .carousel-order-actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+        .carousel-order-actions .media-muted { font-size: 13px; }
         .login-preview { min-height: 180px; border-radius: 10px; background-position: center; background-size: cover; background-color: #eaf3ff; margin-top: 16px; }
         .media-alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; }
         .media-alert.success { background: #e8f7ee; color: #176b37; }
@@ -356,23 +422,27 @@ $currentLoginBackground = $loginBackground
                     </form>
 
                     <?php if ($carouselMedia): ?>
-                        <div class="media-grid">
-                            <?php foreach ($carouselMedia as $media): ?>
-                                <article class="media-item">
-                                    <img src="../uploads/site_media/<?php echo rawurlencode($media['file_name']); ?>"
-                                        alt="Carousel image <?php echo (int) $media['position']; ?>">
-                                    <div class="media-item-footer">
-                                        <span>Slide <?php echo (int) $media['position']; ?></span>
-                                        <form method="post" onsubmit="return confirm('Remove this carousel image?');">
-                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
-                                            <input type="hidden" name="action" value="delete_carousel">
-                                            <input type="hidden" name="media_id" value="<?php echo (int) $media['id']; ?>">
-                                            <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
-                                        </form>
-                                    </div>
-                                </article>
-                            <?php endforeach; ?>
-                        </div>
+                        <form method="post" id="carouselOrderForm" onsubmit="return confirmCarouselAction(event);">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
+                            <div class="media-grid" id="carouselGrid" aria-label="Carousel slide order">
+                                <?php foreach ($carouselMedia as $index => $media): ?>
+                                    <article class="media-item" draggable="true" data-media-id="<?php echo (int) $media['id']; ?>">
+                                        <img src="../uploads/site_media/<?php echo rawurlencode($media['file_name']); ?>"
+                                            alt="Carousel image <?php echo (int) $media['position']; ?>">
+                                        <div class="media-item-footer">
+                                            <span class="slide-position">Slide <?php echo $index + 1; ?> · Drag to reorder</span>
+                                            <button class="btn btn-sm btn-outline-danger" type="submit"
+                                                name="delete_media_id" value="<?php echo (int) $media['id']; ?>">Remove</button>
+                                        </div>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                            <div id="carouselOrderInputs"></div>
+                            <div class="carousel-order-actions">
+                                <button class="btn btn-primary" type="submit" name="action" value="reorder_carousel">Save Slide Order</button>
+                                <span class="media-muted" id="carouselOrderStatus" aria-live="polite">Drag images into the sequence you want viewers to see.</span>
+                            </div>
+                        </form>
                     <?php else: ?>
                         <p class="media-muted mt-3">No custom carousel images yet. The current default carousel will remain visible until you add images.</p>
                     <?php endif; ?>
@@ -404,7 +474,81 @@ $currentLoginBackground = $loginBackground
             <?php endif; ?>
         </div>
     </main>
+    <script>
+        const carouselGrid = document.getElementById('carouselGrid');
+        const carouselOrderForm = document.getElementById('carouselOrderForm');
+        let draggedCarouselItem = null;
+        let draggedCarouselTop = 0;
 
+        function updateCarouselSlideNumbers() {
+            if (!carouselGrid) return;
+            carouselGrid.querySelectorAll('.media-item').forEach((item, index) => {
+                item.querySelector('.slide-position').textContent = `Slide ${index + 1} · Drag to reorder`;
+                item.querySelector('img').alt = `Carousel image ${index + 1}`;
+            });
+        }
+
+        function confirmCarouselAction(event) {
+            if (event.submitter && event.submitter.name === 'delete_media_id') {
+                return confirm('Remove this carousel image?');
+            }
+            return true;
+        }
+
+        if (carouselGrid && carouselOrderForm) {
+            carouselGrid.addEventListener('dragstart', event => {
+                const item = event.target.closest('.media-item');
+                if (!item) return;
+                draggedCarouselItem = item;
+                draggedCarouselTop = item.getBoundingClientRect().top;
+                item.classList.add('is-dragging');
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', item.dataset.mediaId);
+            });
+
+            carouselGrid.addEventListener('dragover', event => {
+                event.preventDefault();
+                const target = event.target.closest('.media-item');
+                if (!target || target === draggedCarouselItem) return;
+
+                carouselGrid.querySelectorAll('.is-drop-target').forEach(item => item.classList.remove('is-drop-target'));
+                target.classList.add('is-drop-target');
+                const targetRect = target.getBoundingClientRect();
+                const sameRow = Math.abs(targetRect.top - draggedCarouselTop) < targetRect.height / 2;
+                const insertBefore = sameRow
+                    ? event.clientX < targetRect.left + targetRect.width / 2
+                    : event.clientY < targetRect.top + targetRect.height / 2;
+                carouselGrid.insertBefore(draggedCarouselItem, insertBefore ? target : target.nextSibling);
+            });
+
+            carouselGrid.addEventListener('drop', event => {
+                event.preventDefault();
+                carouselGrid.querySelectorAll('.is-drop-target').forEach(item => item.classList.remove('is-drop-target'));
+                updateCarouselSlideNumbers();
+                document.getElementById('carouselOrderStatus').textContent = 'Order changed. Save Slide Order to publish it.';
+            });
+
+            carouselGrid.addEventListener('dragend', () => {
+                if (draggedCarouselItem) draggedCarouselItem.classList.remove('is-dragging');
+                draggedCarouselItem = null;
+                carouselGrid.querySelectorAll('.is-drop-target').forEach(item => item.classList.remove('is-drop-target'));
+            });
+
+            carouselOrderForm.addEventListener('submit', event => {
+                if (event.submitter && event.submitter.name === 'delete_media_id') return;
+
+                const inputs = document.getElementById('carouselOrderInputs');
+                inputs.replaceChildren();
+                carouselGrid.querySelectorAll('.media-item').forEach(item => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'media_ids[]';
+                    input.value = item.dataset.mediaId;
+                    inputs.appendChild(input);
+                });
+            });
+        }
+    </script>
     <script src="../assets/vendor/js/bootstrap.js"></script>
     <script src="../assets/vendor/js/menu.js"></script>
     <script src="../assets/js/main.js"></script>
