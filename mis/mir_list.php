@@ -139,6 +139,13 @@ if ($total_reports > 0) {
       white-space: nowrap;
     }
 
+    .mir-heading-actions {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
+
     .mir-register-card {
       overflow: hidden;
       border: 1px solid var(--mir-border);
@@ -423,6 +430,10 @@ if ($total_reports > 0) {
         align-self: flex-start;
       }
 
+      .mir-heading-actions {
+        align-self: flex-start;
+      }
+
       .card-header.mir-card-header {
         flex-direction: column;
         align-items: stretch;
@@ -654,9 +665,14 @@ if ($total_reports > 0) {
           <h2>Machine Inspection Reports</h2>
           <p>Browse, review, and manage inspection records in one place.</p>
         </div>
-        <a href="mir.php" class="btn btn-primary mir-new-btn">
-          <i class="bx bx-plus"></i> New MIR
-        </a>
+        <div class="mir-heading-actions">
+          <a href="mir.php" class="btn btn-primary mir-new-btn">
+            <i class="bx bx-plus"></i> New MIR
+          </a>
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportMirModal">
+            <i class="bx bx-download"></i> Download Excel
+          </button>
+        </div>
       </div>
 
       <div class="card mir-register-card">
@@ -769,6 +785,43 @@ if ($total_reports > 0) {
     <i class="bx bx-plus"></i>
   </a>
 
+  <div class="modal fade" id="exportMirModal" tabindex="-1" aria-labelledby="exportMirModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" method="GET" action="export_mir_excel.php">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exportMirModalLabel">Download MIR Records</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <label for="exportScope" class="form-label">Records to export</label>
+          <select class="form-select" id="exportScope" name="scope">
+            <option value="all" selected>All records</option>
+            <option value="range">Report number range</option>
+          </select>
+
+          <div id="reportRangeFields" class="mt-3 d-none">
+            <label for="fromReport" class="form-label">From report number</label>
+            <input type="text" class="form-control mb-3" id="fromReport" name="from_report"
+              placeholder="MIR-2026-2635" pattern="MIR-[0-9]{4}-[0-9]{1,10}"
+              title="Use the format MIR-2026-2635" disabled>
+
+            <label for="toReport" class="form-label">To report number</label>
+            <input type="text" class="form-control" id="toReport" name="to_report"
+              placeholder="MIR-2026-2640" pattern="MIR-[0-9]{4}-[0-9]{1,10}"
+              title="Use the format MIR-2026-2640" disabled>
+            <small class="form-text text-muted">The range includes both report numbers.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bx bx-download"></i> Download Excel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL -->
   <div class="modal fade" id="mirModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
@@ -803,6 +856,21 @@ if ($total_reports > 0) {
   <script src="../assets/js/main.js"></script>
 
   <script>
+    const exportScope = document.getElementById('exportScope');
+    const reportRangeFields = document.getElementById('reportRangeFields');
+    const reportRangeInputs = reportRangeFields.querySelectorAll('input');
+
+    function updateExportRangeFields() {
+      const rangeSelected = exportScope.value === 'range';
+      reportRangeFields.classList.toggle('d-none', !rangeSelected);
+      reportRangeInputs.forEach(input => {
+        input.disabled = !rangeSelected;
+        input.required = rangeSelected;
+      });
+    }
+
+    exportScope.addEventListener('change', updateExportRangeFields);
+
     // =======================
     // DEPARTMENT PILL COLORS
     // (consistent color per department name, no server change needed)
