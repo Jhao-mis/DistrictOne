@@ -12,9 +12,9 @@ $mir = $conn->query("SELECT * FROM mir_reports WHERE id=$id")->fetch_assoc();
 // 🔥 FETCH PREPARED BY POSITION
 // =======================
 $prepared_name = $mir['prepared_by'] ?? '';
-$prepared_position = ''; // ✅ ALWAYS initialize
+$prepared_position = trim((string) ($mir['prepared_position'] ?? ''));
 
-if (!empty($prepared_name)) {
+if ($prepared_position === '' && !empty($prepared_name)) {
 
     $stmt = $conn->prepare("
         SELECT p.position

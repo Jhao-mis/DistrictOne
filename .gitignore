@@ -4,16 +4,7 @@ uploads
 uploads-1
 extras
 
-# Track the schema and upload-execution protection needed by site image management.
-!/database/
-/database/*
-!/database/site_media_migration.sql
-!/database/seasonal_theme_migration.sql
-!/uploads/
-/uploads/*
-!/uploads/site_media/
-/uploads/site_media/*
-!/uploads/site_media/.htaccess
+
 
 
 

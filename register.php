@@ -215,7 +215,7 @@ if (isset($_SESSION['success'])) {
   <?php seasonal_theme_render($conn); ?>
 </head>
 
-<body style="--auth-background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>');">
+<body style="--auth-background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>'); background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>');">
 
   <div class="container-xxl">
     <div class="authentication-wrapper authentication-basic container-p-y">

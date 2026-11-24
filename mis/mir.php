@@ -54,16 +54,19 @@ $mis_users = $conn->query("
 $username = $_SESSION['username'];
 
 $query = $conn->prepare("
-  SELECT id, firstname, lastname, department 
-  FROM users 
-  WHERE username=?
+  SELECT u.id, u.firstname, u.lastname, u.department, p.position
+  FROM users u
+  LEFT JOIN personal_data_sheet p ON u.id = p.user_id
+  WHERE u.username=?
+  LIMIT 1
 ");
 
 $query->bind_param("s", $username);
 $query->execute();
-$query->bind_result($user_id, $firstname, $lastname, $department);
+$query->bind_result($user_id, $firstname, $lastname, $department, $user_position);
 $query->fetch();
 $query->close();
+$user_position = $user_position ?? '';
 
 
 // =======================
@@ -134,18 +137,20 @@ function uploadImages($conn, $item_id, $i)
 if (isset($_POST['save_mir'])) {
 
   $conn->begin_transaction();
+  $preparedPosition = trim($_POST['prepared_position'] ?? '');
 
   $stmt = $conn->prepare("INSERT INTO mir_reports 
-  (report_no,end_user,department,report_date,prepared_by,certified_by)
-  VALUES (?,?,?,?,?,?)");
+  (report_no,end_user,department,report_date,prepared_by,prepared_position,certified_by)
+  VALUES (?,?,?,?,?,?,?)");
 
   $stmt->bind_param(
-    "ssssss",
+    "sssssss",
     $report_no_auto,
     $_POST['end_user'],
     $_POST['department'],
     $_POST['report_date'],
     $_POST['prepared_by'],
+    $preparedPosition,
     $_POST['certified_by']
   );
 
@@ -190,19 +195,21 @@ if (isset($_POST['save_mir'])) {
 if (isset($_POST['update_mir'])) {
 
   $conn->begin_transaction();
+  $preparedPosition = trim($_POST['prepared_position'] ?? '');
 
   $mir_id = $_POST['mir_id'];
 
   $stmt = $conn->prepare("UPDATE mir_reports 
-  SET end_user=?,department=?,report_date=?,prepared_by=?,certified_by=?
+  SET end_user=?,department=?,report_date=?,prepared_by=?,prepared_position=?,certified_by=?
   WHERE id=?");
 
   $stmt->bind_param(
-    "sssssi",
+    "ssssssi",
     $_POST['end_user'],
     $_POST['department'],
     $_POST['report_date'],
     $_POST['prepared_by'],
+    $preparedPosition,
     $_POST['certified_by'],
     $mir_id
   );
@@ -775,7 +782,8 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
 
             <div class="col-12 col-sm-6 col-md-6 mb-3">
               <label class="form-label fw-semibold">Position</label>
-              <input type="text" id="prepared_position" class="form-control bg-light" readonly>
+              <input type="text" name="prepared_position" id="prepared_position" class="form-control"
+                value="<?= htmlspecialchars($edit_mode ? ($edit_data['prepared_position'] ?? '') : $user_position) ?>">
             </div>
           </div>
 
@@ -830,25 +838,30 @@ $mir_list = $conn->query("SELECT * FROM mir_reports ORDER BY id DESC");
   <script src="../assets/js/main.js"></script>
 
   <script>
-    // ---- Auto-fill Position from the "Prepared By" datalist ----
-    document.addEventListener('DOMContentLoaded', function () {
-      const input = document.getElementById('prepared_by');
-      if (input && input.value) {
-        input.dispatchEvent(new Event('input'));
+    // ---- Default Position from the selected "Prepared By" user ----
+    const preparedByInput = document.getElementById('prepared_by');
+    const preparedPositionInput = document.getElementById('prepared_position');
+
+    function syncPreparedPosition(clearIfUnmatched) {
+      const option = Array.from(document.querySelectorAll('#misList option'))
+        .find(option => option.value === preparedByInput.value);
+
+      if (option) {
+        preparedPositionInput.value = option.dataset.position || '';
+      } else if (clearIfUnmatched) {
+        preparedPositionInput.value = '';
       }
+    }
+
+    if (!preparedPositionInput.value) {
+      syncPreparedPosition(true);
+    }
+
+    preparedByInput.addEventListener('input', function () {
+      syncPreparedPosition(false);
     });
-
-    document.getElementById('prepared_by').addEventListener('input', function () {
-      const value = this.value;
-      const options = document.querySelectorAll('#misList option');
-      const posField = document.getElementById('prepared_position');
-
-      posField.value = '';
-      options.forEach(option => {
-        if (option.value === value) {
-          posField.value = option.dataset.position;
-        }
-      });
+    preparedByInput.addEventListener('change', function () {
+      syncPreparedPosition(true);
     });
 
     // ---- Add inspection item row ----
