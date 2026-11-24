@@ -1,5 +1,5 @@
  body {
-     background-image: url('../assets/img/backgrounds/jan.jpg');
+     background-image: var(--auth-background-image, url('../assets/img/backgrounds/jan.jpg'));
      background-attachment: fixed;
      /* Makes background image fixed */
      background-size: cover;
@@ -36,18 +36,18 @@
  input:focus,
  select:focus,
  .form-control:focus {
-     border-color: #568df5 !important;
+     border-color: var(--seasonal-accent, #568df5);
      /* Blue border */
  }
 
  /* For the sign-up button */
  .btn-primary {
-     border-color: #568df5 !important;
-     background-color: #568df5 !important;
+     border-color: var(--seasonal-accent, #568df5);
+     background-color: var(--seasonal-accent, #568df5);
  }
 
  .btn-primary:hover {
-     background-color: #3b7ed5 !important;
+     background-color: var(--seasonal-accent-dark, #3b7ed5);
      /* Slightly darker blue on hover */
  }
 

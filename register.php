@@ -7,6 +7,8 @@ session_start();
 require 'vendor/autoload.php';
 require 'db.php';   // ✅ Use centralized DB connection
 require_once 'lib/seasonal_theme.php';
+require_once 'lib/site_media.php';
+$loginBackground = site_media_login_background($conn);
 
 $alertType = $_SESSION['alertType'] ?? '';
 $alertText = $_SESSION['alertText'] ?? '';
@@ -134,7 +136,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $_SESSION['error'] = 'Database insert failed. Please try again.';
   }
 
-  $conn->close();
 }
 ?>
 
@@ -145,7 +146,7 @@ if (isset($_SESSION['error'])) {
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                confirmButtonColor: '#d33',
+                confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--seasonal-accent').trim() || '#568df5',
                 confirmButtonText: 'Try again',
                 text: '" . $_SESSION['error'] . "'
             });
@@ -160,7 +161,7 @@ if (isset($_SESSION['success'])) {
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                confirmButtonColor: '#28a745',
+                confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--seasonal-accent').trim() || '#568df5',
                 text: '" . $_SESSION['success'] . "'
             });
         });
@@ -214,7 +215,7 @@ if (isset($_SESSION['success'])) {
   <?php seasonal_theme_render($conn); ?>
 </head>
 
-<body>
+<body style="--auth-background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>');">
 
   <div class="container-xxl">
     <div class="authentication-wrapper authentication-basic container-p-y">
@@ -344,7 +345,7 @@ if (isset($_SESSION['success'])) {
             <div class="mb-3 form-check">
               <input type="checkbox" class="form-check-input" id="termsCheckbox" onclick="toggleSignup()" />
               <label class="form-check-label" for="termsCheckbox">
-                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
+                I agree to the <a class="auth-theme-link" href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a>
               </label>
             </div>
 
@@ -374,7 +375,7 @@ if (isset($_SESSION['success'])) {
           <p class="text-center">
             <span>Already have an account?</span>
             <a href="index.php">
-              <span style="color: #568df5;">Sign in instead</span>
+              <span class="auth-theme-link">Sign in instead</span>
 
             </a>
           </p>

@@ -22,12 +22,17 @@ if ($conn->connect_error) {
   die("Database Connection Failed: " . $conn->connect_error);
 }
 
+require_once __DIR__ . '/lib/seasonal_theme.php';
+require_once __DIR__ . '/lib/site_media.php';
+$loginBackground = site_media_login_background($conn);
+
 /* =====================================
    SHOW RESET ERROR UI
 ===================================== */
 
 function showResetMessage($title, $message)
 {
+  global $conn, $loginBackground;
   ?>
 
   <!DOCTYPE html>
@@ -46,7 +51,7 @@ function showResetMessage($title, $message)
 
     <style>
       body {
-        background-image: url('assets/img/backgrounds/jan.jpg');
+        background-image: var(--auth-background-image, url('assets/img/backgrounds/login.jpg'));
         background-size: cover;
         background-position: center;
       }
@@ -56,10 +61,11 @@ function showResetMessage($title, $message)
         margin: auto;
       }
     </style>
+    <?php seasonal_theme_render($conn); ?>
 
   </head>
 
-  <body>
+  <body style="--auth-background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>');">
 
     <div class="container-xxl">
       <div class="authentication-wrapper authentication-basic container-p-y">
@@ -74,7 +80,7 @@ function showResetMessage($title, $message)
 
             <p class="text-muted"><?php echo $message; ?></p>
 
-            <a href="auth-forgot-password-basic.php" class="btn btn-primary w-100 mt-3" style="background:#568df5">
+            <a href="auth-forgot-password-basic.php" class="btn btn-primary w-100 mt-3">
 
               Request New Reset Link
 
@@ -82,7 +88,7 @@ function showResetMessage($title, $message)
 
             <br><br>
 
-            <a href="index.php">Back to Login</a>
+            <a href="index.php" class="auth-theme-link">Back to Login</a>
 
           </div>
 
@@ -228,7 +234,7 @@ WHERE id=?
 
   <style>
     body {
-      background-image: url('assets/img/backgrounds/jan.jpg');
+      background-image: var(--auth-background-image, url('assets/img/backgrounds/login.jpg'));
       background-size: cover;
       background-position: center;
     }
@@ -238,10 +244,11 @@ WHERE id=?
       margin: auto;
     }
   </style>
+  <?php seasonal_theme_render($conn); ?>
 
 </head>
 
-<body>
+<body style="--auth-background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>');">
 
   <div class="container-xxl">
     <div class="authentication-wrapper authentication-basic container-p-y">
@@ -294,7 +301,7 @@ WHERE id=?
 
             </div>
 
-            <button class="btn btn-primary w-100" style="background:#568df5">
+            <button class="btn btn-primary w-100">
 
               Update Password
 
@@ -306,7 +313,7 @@ WHERE id=?
 
           <div class="text-center">
 
-            <a href="index.php">
+            <a href="index.php" class="auth-theme-link">
               <i class="bx bx-chevron-left"></i>
               Back to Login
             </a>
@@ -328,7 +335,7 @@ WHERE id=?
         icon: '<?= $_SESSION['alert']['type'] ?>',
         title: '<?= $_SESSION['alert']['message'] ?>',
         text: 'Click OK to return to login.',
-        confirmButtonColor: '#568df5'
+        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--seasonal-accent').trim() || '#568df5'
       }).then((result) => {
 
         <?php if (isset($_SESSION['alert']['redirect'])): ?>

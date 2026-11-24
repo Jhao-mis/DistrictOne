@@ -5,11 +5,15 @@ session_start();
 require 'vendor/autoload.php';
 
 require 'db.php';
+require_once 'lib/seasonal_theme.php';
+require_once 'lib/site_media.php';
 
 // Check connection
 if ($conn->connect_error) {
   die("Database Connection Failed: " . $conn->connect_error);
 }
+
+$loginBackground = site_media_login_background($conn);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -240,10 +244,9 @@ Manage Information Services Section
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
     <script src="assets/js/config.js"></script>
-  </head>
   <style>
   body {
-        background-image: url('assets/img/backgrounds/bg69.jpg');
+        background-image: var(--auth-background-image, url('assets/img/backgrounds/login.jpg'));
         background-attachment: fixed; /* Makes background image fixed */
         background-size: cover; /* Ensures the background image covers the entire screen */
         background-position: center center; /* Center the background image */
@@ -274,11 +277,13 @@ Manage Information Services Section
       input:focus,
       select:focus,
       .form-control:focus {
-        border-color: #568df5 !important; /* Blue border */
+        border-color: var(--seasonal-accent, #568df5);
       }
 
 </style>
-  <body>
+  <?php seasonal_theme_render($conn); ?>
+  </head>
+  <body style="--auth-background-image: url('<?php echo htmlspecialchars($loginBackground, ENT_QUOTES, 'UTF-8'); ?>');">
      <!-- Content -->
      <div class="container-xxl">
       <div class="authentication-wrapper authentication-basic container-p-y">
@@ -323,7 +328,7 @@ Manage Information Services Section
                   />
                 </div>
 <!-- Button -->
-<button id="resetLinkBtn" class="btn btn-primary d-grid w-100" style="background-color:#568df5">
+<button id="resetLinkBtn" class="btn btn-primary d-grid w-100">
   Send Reset Link
 </button>
 
@@ -331,8 +336,8 @@ Manage Information Services Section
               </form>
               <div class="text-center">
                 <a href="index.php" class="d-flex align-items-center justify-content-center">
-                  <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm" style="color:#568df5"></i>
-                  <span style="color:#568df5">Back to login</span>
+                  <i class="bx bx-chevron-left scaleX-n1-rtl bx-sm auth-theme-link"></i>
+                  <span class="auth-theme-link">Back to login</span>
 
                 </a>
               </div>
@@ -356,6 +361,7 @@ Manage Information Services Section
                         Swal.fire({
                           icon: '<?= $_SESSION['alert']['type'] ?>',
                           title: '<?= $_SESSION['alert']['message'] ?>',
+                          confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--seasonal-accent').trim() || '#568df5',
                           confirmButtonText: 'OK'
                         });
                       </script>
