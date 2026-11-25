@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $_SESSION['alert'] = ['type' => 'error', 'message' => 'Invalid email format'];
-    header("Location: index.php?panel=forgot");
+    header("Location: index?panel=forgot");
     exit();
   }
 
@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   if ($result->num_rows == 0) {
     $_SESSION['alert'] = ['type' => 'error', 'message' => 'Email not found'];
-    header("Location: index.php?panel=forgot");
+    header("Location: index?panel=forgot");
     exit();
   }
 
@@ -43,16 +43,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   // Generate secure token
   $token = bin2hex(random_bytes(32));
 
-  // Expiration (10 minutes)
-  $expires = date("Y-m-d H:i:s", strtotime('+10 minutes'));
-
-  // Save token
-  $stmt = $conn->prepare("UPDATE users SET reset_token=?, reset_expires=? WHERE id=?");
-  $stmt->bind_param("ssi", $token, $expires, $user_id);
+  // Use the database clock for both the expiry value and later validation.
+  $stmt = $conn->prepare("UPDATE users SET reset_token=?, reset_expires=DATE_ADD(NOW(), INTERVAL 10 MINUTE) WHERE id=?");
+  $stmt->bind_param("si", $token, $user_id);
   $stmt->execute();
 
   $appBaseUrl = rtrim($_ENV['APP_URL'] ?? 'http://districtone.com/districtone', '/');
-  $reset_link = $appBaseUrl . "/index.php?panel=reset&token=" . rawurlencode($token);
+  $reset_link = $appBaseUrl . "/index?panel=reset&token=" . rawurlencode($token);
 
   $mail = new PHPMailer(true);
 
@@ -175,11 +172,11 @@ Manage Information Services Section
     $_SESSION['alert'] = ['type' => 'error', 'message' => 'Mailer Error'];
   }
 
-  header("Location: index.php?panel=forgot");
+  header("Location: index?panel=forgot");
   exit();
 }
 
-header("Location: index.php?panel=forgot");
+header("Location: index?panel=forgot");
 exit();
 ?>
 

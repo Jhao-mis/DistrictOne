@@ -47,11 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reset
 
   if (!is_string($submittedToken) || !preg_match('/\A[a-f0-9]{64}\z/i', $submittedToken)) {
     $_SESSION['resetError'] = 'This reset link is invalid, expired, or no longer active. Please request a new link.';
-    header('Location: index.php?panel=forgot');
+    header('Location: index?panel=forgot');
     exit();
   }
 
-  $resetUrl = 'index.php?panel=reset&token=' . rawurlencode($submittedToken);
+  $resetUrl = 'index?panel=reset&token=' . rawurlencode($submittedToken);
 
   if (!is_string($password) || strlen($password) < 8) {
     $_SESSION['resetError'] = 'Your password must be at least 8 characters long.';
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reset
   }
 
   $_SESSION['resetSuccess'] = 'Your password has been successfully changed. You can now sign in.';
-  header('Location: index.php');
+  header('Location: index');
   exit();
 }
 
@@ -442,7 +442,7 @@ unset($_SESSION['success']);
           </div>
 
           <?php if ($resetTokenValid): ?>
-          <form method="POST" action="index.php?panel=reset&token=<?= rawurlencode($resetToken) ?>" id="resetPasswordForm">
+          <form method="POST" action="index?panel=reset&token=<?= rawurlencode($resetToken) ?>" id="resetPasswordForm">
             <input type="hidden" name="action" value="reset_password">
             <input type="hidden" name="reset_token" value="<?= htmlspecialchars($resetToken, ENT_QUOTES, 'UTF-8') ?>">
 
