@@ -220,11 +220,13 @@ unset($_SESSION['success']);
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 60;
+      z-index: 10000;
+      overflow-y: auto;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
-      background: rgb(17 24 39 / 65%);
+      padding: 1.25rem;
+      background: rgb(15 23 42 / 72%);
+      backdrop-filter: blur(6px);
     }
 
     #termsModal.is-open {
@@ -232,42 +234,251 @@ unset($_SESSION['success']);
     }
 
     #termsModal .modal-dialog {
-      max-height: 90vh;
-      max-width: 48rem;
+      margin: auto;
+      max-height: min(88vh, 900px);
+      max-width: 50rem;
       width: 100%;
     }
 
-    #termsModal .modal-content {
-      max-height: 90vh;
-      overflow: auto;
-      border-radius: 0.75rem;
+    #termsModal .terms-modal-content {
+      display: flex;
+      max-height: min(88vh, 900px);
+      flex-direction: column;
+      overflow: hidden;
+      border: 0;
+      border-radius: 1.25rem;
       background: white;
-      padding: 1.5rem;
+      padding: 0;
+      box-shadow: 0 25px 70px rgb(15 23 42 / 35%);
     }
 
-    #termsModal .modal-header,
-    #termsModal .modal-footer {
+    #termsModal .terms-modal-header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 1rem;
+      padding: 1.75rem 2rem;
+      border: 0;
+      background: linear-gradient(120deg, #315db7, #568df5);
+      color: #fff;
+    }
+
+    #termsModal .terms-modal-eyebrow {
+      display: block;
+      margin-bottom: 0.45rem;
+      color: rgb(255 255 255 / 75%);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #termsModal .terms-modal-header h2 {
+      margin: 0;
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    #termsModal .terms-modal-header p {
+      margin: 0.35rem 0 0;
+      color: rgb(255 255 255 / 82%);
+      font-size: 0.875rem;
     }
 
     #termsModal .btn-close {
+      display: grid;
+      width: 2.25rem;
+      height: 2.25rem;
+      flex: 0 0 auto;
+      place-items: center;
       border: 0;
-      background: transparent;
-      color: #4b5563;
+      border-radius: 9999px;
+      background: rgb(255 255 255 / 16%);
+      color: #fff;
       cursor: pointer;
-      font-size: 1.5rem;
+      font-size: 1.75rem;
+      line-height: 1;
+      opacity: 1;
+      padding: 0;
     }
 
     #termsModal .btn-close::before {
       content: '×';
     }
 
+    #termsModal .btn-close:hover {
+      background: rgb(255 255 255 / 28%);
+    }
+
+    #termsModal .terms-modal-body {
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      color: #4b5563;
+      font-size: 0.9rem;
+      line-height: 1.75;
+    }
+
+    #termsModal .terms-modal-body p {
+      margin: 0 0 1rem;
+    }
+
+    #termsModal .terms-effective-date {
+      display: flex;
+      width: fit-content;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      border-radius: 9999px;
+      background: #eff6ff;
+      padding: 0.35rem 0.8rem;
+      color: #315db7;
+      font-size: 0.78rem;
+    }
+
+    #termsModal .terms-effective-date strong {
+      font-weight: 700;
+    }
+
+    #termsModal .terms-modal-body section {
+      border-top: 1px solid #e5e7eb;
+      padding: 1.15rem 0 0.25rem;
+    }
+
+    #termsModal .terms-modal-body h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin: 0 0 0.65rem;
+      color: #1f2937;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    #termsModal .terms-modal-body h3 span {
+      color: #568df5;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+    }
+
+    #termsModal .terms-modal-body ul {
+      margin: 0 0 1rem;
+      padding-left: 1.35rem;
+    }
+
+    #termsModal .terms-modal-body li {
+      margin-bottom: 0.3rem;
+      padding-left: 0.2rem;
+    }
+
+    #termsModal .terms-modal-body a {
+      color: #315db7;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    #termsModal .terms-modal-body .terms-modal-closing {
+      margin: 1rem 0 0;
+      border-radius: 0.75rem;
+      background: #f8fafc;
+      padding: 1rem;
+      color: #374151;
+      font-weight: 600;
+    }
+
+    #termsModal .terms-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-top: 1px solid #e5e7eb;
+      padding: 1rem 2rem;
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
+    #termsModal .terms-modal-footer > div {
+      display: flex;
+      gap: 0.65rem;
+    }
+
+    #termsModal .terms-modal-footer button {
+      min-height: 2.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      transition: background-color 150ms ease, transform 150ms ease;
+    }
+
+    #termsModal .terms-modal-footer button:hover {
+      transform: translateY(-1px);
+    }
+
+    #termsModal .terms-modal-secondary {
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #374151;
+    }
+
+    #termsModal .terms-modal-secondary:hover {
+      background: #f9fafb;
+    }
+
+    #termsModal .terms-modal-primary {
+      border: 1px solid #568df5;
+      background: #568df5;
+      color: #fff;
+    }
+
+    #termsModal .terms-modal-primary:hover {
+      background: #3d6fd4;
+    }
+
+    #registerSubmitBtn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 640px) {
+      #termsModal {
+        padding: 0.65rem;
+      }
+
+      #termsModal .modal-dialog,
+      #termsModal .terms-modal-content {
+        max-height: 92vh;
+      }
+
+      #termsModal .terms-modal-header,
+      #termsModal .terms-modal-body {
+        padding-right: 1.25rem;
+        padding-left: 1.25rem;
+      }
+
+      #termsModal .terms-modal-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 1rem 1.25rem;
+      }
+
+      #termsModal .terms-modal-footer > div {
+        width: 100%;
+      }
+
+      #termsModal .terms-modal-footer button {
+        flex: 1;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .auth-view.is-active {
         animation: none;
+      }
+
+      #termsModal .terms-modal-footer button {
+        transition: none;
       }
     }
   </style>
@@ -396,12 +607,14 @@ unset($_SESSION['success']);
               </select>
             </div>
 
-            <label class="mb-4 flex items-start gap-2 text-xs leading-5 text-gray-600">
-              <input type="checkbox" name="terms" value="1" required class="mt-1 accent-brand">
-              <span>I agree to the <a href="#" data-open-terms class="font-semibold text-brand hover:underline">Terms and Conditions</a>.</span>
+            <label for="termsCheckbox" class="mb-4 flex cursor-pointer items-start gap-2 rounded-md border border-gray-200 p-3 text-xs leading-5 text-gray-600">
+              <input type="checkbox" id="termsCheckbox" name="terms" value="1" required class="mt-1 accent-brand">
+              <span>I have read and agree to the <a href="#" data-open-terms class="font-semibold text-brand hover:underline">Terms and Conditions</a>.</span>
             </label>
 
-            <button type="submit" class="w-full h-11 rounded-md bg-brand hover:bg-brand-dark text-white font-semibold text-sm transition mb-4">
+            <p class="mb-3 text-center text-xs text-gray-500" id="termsAgreementHint">Accept the Terms and Conditions to create your account.</p>
+            <button type="submit" id="registerSubmitBtn" disabled
+              class="w-full h-11 rounded-md bg-brand hover:bg-brand-dark text-white font-semibold text-sm transition mb-4 disabled:cursor-not-allowed disabled:opacity-50">
               Create account
             </button>
 
@@ -560,20 +773,83 @@ unset($_SESSION['success']);
       showAuthPanel(['login', 'register', 'forgot', 'reset'].includes(panel) ? panel : 'login', false);
     });
 
+    const termsModal = document.getElementById('termsModal');
+    const termsCheckbox = document.getElementById('termsCheckbox');
+    const registerSubmitButton = document.getElementById('registerSubmitBtn');
+    const termsAgreementHint = document.getElementById('termsAgreementHint');
+    let termsReturnFocus = null;
+    let previousBodyOverflow = '';
+
+    function updateRegistrationAvailability() {
+      registerSubmitButton.disabled = !termsCheckbox.checked;
+      termsAgreementHint.textContent = termsCheckbox.checked
+        ? 'Thank you. You can now create your account.'
+        : 'Accept the Terms and Conditions to create your account.';
+    }
+
+    function closeTermsModal() {
+      termsModal.classList.remove('is-open');
+      termsModal.setAttribute('aria-hidden', 'true');
+      termsModal.removeAttribute('aria-modal');
+      document.body.style.overflow = previousBodyOverflow;
+      if (termsReturnFocus) {
+        termsReturnFocus.focus();
+      }
+    }
+
+    termsCheckbox.addEventListener('change', updateRegistrationAvailability);
+    updateRegistrationAvailability();
+
     document.querySelector('[data-open-terms]').addEventListener('click', function (event) {
       event.preventDefault();
-      document.getElementById('termsModal').classList.add('is-open');
+      termsReturnFocus = event.currentTarget;
+      previousBodyOverflow = document.body.style.overflow;
+      termsModal.classList.add('is-open');
+      termsModal.setAttribute('aria-hidden', 'false');
+      termsModal.setAttribute('aria-modal', 'true');
+      document.body.style.overflow = 'hidden';
+      termsModal.querySelector('.btn-close').focus();
     });
 
     document.querySelectorAll('#termsModal [data-bs-dismiss="modal"]').forEach(function (button) {
       button.addEventListener('click', function () {
-        document.getElementById('termsModal').classList.remove('is-open');
+        closeTermsModal();
       });
     });
 
-    document.getElementById('termsModal').addEventListener('click', function (event) {
+    document.querySelector('[data-accept-terms]').addEventListener('click', function () {
+      termsCheckbox.checked = true;
+      termsCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      closeTermsModal();
+    });
+
+    termsModal.addEventListener('click', function (event) {
       if (event.target === event.currentTarget) {
-        event.currentTarget.classList.remove('is-open');
+        closeTermsModal();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (!termsModal.classList.contains('is-open')) {
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        closeTermsModal();
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        const focusableElements = termsModal.querySelectorAll('button:not([disabled]), a[href], input:not([disabled])');
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
       }
     });
 
