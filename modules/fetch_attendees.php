@@ -19,7 +19,10 @@ $result = $stmt->get_result();
 
 $suggestions = [];
 while ($row = $result->fetch_assoc()) {
-    $suggestions[] = $row['fullname'];
+    $suggestions[] = [
+        'value' => $row['fullname'],
+        'label' => format_person_name($row['fullname'])
+    ];
 }
 
 echo json_encode($suggestions);

@@ -84,6 +84,7 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room Reservation Approvals</title>
     <link rel="stylesheet" href="../css/reservation_approval.css">
+    <link rel="stylesheet" href="../../assets/css/global-font.css">
 </head>
 <body>
 
@@ -113,7 +114,7 @@ $result = $conn->query($sql);
                 <?php while ($reservation = $result->fetch_assoc()): ?>
                     <tr>
                         <td>#<?php echo htmlspecialchars($reservation['id']); ?></td>
-                        <td><?php echo htmlspecialchars($reservation['requested_name']); ?></td>
+                        <td><?php echo htmlspecialchars(format_person_name($reservation['requested_name']), ENT_QUOTES, 'UTF-8'); ?></td>
                         <td><?php echo htmlspecialchars($reservation['department']); ?></td>
                         <td><?php echo htmlspecialchars($reservation['purpose']); ?></td>
                         <td><?php echo htmlspecialchars($reservation['date_requested']); ?></td>

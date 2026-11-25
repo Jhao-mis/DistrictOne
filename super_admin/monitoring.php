@@ -108,7 +108,7 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
   while ($t = $pendingTickets->fetch_assoc()) {
     $pending[] = [
       'id' => $t['id'],
-      'fullname' => htmlspecialchars($t['fullname']),
+      'fullname' => htmlspecialchars(format_person_name($t['fullname']), ENT_QUOTES, 'UTF-8'),
       'subject' => htmlspecialchars($t['subject']),
       'department' => htmlspecialchars($t['department']),
       'created_at' => date('M d, Y h:i A', strtotime($t['created_at'])),
@@ -128,7 +128,7 @@ if (isset($_GET['tickets']) && $_GET['tickets'] == '1') {
   while ($t = $inProgressTickets->fetch_assoc()) {
     $inprogress[] = [
       'id' => $t['id'],
-      'fullname' => htmlspecialchars($t['fullname']),
+      'fullname' => htmlspecialchars(format_person_name($t['fullname']), ENT_QUOTES, 'UTF-8'),
       'subject' => htmlspecialchars($t['subject']),
       'department' => htmlspecialchars($t['department']),
       'created_at' => date('M d, Y h:i A', strtotime($t['created_at'])),

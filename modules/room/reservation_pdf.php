@@ -133,7 +133,7 @@ $conn->close();
         </tr>
         <tr>
             <td><strong>Requested by:</strong></td>
-            <td><?= $reservation['requester_name'] ?></td>
+            <td><?= htmlspecialchars(format_person_name($reservation['requester_name']), ENT_QUOTES, 'UTF-8') ?></td>
         </tr>
 
         <tr>

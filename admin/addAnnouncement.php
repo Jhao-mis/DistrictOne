@@ -456,7 +456,7 @@ if (isset($_SESSION['success'])) {
 
                                                         <div class="ann-post-meta">
                                                             <span><i class='bx bx-user'></i>
-                                                                <?php echo htmlspecialchars($row['firstname'] . " " . $row['middlename'] . " " . $row['lastname']); ?>
+                                                                <?php echo htmlspecialchars(format_person_name($row['firstname'] . " " . $row['middlename'] . " " . $row['lastname']), ENT_QUOTES, 'UTF-8'); ?>
                                                             </span>
                                                             <span><i class='bx bx-time'></i>
                                                                 <?php echo htmlspecialchars($row['created_at']); ?></span>

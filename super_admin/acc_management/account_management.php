@@ -371,13 +371,13 @@ $result = mysqli_query($conn, "SELECT id, firstname, middlename, lastname, usern
 
                           <div>
                             <strong class="d-block text-capitalize">
-                              <?= htmlspecialchars($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']) ?>
+                              <?= htmlspecialchars(format_person_name($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']), ENT_QUOTES, 'UTF-8') ?>
                             </strong>
                             <small class="text-muted"><?= htmlspecialchars($row['username']) ?></small>
                           </div>
                         </td>
                         <td class="text-capitalize">
-                          <?= htmlspecialchars($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']) ?>
+                          <?= htmlspecialchars(format_person_name($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']), ENT_QUOTES, 'UTF-8') ?>
                         </td>
                         <td><?= htmlspecialchars($row['username']) ?></td>
                         <td><?= htmlspecialchars($row['email']) ?></td>

@@ -172,7 +172,7 @@ $canCancel = $ticket['status'] === 'Pending'
   && (int)$ticket['admin_approved'] === 0
   && (int)$ticket['user_id'] === (int)$user_id;
 
-$assigneeName = $ticket['mis_name'] !== null ? trim(preg_replace('/\s+/', ' ', $ticket['mis_name'])) : '';
+$assigneeName = $ticket['mis_name'] !== null ? format_person_name($ticket['mis_name']) : '';
 $isAssigned = $assigneeName !== '';
 $assigneeInitials = $isAssigned
   ? strtoupper(substr($assigneeName, 0, 1) . (strpos($assigneeName, ' ') !== false ? substr($assigneeName, strpos($assigneeName, ' ') + 1, 1) : ''))
@@ -718,7 +718,7 @@ function tk_history_icon(string $action): string
                           <span class="tk-dot-sep"></span>
                           <span class="tk-timeline-badge">
                             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            <?= htmlspecialchars(trim($row['action_by'])); ?>
+                            <?= htmlspecialchars(format_person_name(trim($row['action_by'])), ENT_QUOTES, 'UTF-8'); ?>
                           </span>
                         <?php endif; ?>
                       </div>

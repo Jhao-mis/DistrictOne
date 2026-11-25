@@ -110,7 +110,7 @@ if (isset($_GET['schedule_calendar'])) {
       'purpose' => $calendarReservation['purpose'] ?? '',
       'department' => $calendarReservation['department'] ?? '',
       'participants' => (int) $calendarReservation['participants'],
-      'requested_by' => trim($calendarReservation['requested_by'] ?? '') ?: 'Unknown',
+      'requested_by' => format_person_name(trim($calendarReservation['requested_by'] ?? '')) ?: 'Unknown',
     ];
   }
   echo json_encode($calendarReservations, JSON_THROW_ON_ERROR);
@@ -483,7 +483,7 @@ $calendarRooms = $calendarRoomsResult->fetch_all(MYSQLI_ASSOC);
                       <td><span class="fw-bold text-primary">#<?= $r['id']; ?></span></td>
                       <td>
                         <div class="d-flex flex-column">
-                          <span class="fw-bold text-dark"><?= htmlspecialchars($r['requested_by'] ?? 'Unknown'); ?></span>
+                          <span class="fw-bold text-dark"><?= htmlspecialchars(format_person_name($r['requested_by'] ?? 'Unknown'), ENT_QUOTES, 'UTF-8'); ?></span>
                           <small class="text-muted"><?= htmlspecialchars($r['department'] ?? 'N/A'); ?></small>
                         </div>
                       </td>

@@ -498,7 +498,7 @@ $emp_id = $emp_id ?? '—';
                                         class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4 mt-2 ms-3">
                                         <div class="user-profile-info">
                                             <h2 class="fw-bold mb-1 user-name">
-                                                <?php echo htmlspecialchars("$firstname $middlename $lastname"); ?>
+                                                <?php echo htmlspecialchars(format_person_name("$firstname $middlename $lastname"), ENT_QUOTES, 'UTF-8'); ?>
                                             </h2>
                                             <p class="text-muted mb-2">
                                                 <?php echo htmlspecialchars($position); ?>
@@ -847,14 +847,14 @@ $emp_id = $emp_id ?? '—';
                                                         <div class="tel-avatar-wrapper mb-2">
                                                             <img src="<?= !empty($member['profile_picture']) ? htmlspecialchars($member['profile_picture']) : '../assets/img/avatars/default_dp.jpg'; ?>"
                                                                 class="rounded-circle border border-3 border-primary shadow-sm"
-                                                                alt="<?= htmlspecialchars($member['name']); ?>"
+                                                                alt="<?= htmlspecialchars(format_person_name($member['name']), ENT_QUOTES, 'UTF-8'); ?>"
                                                                 style="width: 85px; height: 85px; object-fit: cover;">
                                                         </div>
 
                                                         <!-- Name (Ginawang fs-5 / H5-size para mas sakto lang) -->
                                                         <h5 class="fw-bold text-dark mb-1 text-truncate w-100"
-                                                            title="<?= htmlspecialchars($member['name']); ?>">
-                                                            <?= htmlspecialchars($member['name']); ?>
+                                                            title="<?= htmlspecialchars(format_person_name($member['name']), ENT_QUOTES, 'UTF-8'); ?>">
+                                                            <?= htmlspecialchars(format_person_name($member['name']), ENT_QUOTES, 'UTF-8'); ?>
                                                         </h5>
 
                                                         <!-- Department -->
@@ -902,14 +902,14 @@ $emp_id = $emp_id ?? '—';
                                                         <div class="tel-avatar-wrapper mb-3">
                                                             <img src="<?= !empty($member['profile_picture']) ? htmlspecialchars($member['profile_picture']) : '../assets/img/avatars/default_dp.jpg'; ?>"
                                                                 class="rounded-circle border border-3 border-white shadow-sm"
-                                                                alt="<?= htmlspecialchars($member['name']); ?>"
+                                                                alt="<?= htmlspecialchars(format_person_name($member['name']), ENT_QUOTES, 'UTF-8'); ?>"
                                                                 style="width: 78px; height: 78px; object-fit: cover;">
                                                         </div>
 
                                                         <!-- Name -->
                                                         <h5 class="fw-bold text-dark mb-1 text-truncate w-100"
-                                                            title="<?= htmlspecialchars($member['name']); ?>">
-                                                            <?= htmlspecialchars($member['name']); ?>
+                                                            title="<?= htmlspecialchars(format_person_name($member['name']), ENT_QUOTES, 'UTF-8'); ?>">
+                                                            <?= htmlspecialchars(format_person_name($member['name']), ENT_QUOTES, 'UTF-8'); ?>
                                                         </h5>
 
                                                         <!-- Department -->

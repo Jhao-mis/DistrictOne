@@ -173,6 +173,8 @@ if ($isAjaxRequest) {
   header('Content-Type: application/json; charset=utf-8');
   echo json_encode([
     'tickets' => array_map(static function (array $ticket): array {
+      $ticket['user_name'] = format_person_name($ticket['user_name'] ?? '');
+      $ticket['assigned_to'] = format_person_name($ticket['assigned_to'] ?? '');
       $ticket['created_display'] = $ticket['created_at']
         ? date('M d, Y h:i A', strtotime($ticket['created_at']))
         : '—';
@@ -549,7 +551,7 @@ $pageUrl = static function (array $changes): string {
                   ?>
                   <tr class="clickable-row" tabindex="0" role="button" aria-label="Preview ticket #<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?>"
                     data-id="<?= htmlspecialchars($row['id']); ?>"
-                    data-name="<?= htmlspecialchars($row['user_name']); ?>"
+                    data-name="<?= htmlspecialchars(format_person_name($row['user_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
                     data-department="<?= htmlspecialchars($row['department_name'] ?? ''); ?>"
                     data-subject="<?= htmlspecialchars($row['subject']); ?>"
                     data-status="<?= htmlspecialchars($row['status']); ?>"
@@ -560,7 +562,7 @@ $pageUrl = static function (array $changes): string {
                     data-link="<?= htmlspecialchars($link); ?>">
                     <td><span class="ticket-key">#<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?></span></td>
                     <td>
-                      <span class="requester-name"><?= htmlspecialchars($row['user_name'] ?? 'Unknown requester'); ?></span>
+                      <span class="requester-name"><?= htmlspecialchars(format_person_name($row['user_name'] ?? 'Unknown requester'), ENT_QUOTES, 'UTF-8'); ?></span>
                       <span class="requester-department"><?= htmlspecialchars($row['department_name'] ?? ''); ?></span>
                     </td>
                     <td class="request-cell">

@@ -402,14 +402,14 @@ if (isset($_SESSION['success'])) {
 
   <?php if (!empty($alertText) && $redirectFrom === 'verify'): ?>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Public Sans', sans-serif;
       }
 
       .swal2-popup {
-        font-family: 'Poppins', sans-serif !important;
+        font-family: 'Public Sans', sans-serif !important;
       }
     </style>
 
@@ -422,7 +422,7 @@ if (isset($_SESSION['success'])) {
         confirmButtonText: 'OK',
         confirmButtonColor: '#d33',
         customClass: {
-          popup: 'poppins-font'
+          popup: 'public-sans-font'
         }
       });
     </script>

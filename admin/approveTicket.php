@@ -631,7 +631,7 @@ $rstmt->close();
         function render_ticket_table($result, $tab_name) {
           if ($result && $result->num_rows > 0):
             while ($row = $result->fetch_assoc()):
-              $fullName = trim($row['firstname'] . ' ' . $row['lastname']);
+              $fullName = format_person_name(trim($row['firstname'] . ' ' . $row['lastname']));
               $initials = strtoupper(substr($row['firstname'], 0, 1) . substr($row['lastname'], 0, 1));
               $badgeClass = 'tk-badge';
               $badgeText = $row['status'];

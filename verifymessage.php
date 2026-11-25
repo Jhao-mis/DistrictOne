@@ -10,14 +10,15 @@ session_start();
     <title>Email Verification</title>
     <link rel="icon" type="image/x-icon" href="assets/img/favicon/districtone.png" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/global-font.css">
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Public Sans', sans-serif;
         }
 
         .swal2-popup {
-            font-family: 'Poppins', sans-serif !important;
+            font-family: 'Public Sans', sans-serif !important;
         }
     </style>
 </head>
@@ -39,7 +40,7 @@ session_start();
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#28a745',
                 customClass: {
-                    popup: 'poppins-font'
+                    popup: 'public-sans-font'
                 }
             }).then(() => {
                 window.location.href = '<?php echo $redirectURL; ?>';

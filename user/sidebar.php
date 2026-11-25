@@ -39,6 +39,7 @@ if ($sb_username !== '') {
     }
 }
 if (!$sb_name) $sb_name = $sb_username;
+$sb_name = format_person_name($sb_name);
 ?>
 
 <?php seasonal_theme_render($conn); ?>
@@ -111,7 +112,7 @@ if (!$sb_name) $sb_name = $sb_username;
   flex-shrink: 0;
 }
 #layout-menu .sb-brand-text {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 15px;
   font-weight: 800;
   color: var(--sb-text);
@@ -146,7 +147,7 @@ if (!$sb_name) $sb_name = $sb_username;
 }
 .sb-user-info { flex: 1; min-width: 0; }
 .sb-user-name {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 13px; font-weight: 700; color: var(--sb-text);
   line-height: 1.3; overflow-wrap: anywhere;
 }
@@ -173,7 +174,7 @@ if (!$sb_name) $sb_name = $sb_username;
 #layout-menu .menu-link {
   border-radius: 9px !important;
   color: var(--sb-muted) !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
   line-height: 1.4 !important;
@@ -182,7 +183,7 @@ if (!$sb_name) $sb_name = $sb_username;
   display: flex; align-items: center;
 }
 #layout-menu .menu-link > div {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
   line-height: 1.4 !important;

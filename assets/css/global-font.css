@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --districtone-font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+
+html,
+body {
+  font-family: var(--districtone-font-family) !important;
+}
+
+body :not(svg):not(code):not(pre):not(kbd):not(samp):not(.bx):not([class*="bx-"]):not(.fa):not([class*="fa-"]):not(.material-icons):not([class*="material-symbols"]):not(.mdi):not([class*="mdi-"]):not(.ti):not([class*="ti-"]):not(.bi):not([class*="bi-"]):not(.ri):not([class*="ri-"]):not(.uil):not([class*="uil-"]) {
+  font-family: var(--districtone-font-family) !important;
+}

@@ -583,7 +583,7 @@ textarea:focus {
   <div class="ticket-detail">
     <!-- Rearranged the details -->
     <p><strong>Ticket Number:</strong> #<?php echo htmlspecialchars($ticket['id']); ?></p>
-    <p><strong>Submitted By:</strong> <?php echo htmlspecialchars($ticket['user_name']); ?></p>
+    <p><strong>Submitted By:</strong> <?php echo htmlspecialchars(format_person_name($ticket['user_name']), ENT_QUOTES, 'UTF-8'); ?></p>
     <p><strong>Department:</strong> <strong><?php echo htmlspecialchars($ticket['user_department']); ?></strong></p>
 
     <p><strong>Subject:</strong> <?php echo htmlspecialchars($ticket['subject']); ?></p>
@@ -599,7 +599,7 @@ textarea:focus {
     </p>
     <p><strong>Assigned To:</strong>
       <span class="badge badge-mis">
-        <?php echo $ticket['mis_name'] ? htmlspecialchars($ticket['mis_name']) : 'Unassigned'; ?>
+        <?php echo $ticket['mis_name'] ? htmlspecialchars(format_person_name($ticket['mis_name']), ENT_QUOTES, 'UTF-8') : 'Unassigned'; ?>
       </span>
     </p>
   </div>
@@ -617,7 +617,7 @@ textarea:focus {
       <?php foreach ($mis_personnel as $mis): 
           $selected = ($ticket['assigned_to'] == $mis['id']) ? 'selected' : ''; ?>
           <option value="<?php echo $mis['id']; ?>" <?php echo $selected; ?>>
-            <?php echo htmlspecialchars($mis['name']); ?>
+            <?php echo htmlspecialchars(format_person_name($mis['name']), ENT_QUOTES, 'UTF-8'); ?>
           </option>
       <?php endforeach; ?>
     </select>

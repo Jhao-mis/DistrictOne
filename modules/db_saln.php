@@ -82,14 +82,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['download_excel'])) {
 
 
     // Fill in values to Excel
-    $sheet->setCellValue('D8', $saln['declarantLastName']);
-    $sheet->setCellValue('E8', $saln['declarantFirstName']);
-    $sheet->setCellValue('H8', $saln['declarantMiddleName']);
+    $sheet->setCellValue('D8', format_person_name($saln['declarantLastName']));
+    $sheet->setCellValue('E8', format_person_name($saln['declarantFirstName']));
+    $sheet->setCellValue('H8', format_person_name($saln['declarantMiddleName']));
     $sheet->setCellValue('D10', $saln['declarantAddress']);
 
-    $sheet->setCellValue('D12', $saln['spouseLastName']);
-    $sheet->setCellValue('E12', $saln['spouseFirstName']);
-    $sheet->setCellValue('H12', $saln['spouseMiddleName']);
+    $sheet->setCellValue('D12', format_person_name($saln['spouseLastName']));
+    $sheet->setCellValue('E12', format_person_name($saln['spouseFirstName']));
+    $sheet->setCellValue('H12', format_person_name($saln['spouseMiddleName']));
 
     $sheet->setCellValue('N8', $saln['declarantPosition']);
     $sheet->setCellValue('N9', $saln['declarantAgency']);
@@ -272,15 +272,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['download_excel'])) {
 
     $sheet = $spreadsheet->getSheet(1);
     $sheet->setCellValue('B22', date('m/d/Y')); 
-    $fullName = $saln['declarantFirstName'] . ' ' . $saln['declarantMiddleName'] . ' ' . $saln['declarantLastName'];
+    $fullName = format_person_name($saln['declarantFirstName'] . ' ' . $saln['declarantMiddleName'] . ' ' . $saln['declarantLastName']);
     $sheet->setCellValue('B23', $fullName);
-    $fullName = $saln['spouseFirstName'] . ' ' . $saln['spouseMiddleName'] . ' ' . $saln['spouseLastName'];
+    $fullName = format_person_name($saln['spouseFirstName'] . ' ' . $saln['spouseMiddleName'] . ' ' . $saln['spouseLastName']);
     $sheet->setCellValue('F23', $fullName);
     
 
 
     // Download as Excel
-    $filename = "SALN " . $saln['declarantLastName'] . ".xlsx";
+    $filename = "SALN " . format_person_name($saln['declarantLastName']) . ".xlsx";
 
   // Clean output buffer first
 if (ob_get_length()) ob_end_clean();

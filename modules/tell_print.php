@@ -215,7 +215,7 @@ unset($row);
                 <tbody>
                     <?php foreach ($telephone_records as $row): ?>
                     <tr>
-                        <td style="font-weight: 500;"><?= htmlspecialchars($row['name']); ?></td>
+                        <td style="font-weight: 500;"><?= htmlspecialchars(format_person_name($row['name']), ENT_QUOTES, 'UTF-8'); ?></td>
                         <td><?= htmlspecialchars($row['remarks']); ?></td>
                         <td style="font-weight: bold;"><?= htmlspecialchars($row['local_number']); ?></td>
                     </tr>

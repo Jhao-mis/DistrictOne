@@ -662,7 +662,7 @@ $result = $stmt->get_result();
                                         class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4 mt-2 ms-3">
                                         <div class="user-profile-info">
                                             <h2 class="fw-bold mb-1 user-name">
-                                                <?php echo htmlspecialchars("$firstname $middlename $lastname"); ?>
+                                                <?php echo htmlspecialchars(format_person_name("$firstname $middlename $lastname"), ENT_QUOTES, 'UTF-8'); ?>
                                             </h2>
 
                                             <p class="text-muted mb-2">
@@ -757,9 +757,9 @@ $result = $stmt->get_result();
                                     <li class="pf-info-item">
                                         <span class="pf-info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                                         <span class="pf-info-label">Full Name</span>
-                                        <span class="pf-info-value"><?php echo htmlspecialchars($firstname); ?>
-                                            <?php echo htmlspecialchars($middlename); ?>
-                                            <?php echo htmlspecialchars($lastname); ?></span>
+                                        <span class="pf-info-value"><?php echo htmlspecialchars(format_person_name($firstname), ENT_QUOTES, 'UTF-8'); ?>
+                                            <?php echo htmlspecialchars(format_person_name($middlename), ENT_QUOTES, 'UTF-8'); ?>
+                                            <?php echo htmlspecialchars(format_person_name($lastname), ENT_QUOTES, 'UTF-8'); ?></span>
                                     </li>
                                     <li class="pf-info-item">
                                         <span class="pf-info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>

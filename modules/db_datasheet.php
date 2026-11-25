@@ -115,9 +115,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['download_excel'])) {
     //C1--SHEET 1
     $sheet = $spreadsheet->getSheet(0); // Change to Sheet 2 (index 1)
     // Fill in the form
-    $sheet->setCellValue('D11', $firstname);
-    $sheet->setCellValue('D12', $middlename);
-    $sheet->setCellValue('D10', $lastname);
+    $sheet->setCellValue('D11', format_person_name($firstname));
+    $sheet->setCellValue('D12', format_person_name($middlename));
+    $sheet->setCellValue('D10', format_person_name($lastname));
     $sheet->setCellValue('L11', "NAME EXTENSION (JR., SR): " . ($_POST['name_extension'] ?? ''));
 
 
@@ -566,7 +566,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['download_excel'])) {
     }
 
     // Set filename for download
-    $filename = "Personal_Data_Sheet_" . $lastname . ".xls";
+    $filename = "Personal_Data_Sheet_" . format_person_name($lastname) . ".xls";
 
     header('Content-Type: application/vnd.ms-excel');
     header('Content-Disposition: attachment; filename="' . $filename . '"');

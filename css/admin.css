@@ -1,6 +1,7 @@
+@import url('../assets/css/global-font.css');
 /* General Page Styling */
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Public Sans', sans-serif;
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;

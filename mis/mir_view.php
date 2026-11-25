@@ -11,7 +11,7 @@ $items = $conn->query("SELECT * FROM mir_items WHERE mir_id=$id");
 
 <h6>Report #: <?= $report['report_no'] ?></h6>
 <p>
-    End User: <?= $report['end_user'] ?><br>
+    End User: <?= htmlspecialchars(format_person_name($report['end_user']), ENT_QUOTES, 'UTF-8') ?><br>
     Department: <?= $report['department'] ?><br>
     Date: <?= $report['report_date'] ?>
 </p>

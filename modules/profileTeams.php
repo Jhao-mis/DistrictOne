@@ -509,7 +509,7 @@ $result = $stmt->get_result();
                                         class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4 mt-2 ms-3">
                                         <div class="user-profile-info">
                                             <h2 class="fw-bold mb-1 user-name">
-                                                <?php echo htmlspecialchars("$firstname $middlename $lastname"); ?>
+                                                <?php echo htmlspecialchars(format_person_name("$firstname $middlename $lastname"), ENT_QUOTES, 'UTF-8'); ?>
                                             </h2>
 
                                             <p class="text-muted mb-2">
@@ -611,7 +611,7 @@ $result = $stmt->get_result();
                                                 class="pf-member-avatar">
                                             <div class="pf-member-info">
                                                 <div class="pf-member-name">
-                                                    <?php echo htmlspecialchars(trim($user['firstname'] . ' ' . $user['middlename'] . ' ' . $user['lastname'])); ?>
+                                                    <?php echo htmlspecialchars(format_person_name(trim($user['firstname'] . ' ' . $user['middlename'] . ' ' . $user['lastname'])), ENT_QUOTES, 'UTF-8'); ?>
                                                 </div>
                                                 <div class="pf-member-position">
                                                     <?php echo htmlspecialchars($user['position'] ?: 'No position set'); ?>

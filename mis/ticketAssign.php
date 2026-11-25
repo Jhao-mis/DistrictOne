@@ -1226,7 +1226,7 @@ $assignedStats = ticketStatusBreakdown($result);
                       ?>
                       <tr class="<?= $rowClass ?>" tabindex="0" aria-label="Preview ticket #<?= htmlspecialchars((string) $row_all['id'], ENT_QUOTES, 'UTF-8'); ?>" data-ticket-details
                         data-ticket-id="<?= htmlspecialchars((string) $row_all['id'], ENT_QUOTES, 'UTF-8'); ?>"
-                        data-ticket-name="<?= htmlspecialchars($row_all['user_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-name="<?= htmlspecialchars(format_person_name($row_all['user_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
                         data-ticket-department="<?= htmlspecialchars($row_all['department_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                         data-ticket-subject="<?= htmlspecialchars($row_all['subject'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                         data-ticket-status="<?= htmlspecialchars($row_all['status'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
@@ -1236,7 +1236,7 @@ $assignedStats = ticketStatusBreakdown($result);
                         data-search="<?= htmlspecialchars(($row_all['subject'] ?? '') . ' ' . ($row_all['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
                         <td data-label="Ticket"><span class="ticket-key">#<?= htmlspecialchars((string) $row_all['id'], ENT_QUOTES, 'UTF-8'); ?></span></td>
                         <td data-label="Requester" class="requester-cell">
-                          <span class="requester-name"><i class='bx bx-user'></i><?= htmlspecialchars($row_all['user_name'] ?? 'Unknown requester'); ?></span>
+                          <span class="requester-name"><i class='bx bx-user'></i><?= htmlspecialchars(format_person_name($row_all['user_name'] ?? 'Unknown requester'), ENT_QUOTES, 'UTF-8'); ?></span>
                           <span class="requester-department"><?= htmlspecialchars($row_all['department_name'] ?? ''); ?></span>
                         </td>
                         <td data-label="Request" class="ticket-subject-cell">
@@ -1359,7 +1359,7 @@ $assignedStats = ticketStatusBreakdown($result);
                       ?>
                       <tr class="<?= $rowClass ?>" tabindex="0" aria-label="Preview ticket #<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?>" data-ticket-details
                         data-ticket-id="<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?>"
-                        data-ticket-name="<?= htmlspecialchars($row['user_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                        data-ticket-name="<?= htmlspecialchars(format_person_name($row['user_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
                         data-ticket-department="<?= htmlspecialchars($row['department_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                         data-ticket-subject="<?= htmlspecialchars($row['subject'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                         data-ticket-status="<?= htmlspecialchars($row['status'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
@@ -1369,7 +1369,7 @@ $assignedStats = ticketStatusBreakdown($result);
                         data-search="<?= htmlspecialchars(($row['subject'] ?? '') . ' ' . ($row['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>">
                         <td data-label="Ticket"><span class="ticket-key">#<?= htmlspecialchars((string) $row['id'], ENT_QUOTES, 'UTF-8'); ?></span></td>
                         <td data-label="Requester" class="requester-cell">
-                          <span class="requester-name"><i class='bx bx-user'></i><?= htmlspecialchars($row['user_name'] ?? 'Unknown requester'); ?></span>
+                          <span class="requester-name"><i class='bx bx-user'></i><?= htmlspecialchars(format_person_name($row['user_name'] ?? 'Unknown requester'), ENT_QUOTES, 'UTF-8'); ?></span>
                           <span class="requester-department"><?= htmlspecialchars($row['department_name'] ?? ''); ?></span>
                         </td>
                         <td data-label="Request" class="ticket-subject-cell">

@@ -612,7 +612,7 @@ textarea:focus {
                 <?php echo htmlspecialchars($ticket['status']); ?>
             </span>
         </p>
-        <p><strong>Assigned to:</strong> <?php echo htmlspecialchars($ticket['mis_name'] ?? 'Not Assigned'); ?></p>
+        <p><strong>Assigned to:</strong> <?php echo htmlspecialchars(format_person_name($ticket['mis_name'] ?? 'Not Assigned'), ENT_QUOTES, 'UTF-8'); ?></p>
 
         <p><strong>Subject:</strong> <?php echo htmlspecialchars($ticket['subject']); ?></p>
         

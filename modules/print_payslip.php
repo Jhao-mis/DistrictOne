@@ -36,6 +36,7 @@ $fullName = trim(
     ($user['middlename'] ?? '') . ' ' .
     $user['lastname']
 );
+$fullName = format_person_name($fullName);
 
 /* =====================
    GET SELECTED BATCH

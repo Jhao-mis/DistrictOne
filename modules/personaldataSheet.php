@@ -259,18 +259,18 @@ $query->close();
                                             <div class="mb-3 col-md-6">
                                                 <label for="firstName" class="form-label">First Name</label>
                                                 <input class="form-control" type="text" id="firstName" name="firstName"
-                                                    value="<?php echo htmlspecialchars($firstname); ?>" readonly />
+                                                    value="<?php echo htmlspecialchars(format_person_name($firstname), ENT_QUOTES, 'UTF-8'); ?>" readonly />
                                             </div>
                                             <div class="mb-3 col-md-6">
                                                 <label for="middleName" class="form-label">Middle Name</label>
                                                 <input class="form-control" type="text" name="middleName" id="middleName"
-                                                    value="<?php echo htmlspecialchars($middlename); ?>" readonly />
+                                                    value="<?php echo htmlspecialchars(format_person_name($middlename), ENT_QUOTES, 'UTF-8'); ?>" readonly />
                                             </div>
 
                                             <div class="mb-3 col-md-6">
                                                 <label for="lastName" class="form-label">Last Name</label>
                                                 <input class="form-control" type="text" name="lastName" id="lastName"
-                                                    value="<?php echo htmlspecialchars($lastname); ?>" readonly />
+                                                    value="<?php echo htmlspecialchars(format_person_name($lastname), ENT_QUOTES, 'UTF-8'); ?>" readonly />
                                             </div>
                                             <div class="mb-3 col-md-6">
                                                 <label for="name_extension" class="form-label">Name Extension</label>

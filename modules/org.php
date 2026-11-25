@@ -787,7 +787,7 @@ $emp_id = $emp_id ?? '—';
                                         class="d-flex align-items-md-end align-items-sm-start align-items-center justify-content-md-between justify-content-start mx-5 flex-md-row flex-column gap-4 mt-2 ms-3">
                                         <div class="user-profile-info">
                                             <h2 class="fw-bold mb-1 user-name">
-                                                <?php echo htmlspecialchars("$firstname $middlename $lastname"); ?>
+                                                <?php echo htmlspecialchars(format_person_name("$firstname $middlename $lastname"), ENT_QUOTES, 'UTF-8'); ?>
                                             </h2>
                                             <p class="text-muted mb-2">
                                                 <?php echo htmlspecialchars($position); ?>
@@ -1200,13 +1200,13 @@ $emp_id = $emp_id ?? '—';
             `;
             t.field_0 = `
                 <foreignObject x="12" y="6" width="266" height="40">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; font-size: 10.5px; font-weight: 800; color: #0f172a; font-family: 'Inter', system-ui, sans-serif; text-transform: uppercase; line-height: 1.2; overflow: hidden; word-break: break-word; text-rendering: geometricPrecision; -webkit-font-smoothing: antialiased;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; font-size: 10.5px; font-weight: 800; color: #0f172a; font-family: 'Public Sans', system-ui, sans-serif; text-transform: uppercase; line-height: 1.2; overflow: hidden; word-break: break-word; text-rendering: geometricPrecision; -webkit-font-smoothing: antialiased;">
                         {val}
                     </div>
                 </foreignObject>
             `;
-            t.field_1 = `<text style="font-size: 11.5px; font-weight: 700; font-family: 'Inter', system-ui, sans-serif;" fill="#ffffff" x="145" y="72" text-anchor="middle">{val}</text>`;
-            t.field_2 = `<text style="font-size: 10px; font-weight: 600; font-family: 'Inter', system-ui, sans-serif;" fill="${c.sub}" x="145" y="90" text-anchor="middle">{val}</text>`;
+            t.field_1 = `<text style="font-size: 11.5px; font-weight: 700; font-family: 'Public Sans', system-ui, sans-serif;" fill="#ffffff" x="145" y="72" text-anchor="middle">{val}</text>`;
+            t.field_2 = `<text style="font-size: 10px; font-weight: 600; font-family: 'Public Sans', system-ui, sans-serif;" fill="${c.sub}" x="145" y="90" text-anchor="middle">{val}</text>`;
             t.img_0 = '';
 
             if (typeof OrgChart.templates.ana.link === 'string') {
@@ -1252,7 +1252,7 @@ $emp_id = $emp_id ?? '—';
             if (!hint) {
                 hint = document.createElement('p');
                 hint.id = 'orgchart-hint';
-                hint.style.cssText = "position:absolute;margin:0;font-size:12px;line-height:1.5;color:#64748b;pointer-events:none;z-index:1;font-family:'Inter', system-ui, sans-serif;";
+                hint.style.cssText = "position:absolute;margin:0;font-size:12px;line-height:1.5;color:#64748b;pointer-events:none;z-index:1;font-family:'Public Sans', system-ui, sans-serif;";
                 hint.innerHTML = 'Click a card for details &middot; Scroll to zoom &middot; Drag to pan';
                 container.appendChild(hint);
             }

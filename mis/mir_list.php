@@ -730,8 +730,8 @@ if ($total_reports > 0) {
                       <td data-label="#"><?= $i++ ?></td>
                       <td data-label="Report No" data-date="<?= htmlspecialchars($row['report_date']) ?>"><span class="mir-report-no"><?= htmlspecialchars($row['report_no']) ?></span></td>
                       <td data-label="End User">
-                        <span class="mir-avatar" data-name="<?= htmlspecialchars($row['end_user']) ?>" aria-hidden="true"></span>
-                        <?= htmlspecialchars($row['end_user']) ?>
+                        <span class="mir-avatar" data-name="<?= htmlspecialchars(format_person_name($row['end_user']), ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></span>
+                        <?= htmlspecialchars(format_person_name($row['end_user']), ENT_QUOTES, 'UTF-8') ?>
                       </td>
                       <td data-label="Department">
                         <span class="mir-dept-pill" data-dept="<?= htmlspecialchars($row['department']) ?>">

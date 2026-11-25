@@ -343,7 +343,7 @@ $result = $stmt->get_result();
                 <?php while ($row = $result->fetch_assoc()):
                   $file_path = !empty($row['file_path']) ? '../uploads/announcements/' . basename($row['file_path']) : '';
                   $file_ext = $file_path ? strtolower(pathinfo($file_path, PATHINFO_EXTENSION)) : '';
-                  $poster = trim($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']);
+                  $poster = format_person_name(trim($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']));
                 ?>
                   <div class="ann-card announcement-card" id="announcement-<?php echo (int) $row['id']; ?>">
                     <span class="ann-card-dept">

@@ -715,7 +715,7 @@ $priority_tone = $has_priority ? tkt_priority_tone($ticket['priority']) : '';
             <div class="tkt-avatar"><?= htmlspecialchars(tkt_initials($ticket['user_name'])); ?></div>
             <div class="tkt-msg-head-text">
               <div class="tkt-msg-name">
-                <?= htmlspecialchars($ticket['user_name']); ?>
+                <?= htmlspecialchars(format_person_name($ticket['user_name']), ENT_QUOTES, 'UTF-8'); ?>
                 <span class="tkt-msg-role-tag">Requester</span>
               </div>
               <div class="tkt-msg-time">
@@ -809,7 +809,7 @@ $priority_tone = $has_priority ? tkt_priority_tone($ticket['priority']) : '';
           <h3 class="tkt-card-title"><i class="bx bx-user-check"></i> Assigned To</h3>
           <div class="tkt-assigned-badge <?= $ticket['mis_name'] ? '' : 'is-unassigned'; ?>">
             <i class="bx <?= $ticket['mis_name'] ? 'bx-headphone' : 'bx-user-x'; ?>"></i>
-            <?= $ticket['mis_name'] ? htmlspecialchars($ticket['mis_name']) : 'Unassigned'; ?>
+            <?= $ticket['mis_name'] ? htmlspecialchars(format_person_name($ticket['mis_name']), ENT_QUOTES, 'UTF-8') : 'Unassigned'; ?>
           </div>
         </div>
 
@@ -828,7 +828,7 @@ $priority_tone = $has_priority ? tkt_priority_tone($ticket['priority']) : '';
                   <?php foreach ($mis_personnel as $mis):
                     $selected = ($ticket['assigned_to'] == $mis['id']) ? 'selected' : ''; ?>
                     <option value="<?php echo $mis['id']; ?>" <?php echo $selected; ?>>
-                      <?php echo htmlspecialchars($mis['name']); ?>
+                      <?php echo htmlspecialchars(format_person_name($mis['name']), ENT_QUOTES, 'UTF-8'); ?>
                     </option>
                   <?php endforeach; ?>
                 </select>

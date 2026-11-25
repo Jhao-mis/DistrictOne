@@ -107,7 +107,7 @@ if (isset($_GET['availability_calendar'])) {
             'end' => substr($reservation['end_time'], 0, 5),
             'status' => $reservation['status'],
             'purpose' => $reservation['purpose'] ?? '',
-            'requested_by' => $reservation['requested_by'] ?? '',
+            'requested_by' => format_person_name($reservation['requested_by'] ?? ''),
         ];
     }
 
@@ -787,7 +787,7 @@ $stmt->close();
                         <input type="text" value="<?php echo htmlspecialchars($date_requested); ?>" readonly class="form-control">
 
                         <label>Requested By</label>
-                        <input type="text" value="<?php echo htmlspecialchars($user_name); ?>" readonly class="form-control">
+                        <input type="text" value="<?php echo htmlspecialchars(format_person_name($user_name), ENT_QUOTES, 'UTF-8'); ?>" readonly class="form-control">
 
                         <label>Department / Committee Requesting</label>
                         <select name="department" class="form-select" required>
@@ -860,7 +860,7 @@ $stmt->close();
                                     <?php $statusLower = strtolower($reservation['status']); ?>
                                     <tr data-reservation='<?= json_encode($reservation, JSON_HEX_APOS | JSON_HEX_QUOT); ?>'>
                                         <td><?= htmlspecialchars(date('Y-m-d', strtotime($reservation['date_requested']))); ?></td>
-                                        <td><?= htmlspecialchars($reservation['requested_by'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?= htmlspecialchars(format_person_name($reservation['requested_by']), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?= htmlspecialchars($reservation['reservation_date']); ?></td>
                                         <td><?= htmlspecialchars($reservation['start_time'] . " – " . $reservation['end_time']); ?></td>
                                         <td><?= htmlspecialchars($reservation['room']); ?></td>

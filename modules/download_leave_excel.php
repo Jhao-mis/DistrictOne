@@ -75,9 +75,9 @@ $stmt->close();
 
     // 6. Fill basic info
     $sheet->setCellValue('B11', $department);
-    $sheet->setCellValue('G11', $lastname);
-    $sheet->setCellValue('N11', $middlename);
-    $sheet->setCellValue('K11', $firstname);
+    $sheet->setCellValue('G11', format_person_name($lastname));
+    $sheet->setCellValue('N11', format_person_name($middlename));
+    $sheet->setCellValue('K11', format_person_name($firstname));
     $sheet->setCellValue('G12', "POSITION: " . $position);
     $sheet->setCellValue('M12', "SALARY: " . $salary);
     $sheet->setCellValue('C49', "6.C  NUMBER OF WORKING DAYS APPLIED FOR: " . $no_of_working_days);
@@ -143,7 +143,7 @@ $stmt->close();
     }
 
     // Full name & Date range
-    $sheet->setCellValue('M54', $firstname . ' ' . $middlename . ' ' . $lastname);
+    $sheet->setCellValue('M54', format_person_name($firstname . ' ' . $middlename . ' ' . $lastname));
     if (!empty($startDate) && !empty($endDate)) {
         $dateRange = date('m/d/Y', strtotime($startDate)) . ' - ' . date('m/d/Y', strtotime($endDate));
         $sheet->getStyle('C54')->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
@@ -153,7 +153,7 @@ $stmt->close();
     $sheet->setCellValue('A74', "This is a system-generated document.");
 
     // 8. Output Excel
-    $filename = "Leave Request " . $lastname . ".xls";
+    $filename = "Leave Request " . format_person_name($lastname) . ".xls";
     header('Content-Type: application/vnd.ms-excel');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Cache-Control: max-age=0');

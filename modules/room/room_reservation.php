@@ -109,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <input type="text" value="<?php echo $date_requested; ?>" readonly>
 
         <label>Requested By</label>
-        <input type="text" value="<?php echo $user_name; ?>" readonly>
+        <input type="text" value="<?php echo htmlspecialchars(format_person_name($user_name), ENT_QUOTES, 'UTF-8'); ?>" readonly>
 
         <label>Department/Committee Requesting</label>
         <select name="department" required>

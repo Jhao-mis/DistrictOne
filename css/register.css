@@ -1,3 +1,4 @@
+@import url('../assets/css/global-font.css');
  body {
      background-image: var(--auth-background-image, url('../assets/img/backgrounds/jan.jpg'));
      background-attachment: fixed;

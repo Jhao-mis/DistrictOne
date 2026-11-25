@@ -789,7 +789,7 @@ function splitFeedbackAction($action)
             <span class="vt-banner-id">Ticket #<?php echo htmlspecialchars($ticket['id']); ?></span>
             <h2><?php echo htmlspecialchars($ticket['subject']); ?></h2>
             <div class="vt-banner-meta">
-              <span><i class='bx bx-user'></i> <?php echo htmlspecialchars($ticket['user_name']); ?></span>
+              <span><i class='bx bx-user'></i> <?php echo htmlspecialchars(format_person_name($ticket['user_name']), ENT_QUOTES, 'UTF-8'); ?></span>
               <span><i class='bx bx-buildings'></i> <?php echo htmlspecialchars($ticket['user_department']); ?></span>
               <?php if (!empty($ticket['created_at'])): ?>
                 <span><i class='bx bx-calendar'></i> Opened <?php echo date('M j, Y', strtotime($ticket['created_at'])); ?></span>
@@ -803,7 +803,7 @@ function splitFeedbackAction($action)
             </span>
             <span class="badge badge-mis">
               <i class='bx bx-user-check'></i>
-              <?php echo $ticket['mis_name'] ? htmlspecialchars($ticket['mis_name']) : 'Unassigned'; ?>
+              <?php echo $ticket['mis_name'] ? htmlspecialchars(format_person_name($ticket['mis_name']), ENT_QUOTES, 'UTF-8') : 'Unassigned'; ?>
             </span>
           </div>
         </div>
@@ -817,7 +817,7 @@ function splitFeedbackAction($action)
             <div class="vt-meta-grid">
               <div class="vt-field" style="margin-bottom:0;">
                 <span class="vt-label">Submitted By</span>
-                <span class="vt-value"><?php echo htmlspecialchars($ticket['user_name']); ?></span>
+                <span class="vt-value"><?php echo htmlspecialchars(format_person_name($ticket['user_name']), ENT_QUOTES, 'UTF-8'); ?></span>
               </div>
               <div class="vt-field" style="margin-bottom:0;">
                 <span class="vt-label">Department</span>
@@ -847,7 +847,7 @@ function splitFeedbackAction($action)
                 <span class="vt-label">Assigned To</span>
                 <span class="badge badge-mis">
                   <i class='bx bx-user'></i>
-                  <?php echo $ticket['mis_name'] ? htmlspecialchars($ticket['mis_name']) : 'Unassigned'; ?>
+                  <?php echo $ticket['mis_name'] ? htmlspecialchars(format_person_name($ticket['mis_name']), ENT_QUOTES, 'UTF-8') : 'Unassigned'; ?>
                 </span>
               </div>
             </div>
@@ -893,7 +893,7 @@ function splitFeedbackAction($action)
               <div class="vt-locked">
                 <i class='bx bx-lock-alt'></i>
                 <strong>Assigned to another MIS staff</strong>
-                <span>This ticket is with <?php echo htmlspecialchars($ticket['mis_name']); ?>. You cannot update it.</span>
+                <span>This ticket is with <?php echo htmlspecialchars(format_person_name($ticket['mis_name']), ENT_QUOTES, 'UTF-8'); ?>. You cannot update it.</span>
               </div>
             <?php endif; ?>
 

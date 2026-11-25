@@ -68,7 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['download_pdf'])) {
     // Create new PDF document
     $pdf = new MYPDF();
     $pdf->SetCreator(PDF_CREATOR);
-    $pdf->SetAuthor("$firstname $middlename $lastname");
+    $formattedName = format_person_name("$firstname $middlename $lastname");
+    $pdf->SetAuthor($formattedName);
     $pdf->SetTitle('Notice of Meeting');
     $pdf->SetSubject('Meeting Notification');
 
@@ -130,7 +131,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['download_pdf'])) {
     if (!empty($attendees)) {
         foreach ($attendees as $index => $attendee) {
             $pdf->SetX(20); // Adjust the X position (smaller number moves it left)
-            $pdf->Cell(80, 8, ($index + 1) . ".) " . $attendee, 0, 0); // Attendee name
+            $pdf->Cell(80, 8, ($index + 1) . ".) " . format_person_name($attendee), 0, 0); // Attendee name
             $pdf->Cell(50, 8, "________________", 0, 0); // Received Notice line
             $pdf->Cell(50, 8, "________________", 0, 1); // Attendance line
         }
@@ -147,7 +148,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['download_pdf'])) {
     $pdf->SetFont('helvetica', '', 12);
     $pdf->Cell(0, 10, "Sincerely,", 0, 1);
 
-    $pdf->MultiCell(0, 5, "$firstname $middlename $lastname\n$department", 0, 'L');
+    $pdf->MultiCell(0, 5, "$formattedName\n$department", 0, 'L');
 
     $pdf->Ln(10);
 
@@ -755,14 +756,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         return;
                     }
 
-                    data.forEach(name => {
+                    data.forEach(suggestion => {
                         const item = document.createElement('button');
                         item.type = 'button';
                         item.className = 'list-group-item list-group-item-action';
-                        item.textContent = name;
+                        item.textContent = suggestion.label;
 
                         item.onclick = () => {
-                            input.value = name;
+                            input.value = suggestion.value;
                             suggestionBox.innerHTML = '';
                             suggestionBox.style.display = 'none';
                         };

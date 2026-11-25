@@ -910,7 +910,7 @@ foreach ($permissionGroups['MIS Access'] as $misPermission) {
                             <img src="<?= htmlspecialchars($finalPath) ?>" class="tk-user-avatar" alt="Profile">
                             <div>
                               <span class="tk-user-name d-block">
-                                <?= htmlspecialchars($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']) ?>
+                                <?= htmlspecialchars(format_person_name($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']), ENT_QUOTES, 'UTF-8') ?>
                               </span>
                               <span class="tk-user-handle"><?= htmlspecialchars($row['username']) ?></span>
                             </div>
@@ -989,7 +989,7 @@ foreach ($permissionGroups['MIS Access'] as $misPermission) {
                             <img src="<?= htmlspecialchars($finalPath) ?>" class="tk-user-avatar" alt="Profile">
                             <div>
                               <span class="tk-user-name d-block">
-                                <?= htmlspecialchars($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']) ?>
+                                <?= htmlspecialchars(format_person_name($row['firstname'] . ' ' . $row['middlename'] . ' ' . $row['lastname']), ENT_QUOTES, 'UTF-8') ?>
                               </span>
                               <span class="tk-user-handle"><?= htmlspecialchars($row['username']) ?></span>
                             </div>
@@ -1075,7 +1075,7 @@ foreach ($permissionGroups['MIS Access'] as $misPermission) {
                         <td>
                           <details class="permission-employee-details">
                             <summary>
-                              <strong><?= htmlspecialchars($accountName) ?></strong>
+                              <strong><?= htmlspecialchars(format_person_name($accountName), ENT_QUOTES, 'UTF-8') ?></strong>
                               <small class="d-block text-muted"><?= htmlspecialchars($account['username']) ?></small>
                             </summary>
                             <div class="permission-employee-access">

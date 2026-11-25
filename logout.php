@@ -75,6 +75,7 @@ function render_logout_transition(): void
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signing out…</title>
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/global-font.css">
     <style>
         html, body {
             margin: 0;

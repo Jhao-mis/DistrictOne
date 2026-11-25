@@ -30,8 +30,8 @@ if ($ticketResult) {
             'subject' => $row['subject'],
             'time' => $row['created_at'],
             'link' => '../super_admin/approveTicket.php?id=' . $row['id'],
-            'firstname' => $row['firstname'],
-            'lastname' => $row['lastname'],
+            'firstname' => format_person_name($row['firstname']),
+            'lastname' => format_person_name($row['lastname']),
             'created_at' => $row['created_at']
         ];
     }
@@ -62,8 +62,8 @@ if ($reservationResult) {
             'subject' => $row['subject'],
             'time' => $row['created_at'],
             'link' => '../super_admin/approveRoom.php?id=' . $row['id'],
-            'firstname' => $row['firstname'],
-            'lastname' => $row['lastname'],
+            'firstname' => format_person_name($row['firstname']),
+            'lastname' => format_person_name($row['lastname']),
             'created_at' => $row['created_at']
         ];
     }
@@ -112,8 +112,8 @@ if ($accountResult) {
             'subject' => 'Pending account verification',
             'time' => $createdAt,
             'link' => '../super_admin/accountManagement.php?id=' . $row['id'],
-            'firstname' => $row['firstname'],
-            'lastname' => $row['lastname'],
+            'firstname' => format_person_name($row['firstname']),
+            'lastname' => format_person_name($row['lastname']),
             'created_at' => $createdAt
         ];
     }

@@ -161,6 +161,7 @@ unset($_SESSION['success']);
 
   <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/global-font.css">
 
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
@@ -984,9 +985,8 @@ unset($_SESSION['success']);
   </script>
 
   <?php if (!empty($alertText) && $redirectFrom === 'verify'): ?>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    .swal2-popup.poppins-font { font-family: 'Poppins', sans-serif !important; }
+    .swal2-popup.public-sans-font { font-family: 'Public Sans', sans-serif !important; }
   </style>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -997,7 +997,7 @@ unset($_SESSION['success']);
         confirmButtonText: 'OK',
         confirmButtonColor: '#568df5',
         customClass: {
-          popup: 'poppins-font'
+          popup: 'public-sans-font'
         }
       });
     });

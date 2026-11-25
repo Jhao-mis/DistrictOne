@@ -43,6 +43,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room Reservation Dashboard</title>
     <link rel="stylesheet" href="../css/reservation_dashboard.css">
+    <link rel="stylesheet" href="../../assets/css/global-font.css">
     <script>
         // Auto-popup print for PDF generation
         function openPrintWindow(url) {
@@ -62,7 +63,7 @@ $conn->close();
 
 <div class="container">
     <h2>Room Reservation Dashboard</h2>
-    <h3>Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</h3>
+    <h3>Welcome, <?php echo htmlspecialchars(format_person_name($_SESSION['user_name']), ENT_QUOTES, 'UTF-8'); ?>!</h3>
 
     <?php if (count($reservations) > 0): ?>
         <table>

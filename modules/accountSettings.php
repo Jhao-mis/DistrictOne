@@ -406,17 +406,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="mb-3 col-md-6">
                       <label for="firstname" class="form-label">First Name</label>
                       <input class="form-control acc-readonly-field" type="text" id="firstname"
-                        value="<?php echo htmlspecialchars($firstname); ?>" readonly />
+                        value="<?php echo htmlspecialchars(format_person_name($firstname), ENT_QUOTES, 'UTF-8'); ?>" readonly />
                     </div>
                     <div class="mb-3 col-md-6">
                       <label for="middlename" class="form-label">Middle Name</label>
                       <input class="form-control acc-readonly-field" type="text" id="middlename"
-                        value="<?php echo htmlspecialchars($middlename); ?>" readonly />
+                        value="<?php echo htmlspecialchars(format_person_name($middlename), ENT_QUOTES, 'UTF-8'); ?>" readonly />
                     </div>
                     <div class="mb-3 col-md-6">
                       <label for="lastname" class="form-label">Last Name</label>
                       <input type="text" class="form-control acc-readonly-field" id="lastname"
-                        value="<?php echo htmlspecialchars($lastname); ?>" readonly />
+                        value="<?php echo htmlspecialchars(format_person_name($lastname), ENT_QUOTES, 'UTF-8'); ?>" readonly />
                     </div>
                     <div class="mb-3 col-md-6">
                       <label class="form-label" for="email">Email</label>

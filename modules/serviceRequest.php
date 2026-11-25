@@ -852,7 +852,7 @@ $total = count($all_tickets);
                       data-ticket-created="<?= date('Y-m-d H:i:s', strtotime($row['created_at'])) ?>"
                       data-ticket-updated="<?= $row['last_update'] ? date('Y-m-d H:i:s', strtotime($row['last_update'])) : 'No updates yet' ?>"
                       data-ticket-description="<?= htmlspecialchars($row['description'] ?? 'No description provided') ?>"
-                      data-ticket-name="<?= htmlspecialchars($row['submitted_by'] ?? $username) ?>"
+                      data-ticket-name="<?= htmlspecialchars(format_person_name($row['submitted_by'] ?? $username), ENT_QUOTES, 'UTF-8') ?>"
                       title="Click to view">
                       <td class="tk-id">#<?= $row['id'] ?></td>
                       <td class="tk-subject subject-col"><?= htmlspecialchars($row['subject']) ?></td>
