@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $_SESSION['alert'] = ['type' => 'error', 'message' => 'Invalid email format'];
-    header("Location: auth-forgot-password-basic.php");
+    header("Location: index.php?panel=forgot");
     exit();
   }
 
@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   if ($result->num_rows == 0) {
     $_SESSION['alert'] = ['type' => 'error', 'message' => 'Email not found'];
-    header("Location: auth-forgot-password-basic.php");
+    header("Location: index.php?panel=forgot");
     exit();
   }
 
@@ -51,7 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $stmt->bind_param("ssi", $token, $expires, $user_id);
   $stmt->execute();
 
-  $reset_link = "http://districtone.com/DistrictOne/reset_password.php?token=" . $token;
+  $appBaseUrl = rtrim($_ENV['APP_URL'] ?? 'http://districtone.com/districtone', '/');
+  $reset_link = $appBaseUrl . "/index.php?panel=reset&token=" . rawurlencode($token);
 
   $mail = new PHPMailer(true);
 
@@ -174,9 +175,12 @@ Manage Information Services Section
     $_SESSION['alert'] = ['type' => 'error', 'message' => 'Mailer Error'];
   }
 
-  header("Location: auth-forgot-password-basic.php");
+  header("Location: index.php?panel=forgot");
   exit();
 }
+
+header("Location: index.php?panel=forgot");
+exit();
 ?>
 
 <!DOCTYPE html>

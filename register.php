@@ -10,6 +10,11 @@ require_once 'lib/seasonal_theme.php';
 require_once 'lib/site_media.php';
 $loginBackground = site_media_login_background($conn);
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  header('Location: index.php?panel=register');
+  exit();
+}
+
 $alertType = $_SESSION['alertType'] ?? '';
 $alertText = $_SESSION['alertText'] ?? '';
 $redirectFrom = $_SESSION['redirectFrom'] ?? '';
@@ -20,27 +25,33 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT); // Enable error repor
 
 // ✅ $conn (MySQLi) is already available from db.php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $username = trim($_POST['username']);
-  $firstname = trim($_POST['firstname']);
-  $middlename = trim($_POST['middlename']);
-  $lastname = trim($_POST['lastname']);
-  $email = trim($_POST['email']);
-  $department = trim($_POST['department']);
-  $password = $_POST['password'];
-  $confirm_password = $_POST['confirm-password'];
+  $username = trim($_POST['username'] ?? '');
+  $firstname = trim($_POST['firstname'] ?? '');
+  $middlename = trim($_POST['middlename'] ?? '');
+  $lastname = trim($_POST['lastname'] ?? '');
+  $email = trim($_POST['email'] ?? '');
+  $department = trim($_POST['department'] ?? '');
+  $password = $_POST['password'] ?? '';
+  $confirm_password = $_POST['confirm-password'] ?? '';
   $VerificationCode = md5(rand()); // Random verification code
 
   // Check if all fields are filled
   if (empty($username) || empty($firstname) || empty($middlename) || empty($lastname) || empty($email) || empty($department) || empty($password) || empty($confirm_password)) {
-    $_SESSION['error'] = 'All fields must be completed before proceeding!';
-    header('Location: register.php');
+    $_SESSION['registrationError'] = 'All fields must be completed before proceeding!';
+    header('Location: index.php?panel=register');
+    exit();
+  }
+
+  if (empty($_POST['terms'])) {
+    $_SESSION['registrationError'] = 'Please accept the Terms and Conditions to create an account.';
+    header('Location: index.php?panel=register');
     exit();
   }
 
   // Validate email
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $_SESSION['error'] = 'Invalid email format!';
-    header('Location: register.php');
+    $_SESSION['registrationError'] = 'Invalid email format!';
+    header('Location: index.php?panel=register');
     exit();
   }
 
@@ -51,16 +62,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $stmt->store_result();
 
   if ($stmt->num_rows > 0) {
-    $_SESSION['error'] = 'This email or username is already taken.';
-    header('Location: register.php');
+    $_SESSION['registrationError'] = 'This email or username is already taken.';
+    header('Location: index.php?panel=register');
     exit();
   }
   $stmt->close();
 
   // Check if passwords match
   if ($password !== $confirm_password) {
-    $_SESSION['error'] = 'Passwords do not match.';
-    header('Location: register.php');
+    $_SESSION['registrationError'] = 'Passwords do not match.';
+    header('Location: index.php?panel=register');
     exit();
   }
 
@@ -125,18 +136,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ";
 
       if ($mail->send()) {
-        $_SESSION['success'] = 'Registration Successful! Wait for the admin`s approval to verify your account.';
+        $_SESSION['registrationSuccess'] = 'Registration Successful! Wait for the admin`s approval to verify your account.';
       } else {
-        $_SESSION['error'] = 'Your account is still pending admin approval.';
+        $_SESSION['registrationError'] = 'Your account is still pending admin approval.';
       }
     } catch (Exception $e) {
-      $_SESSION['error'] = 'Mailer Error: ' . $mail->ErrorInfo;
+      $_SESSION['registrationError'] = 'Mailer Error: ' . $mail->ErrorInfo;
     }
   } else {
-    $_SESSION['error'] = 'Database insert failed. Please try again.';
+    $_SESSION['registrationError'] = 'Database insert failed. Please try again.';
   }
 
 }
+
+header('Location: index.php?panel=register');
+exit();
 ?>
 
 <?php
