@@ -72,23 +72,27 @@ if (isset($_GET['availability_calendar'])) {
     $endDate = $monthEnd->format('Y-m-d');
     if ($room === 'all') {
         $stmt = $conn->prepare("
-            SELECT room, reservation_date, start_time, end_time, status, purpose
-            FROM room_reservations
-            WHERE reservation_date >= ?
-              AND reservation_date < ?
-              AND status IN ('Pending', 'Approved')
-            ORDER BY reservation_date, room, start_time, end_time
+            SELECT rr.room, rr.reservation_date, rr.start_time, rr.end_time, rr.status, rr.purpose,
+                   COALESCE(NULLIF(TRIM(CONCAT_WS(' ', NULLIF(u.firstname, ''), NULLIF(u.middlename, ''), NULLIF(u.lastname, ''))), ''), u.username) AS requested_by
+            FROM room_reservations rr
+            JOIN users u ON u.id = rr.user_id
+            WHERE rr.reservation_date >= ?
+              AND rr.reservation_date < ?
+              AND rr.status IN ('Pending', 'Approved')
+            ORDER BY rr.reservation_date, rr.room, rr.start_time, rr.end_time
         ");
         $stmt->bind_param('ss', $startDate, $endDate);
     } else {
         $stmt = $conn->prepare("
-            SELECT room, reservation_date, start_time, end_time, status, purpose
-            FROM room_reservations
-            WHERE room = ?
-              AND reservation_date >= ?
-              AND reservation_date < ?
-              AND status IN ('Pending', 'Approved')
-            ORDER BY reservation_date, start_time, end_time
+            SELECT rr.room, rr.reservation_date, rr.start_time, rr.end_time, rr.status, rr.purpose,
+                   COALESCE(NULLIF(TRIM(CONCAT_WS(' ', NULLIF(u.firstname, ''), NULLIF(u.middlename, ''), NULLIF(u.lastname, ''))), ''), u.username) AS requested_by
+            FROM room_reservations rr
+            JOIN users u ON u.id = rr.user_id
+            WHERE rr.room = ?
+              AND rr.reservation_date >= ?
+              AND rr.reservation_date < ?
+              AND rr.status IN ('Pending', 'Approved')
+            ORDER BY rr.reservation_date, rr.start_time, rr.end_time
         ");
         $stmt->bind_param('sss', $room, $startDate, $endDate);
     }
@@ -103,6 +107,7 @@ if (isset($_GET['availability_calendar'])) {
             'end' => substr($reservation['end_time'], 0, 5),
             'status' => $reservation['status'],
             'purpose' => $reservation['purpose'] ?? '',
+            'requested_by' => $reservation['requested_by'] ?? '',
         ];
     }
 
@@ -238,7 +243,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 // ==============================
 // 📋 FETCH USER RESERVATIONS
 // ==============================
-$sql = "SELECT * FROM room_reservations WHERE user_id = ? ORDER BY date_requested DESC";
+$sql = "
+    SELECT rr.*, COALESCE(NULLIF(TRIM(CONCAT_WS(' ', NULLIF(u.firstname, ''), NULLIF(u.middlename, ''), NULLIF(u.lastname, ''))), ''), u.username) AS requested_by
+    FROM room_reservations rr
+    JOIN users u ON u.id = rr.user_id
+    WHERE rr.user_id = ?
+    ORDER BY rr.date_requested DESC
+";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -669,6 +680,8 @@ $stmt->close();
         .availability-event-status.is-approved { background: var(--tk-success-soft); color: var(--tk-success-deep); }
         .availability-event-room { margin-top: 8px; color: var(--tk-text); font-size: 11px; font-weight: 700; }
         .availability-event-time { margin-top: 8px; color: var(--tk-primary-deep); font-size: 11px; font-weight: 800; }
+        .availability-event-requester-label { margin-top: 10px; color: var(--tk-text-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
+        .availability-event-requester { margin: 4px 0 0; color: var(--tk-text); font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
         .availability-event-purpose-label { margin-top: 10px; color: var(--tk-text-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
         .availability-event-purpose { margin: 6px 0 0; color: var(--tk-text-muted); font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
         .availability-empty { padding: 18px 4px; color: var(--tk-text-muted); font-size: 12px; line-height: 1.5; }
@@ -752,6 +765,8 @@ $stmt->close();
                             </div>
                             <div class="availability-event-room" id="availabilityEventRoom"></div>
                             <div class="availability-event-time" id="availabilityEventTime"></div>
+                            <div class="availability-event-requester-label">Requested by</div>
+                            <p class="availability-event-requester" id="availabilityEventRequester"></p>
                             <div class="availability-event-purpose-label">Event / purpose</div>
                             <p class="availability-event-purpose" id="availabilityEventPurpose"></p>
                         </div>
@@ -832,6 +847,7 @@ $stmt->close();
                             <thead>
                                 <tr>
                                     <th>Date Requested</th>
+                                    <th>Requested By</th>
                                     <th>Reservation Date</th>
                                     <th>Time</th>
                                     <th>Room</th>
@@ -844,6 +860,7 @@ $stmt->close();
                                     <?php $statusLower = strtolower($reservation['status']); ?>
                                     <tr data-reservation='<?= json_encode($reservation, JSON_HEX_APOS | JSON_HEX_QUOT); ?>'>
                                         <td><?= htmlspecialchars(date('Y-m-d', strtotime($reservation['date_requested']))); ?></td>
+                                        <td><?= htmlspecialchars($reservation['requested_by'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?= htmlspecialchars($reservation['reservation_date']); ?></td>
                                         <td><?= htmlspecialchars($reservation['start_time'] . " – " . $reservation['end_time']); ?></td>
                                         <td><?= htmlspecialchars($reservation['room']); ?></td>
@@ -1012,6 +1029,7 @@ $stmt->close();
             const availabilityEventStatus = document.getElementById('availabilityEventStatus');
             const availabilityEventRoom = document.getElementById('availabilityEventRoom');
             const availabilityEventTime = document.getElementById('availabilityEventTime');
+            const availabilityEventRequester = document.getElementById('availabilityEventRequester');
             const availabilityEventPurpose = document.getElementById('availabilityEventPurpose');
             const today = new Date();
             let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -1028,13 +1046,14 @@ $stmt->close();
                 const slot = document.createElement(reservation ? 'button' : 'div');
                 if (reservation) {
                     slot.type = 'button';
-                    slot.setAttribute('aria-label', `${reservation.room}, ${reservation.start} to ${reservation.end}, ${reservation.status}. Select to view reservation details.`);
+                    slot.setAttribute('aria-label', `${reservation.room}, ${reservation.start} to ${reservation.end}, ${reservation.status}, requested by ${reservation.requested_by || 'unknown user'}. Select to view reservation details.`);
                     slot.addEventListener('click', () => {
                         availabilityEventDetail.hidden = false;
                         availabilityEventStatus.textContent = reservation.status;
                         availabilityEventStatus.classList.toggle('is-approved', reservation.status === 'Approved');
                         availabilityEventRoom.textContent = reservation.room;
                         availabilityEventTime.textContent = `${reservation.start} – ${reservation.end}`;
+                        availabilityEventRequester.textContent = reservation.requested_by || 'Unknown user';
                         availabilityEventPurpose.textContent = reservation.purpose || 'No purpose provided.';
                     });
                 }
